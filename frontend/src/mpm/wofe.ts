@@ -14,9 +14,12 @@ export interface Counts {
   nBbarDbar: number;
 }
 
-/** the 2x2 contingency table of a binary pattern B vs the deposit set D, over the active cells (missing cells excluded). */
-export function contingency2x2(cube: Cube, pattern: Binarized): Counts {
-  const dep = depositSet(cube);
+/**
+ * the 2x2 contingency table of a binary pattern B vs the deposit set D, over the active cells (missing cells excluded).
+ * `deposits` overrides the cube's deposit set (used for spatial-holdout / training-fold WofE).
+ */
+export function contingency2x2(cube: Cube, pattern: Binarized, deposits?: Set<number>): Counts {
+  const dep = deposits ?? depositSet(cube);
   let nBD = 0;
   let nBDbar = 0;
   let nBbarD = 0;
@@ -73,9 +76,9 @@ export function weightsFromCounts(layerId: string, threshold: number, c: Counts)
   };
 }
 
-/** convenience: weights for a binarized pattern over a cube. */
-export function weights(cube: Cube, pattern: Binarized): WofEWeights {
-  return weightsFromCounts(pattern.layerId, pattern.threshold, contingency2x2(cube, pattern));
+/** convenience: weights for a binarized pattern over a cube (optional deposit-set override for holdout folds). */
+export function weights(cube: Cube, pattern: Binarized, deposits?: Set<number>): WofEWeights {
+  return weightsFromCounts(pattern.layerId, pattern.threshold, contingency2x2(cube, pattern, deposits));
 }
 
 /** prior log-odds of a deposit in a random cell: ln( N(D) / (N(S) - N(D)) ). */
@@ -95,10 +98,11 @@ export function posterior(
   patterns: Binarized[],
   ws: WofEWeights[],
   weightScale?: Record<string, number>,
+  deposits?: Set<number>,
 ): Posterior {
   const n = cube.nx * cube.ny;
   const nS = nCells(cube);
-  const nD = depositSet(cube).size;
+  const nD = (deposits ?? depositSet(cube)).size;
   const pLogit = Math.log(nD / (nS - nD));
   const sPrior2 = 1 / nD + 1 / (nS - nD);
 

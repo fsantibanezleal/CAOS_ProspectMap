@@ -38,7 +38,7 @@ export function spatialBlockFolds(cube: Cube, k: number, blockCells: number): Fo
  * scoreFn, then record the held-out cells' scores. Returns the held-out score array (assembled across folds) and its
  * ROC AUC vs the true deposit labels — the honest, leakage-controlled skill estimate.
  */
-export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): number {
+export function crossValScores(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): Float64Array {
   const n = cube.nx * cube.ny;
   const dep = depositSet(cube);
   const heldOut = new Float64Array(n).fill(NaN);
@@ -49,9 +49,14 @@ export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trai
     const score = scoreFn(trainDep);
     for (const i of maskCells(cube)) if (folds[i] === f) heldOut[i] = score[i];
   }
+  return heldOut;
+}
+
+export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): number {
+  const heldOut = crossValScores(cube, folds, k, scoreFn);
   // AUC over the cells that got a held-out score
   const evalCube: Cube = { ...cube, maskIdx: maskCells(cube).filter((i) => !Number.isNaN(heldOut[i])) };
-  return rocAuc(evalCube, heldOut, dep);
+  return rocAuc(evalCube, heldOut, depositSet(cube));
 }
 
 /**

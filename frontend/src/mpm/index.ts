@@ -17,3 +17,7 @@ export { captureCurve, rocAuc, captureAt } from './validate.ts';
 export { randomFolds, spatialBlockFolds, crossValAuc, nearestDepositScore } from './cv.ts';
 export { makeSyntheticArea } from './synth.ts';
 export type { SynthSpec, SynthLayerSpec } from './synth.ts';
+export { analyzeCase } from './analyze.ts';
+export type { CaseAnalysis, LayerResult } from './analyze.ts';
+export { CASES, caseById, CAT_TERRANE, CAT_DATA, CAT_CONTROL } from './cases.ts';
+export type { MPMCase } from './cases.ts';

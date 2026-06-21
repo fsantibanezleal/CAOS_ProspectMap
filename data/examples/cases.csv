@@ -1,0 +1,11 @@
+case_id,nx,ny,cell_km,n_layers,n_deposits,real_or_synthetic,deposit_type
+K-PORPHYRY,100,100,1.0,4,85,synthetic,porphyry Cu (synthetic)
+K-OROGENIC,100,100,1.0,4,85,synthetic,orogenic Au (synthetic)
+K-VMS,100,100,1.0,4,85,synthetic,VMS (synthetic)
+K-IOCG,100,100,1.0,4,85,synthetic,IOCG (synthetic)
+D-RICH,100,100,1.0,4,85,synthetic,
+D-SPARSE,100,100,1.0,4,85,synthetic,
+C-NEGATIVE,100,100,1.0,4,85,analytic control,
+C-CIVIOLATE,100,100,1.0,3,85,analytic control,
+C-RECOVER,100,100,1.0,4,85,analytic control,
+C-SATURATE,100,100,1.0,1,85,analytic control,
