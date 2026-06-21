@@ -1,10 +1,10 @@
 # Frameworks
 
-One card per research-chosen engine/library — **the deep research, made binding**. Every engine the pipeline uses
-gets a card here AND an exact pin in the matching `requirements-*.txt`. No hand-rolled toy substitute for a SOTA
-engine the research prescribed.
+The research-chosen methods + libraries ProspectMap actually uses (each one is used by the code, not aspirational).
 
-- [00 — card TEMPLATE](frameworks/00_TEMPLATE.md) — copy per engine to `frameworks/<NN>_<tool>/<tool>.md`
-
-*(The template's EXAMPLE engine is numpy-only SIR, so it ships no SOTA card. A real product adds e.g.
-`01_yade/`, `02_ortools/`, `03_mintpy/`, `04_torch/`.)*
+- [01 - Weights of Evidence + CI + logistic](frameworks/01_wofe.md) - the per-layer weights, the conditional-
+  independence machinery, the logistic-regression generalization, and the honest spatial-CV validation.
+- [02 - the visualisation stack](frameworks/02_viz.md) - the canvas prospectivity raster + the capture/ROC charts
+  (uPlot) and the shared `@fasl-work/caos-app-shell` (+ the i Architecture modal).
+- [03 - the learned models](frameworks/03_torch-onnx.md) - the mpm-classifier + the geology-ood AE,
+  torch -> ONNX -> onnxruntime-web, with the honest spatial-CV-vs-WofE head-to-head.

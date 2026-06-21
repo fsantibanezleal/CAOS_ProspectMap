@@ -1,16 +1,19 @@
 # The live-vs-precompute gate
 
-`data-pipeline/pmlab/core/gate.py :: classify_lane()`. A case runs **live** in the browser (Pyodide) iff —
-by MEASUREMENT, never by hand-wave:
+`data-pipeline/pmlab/core/gate.py :: classify_lane()`. A case runs **live** in the browser iff — by MEASUREMENT,
+never by hand-wave:
 
-- it is **pure-Python**, AND
-- its wheels are a subset of the Pyodide-safe set (`LIVE_WHEELS`, e.g. `{numpy}`), AND
-- `run_ms ≤ RUN_MS_GATE` (interaction budget), AND
-- `trace_bytes ≤ TRACE_BYTES_GATE` (small artifact).
+- it is **client-side** (no server needed), AND
+- its runtimes are a subset of the deployed client set (`LIVE_RUNTIMES = {ts-mpm, onnxruntime-web}`), AND
+- `run_ms <= RUN_MS_GATE` (interaction budget), AND
+- `trace_bytes <= TRACE_BYTES_GATE` (small artifact).
 
-Otherwise the case is **precompute**: the offline pipeline bakes the artifact and the SPA replays it. Either way,
-a committed artifact always exists, so the site replays instantly on first paint (ADR-0054).
+ProspectMap's live lane is the dependency-free TypeScript WofE engine (`frontend/src/mpm/`) plus the learned
+classifier + the geology OOD autoencoder via onnxruntime-web. A teaching-scale WofE recompute is milliseconds and the
+traces are small, so every case passes and is classified `live`. Otherwise a case would be **precompute**: the offline
+pipeline bakes the artifact and the SPA replays it. Either way a committed artifact always exists, so the site replays
+instantly on first paint (ADR-0054).
 
-The verdict + the measured numbers are written into the manifest (`gate` field) and CI fails if `manifest.lane`
-disagrees with the gate — so a heavy model can never be mislabeled "live". The EXAMPLE SIR case is pure-Python +
-numpy + small ⇒ classified `live`.
+The verdict + the measured budgets are written into the manifest (`gate` field) and CI fails if `manifest.lane`
+disagrees with the gate — so a case can never be mislabeled "live".
+"""
