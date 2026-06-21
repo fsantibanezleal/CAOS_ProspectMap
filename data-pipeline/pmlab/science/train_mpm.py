@@ -137,6 +137,9 @@ def train_ood(X: np.ndarray, mu: np.ndarray, sd: np.ndarray, in_eval: np.ndarray
     scores = np.concatenate([in_scores, ood_scores])
     auc = _auc(labels, scores)
 
+    # export wrapper: RAW features -> standardise -> AE -> the standardized-space reconstruction MSE (the anomaly score
+    # itself, [batch, 1]). Computing it INSIDE the ONNX means the browser reads an interpretable, correctly-scaled score
+    # directly (the SAME quantity used for the AUC + threshold above) — no client-side scaler needed.
     class AEExport(nn.Module):
         def __init__(self, core: OODAE) -> None:
             super().__init__()
@@ -145,9 +148,24 @@ def train_ood(X: np.ndarray, mu: np.ndarray, sd: np.ndarray, in_eval: np.ndarray
             self.register_buffer("sd_x", torch.from_numpy(sd.astype(np.float32)))
 
         def forward(self, x):
-            return self.core((x - self.mu_x) / self.sd_x)
+            xs = (x - self.mu_x) / self.sd_x
+            r = self.core(xs)
+            return ((r - xs) ** 2).mean(dim=1, keepdim=True)
 
     return {"model": AEExport(net), "auc": round(auc, 4), "nEval": int(len(scores)), "threshold": round(threshold, 6)}
+
+
+def _strip_metadata(path: Path) -> None:
+    """Remove any machine-specific provenance an ONNX exporter may bake in (node metadata_props / doc_strings can carry
+    absolute source paths) — keeps the committed ONNX clean (base-integrity guard) and reproducible across machines."""
+    import onnx
+    m = onnx.load(str(path))
+    m.doc_string = ""
+    m.graph.doc_string = ""
+    for node in m.graph.node:
+        del node.metadata_props[:]
+        node.doc_string = ""
+    onnx.save(m, str(path))
 
 
 def export_onnx(model: nn.Module, n_in: int, in_name: str, out_name: str, path: Path) -> None:
@@ -155,6 +173,7 @@ def export_onnx(model: nn.Module, n_in: int, in_name: str, out_name: str, path: 
     dummy = torch.zeros(1, n_in)
     torch.onnx.export(model, dummy, str(path), input_names=[in_name], output_names=[out_name],
                       dynamic_axes={in_name: {0: "batch"}, out_name: {0: "batch"}}, opset_version=17)
+    _strip_metadata(path)
 
 
 def main() -> None:

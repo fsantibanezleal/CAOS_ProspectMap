@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tabs, useShellLang } from '@fasl-work/caos-app-shell';
 import {
-  analyzeCase, bestWeights, CASES, caseById, ciCheck, depositSet, fitLR, makeSyntheticArea,
+  analyzeCase, bestWeights, CASES, caseById, ciCheck, depositSet, fitLR, getLayer, makeSyntheticArea,
   maskCells, posterior, predictLR, type MPMCase,
 } from '../mpm/index.ts';
-import { loadLearned, loadManifest, type LearnedFile } from '../lib/artifacts.ts';
-import type { CaseManifest } from '../lib/contract.types.ts';
+import { loadLearned, type LearnedFile } from '../lib/artifacts.ts';
+import { MPM_FEATURES } from '../lib/learned.ts';
+import { runClassifier, runOod } from '../lib/ort.ts';
 import { MapView } from '../viz/MapView.tsx';
 import { CurveChart } from '../viz/CurveChart.tsx';
 
@@ -14,7 +15,7 @@ const CATS = [
   'data / validation regime (evidence richness)',
   'control (oracle / negative control)',
 ];
-type Method = 'wofe' | 'logistic' | 'learned' | 'ood';
+type Method = 'wofe' | 'logistic';
 const pct = (v: number, n = 1) => `${(v * 100).toFixed(n)}%`;
 
 // resample a capture curve (areaFrac, captureFrac) onto a common x grid for the chart
@@ -30,8 +31,10 @@ export default function Tool() {
   const [caseId, setCaseId] = useState('K-PORPHYRY');
   const [layerOff, setLayerOff] = useState<Record<string, boolean>>({});
   const [method, setMethod] = useState<Method>('wofe');
-  const [manifest, setManifest] = useState<CaseManifest | null>(null);
   const [learned, setLearned] = useState<LearnedFile | null>(null);
+  const [learnedField, setLearnedField] = useState<Float64Array | null>(null);
+  const [oodField, setOodField] = useState<{ field: Float64Array; max: number; offFrac: number } | null>(null);
+  const oodThr = (learned?.ood as { threshold?: number } | undefined)?.threshold ?? null;
 
   const theCase = useMemo<MPMCase>(() => caseById(caseId), [caseId]);
   const cube = useMemo(() => makeSyntheticArea(theCase.spec).cube, [theCase]);
@@ -61,8 +64,42 @@ export default function Tool() {
   }, [method, post, lrField]);
 
   useEffect(() => { setLayerOff({}); }, [caseId]);
-  useEffect(() => { loadManifest(caseId).then(setManifest).catch(() => setManifest(null)); }, [caseId]);
   useEffect(() => { loadLearned().then(setLearned).catch(() => setLearned(null)); }, []);
+
+  // the two learned models, run LIVE over the cube's cells (onnxruntime-web, batched): the mpm-classifier paints an
+  // alternative prospectivity map (the What-if tool); the geology OOD-AE paints the per-cell anomaly map (the Anomaly
+  // guard). Graceful — if the ONNX are absent the fields stay null and the tools show the honest pending state.
+  useEffect(() => {
+    let cancel = false;
+    setLearnedField(null);
+    setOodField(null);
+    const cells = maskCells(cube);
+    const F = MPM_FEATURES.length;
+    const rows = new Float32Array(cells.length * F);
+    for (let r = 0; r < cells.length; r++) {
+      for (let j = 0; j < F; j++) {
+        const v = getLayer(cube, MPM_FEATURES[j]).values[cells[r]];
+        rows[r * F + j] = Number.isNaN(v) ? 0 : v;
+      }
+    }
+    Promise.all([runClassifier(rows, cells.length), runOod(rows, cells.length)]).then(([pc, mse]) => {
+      if (cancel) return;
+      if (pc) {
+        const f = new Float64Array(cube.nx * cube.ny);
+        for (let r = 0; r < cells.length; r++) f[cells[r]] = pc[r];
+        setLearnedField(f);
+      }
+      if (mse) {
+        const f = new Float64Array(cube.nx * cube.ny);
+        let max = 0;
+        let off = 0;
+        const thr = (learned?.ood as { threshold?: number } | undefined)?.threshold ?? Infinity;
+        for (let r = 0; r < cells.length; r++) { f[cells[r]] = mse[r]; if (mse[r] > max) max = mse[r]; if (mse[r] > thr) off++; }
+        setOodField({ field: f, max, offFrac: off / Math.max(1, cells.length) });
+      }
+    });
+    return () => { cancel = true; };
+  }, [cube, activeIds, learned]);
 
   const Kpi = ({ label, value }: { label: string; value: string }) => (
     <div className="pf-kpi"><div className="pf-kpi-v">{value}</div><div className="pf-kpi-l">{label}</div></div>
@@ -92,6 +129,10 @@ export default function Tool() {
     }
     return { tpr, fpr };
   }, [cube, map]);
+
+  const clf = learned?.classifier as {
+    spatial_cv?: Record<string, number>; random_cv?: Record<string, number>; inflation_gap?: number;
+  } | undefined;
 
   const tabs = [
     {
@@ -224,56 +265,60 @@ export default function Tool() {
       ),
     },
     {
-      id: 'learned', label: es ? 'Modelos aprendidos' : 'Learned models',
+      id: 'whatif', label: es ? 'What-if (MLP)' : 'What-if (MLP)',
       content: (
         <div className="pf-vizstack">
-          {learned ? (
-            <>
-              <table className="cmp-table">
-                <thead><tr><th>{es ? 'modelo' : 'model'}</th><th>{es ? 'métrica (spatial holdout)' : 'metric (spatial holdout)'}</th><th>{es ? 'valor' : 'value'}</th></tr></thead>
-                <tbody>
-                  <tr><td>{es ? 'clasificador MPM' : 'mpm-classifier'}</td><td>ROC AUC</td><td><b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? '—')}</b></td></tr>
-                  <tr><td>{es ? 'OOD de geología' : 'geology-ood'}</td><td>AUC</td><td><b>{learned.ood.auc.toFixed(3)}</b></td></tr>
-                </tbody>
-              </table>
-              <p className="pf-cap">{learned.honesty}</p>
-            </>
-          ) : (
+          <div className="pf-plot-t">{es
+            ? 'El clasificador MLP aprendido pinta un mapa de prospectividad ALTERNATIVO — compáralo EN VIVO con el WofE de caja blanca, medido en el MISMO holdout espacial.'
+            : 'The learned MLP classifier paints an ALTERNATIVE prospectivity map — compare it LIVE to the white-box WofE, measured on the SAME spatial holdout.'}</div>
+          {!learnedField ? (
             <div className="pf-pending">
-              <strong>{es ? 'Modelos aprendidos: pendientes de entrenamiento' : 'Learned models: pending training'}</strong>
-              <p>{es ? 'Corre `python -m pmlab.pipeline all --retrain` para entrenar el clasificador MPM + el OOD-AE de geología (torch → ONNX). El App usa el WofE EXACTO de caja blanca EN VIVO mientras tanto.' : 'Run `python -m pmlab.pipeline all --retrain` to train the mpm-classifier + the geology OOD-AE (torch → ONNX). The App uses the EXACT white-box WofE LIVE meanwhile.'}</p>
+              <strong>{es ? 'Clasificador: pendiente de entrenamiento' : 'Classifier: pending training'}</strong>
+              <p>{es ? 'Corre `python -m pmlab.pipeline all --retrain` para entrenar el clasificador MPM (torch → ONNX). El WofE de caja blanca corre EN VIVO mientras tanto.' : 'Run `python -m pmlab.pipeline all --retrain` to train the mpm-classifier (torch → ONNX). The white-box WofE runs LIVE meanwhile.'}</p>
             </div>
+          ) : (
+            <>
+              <MapView nx={cube.nx} ny={cube.ny} field={learnedField} range={[0, 1]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel="P(MLP)" />
+              <div className="pf-kpis">
+                <Kpi label={es ? 'MLP spatial-CV AUC' : 'MLP spatial-CV AUC'} value={String(clf?.spatial_cv?.mlp_roc_auc ?? '—')} />
+                <Kpi label="WofE spatial-CV AUC" value={String(clf?.spatial_cv?.wofe_roc_auc ?? '—')} />
+                <Kpi label={es ? 'CV aleatorio (inflado)' : 'random-CV (inflated)'} value={String(clf?.random_cv?.mlp_roc_auc ?? '—')} />
+                <Kpi label={es ? 'gap de inflación' : 'inflation gap'} value={String(clf?.inflation_gap ?? '—')} />
+              </div>
+              <p className="pf-note">{es
+                ? 'El WofE de caja blanca es la autoridad interpretable; el MLP gana su lugar por capturar interacciones multi-capa que la forma CI de WofE omite, medido en el mismo holdout espacial — no por una victoria fabricada.'
+                : 'The white-box WofE is the interpretable authority; the MLP earns its place by capturing multi-layer interactions the CI form of WofE misses, measured on the same spatial holdout — not a fabricated win.'}</p>
+            </>
           )}
         </div>
       ),
     },
     {
-      id: 'contract', label: es ? 'Contrato · gate' : 'Contract · gate',
+      id: 'anomaly', label: es ? 'Anomalía (AE)' : 'Anomaly (AE)',
       content: (
         <div className="pf-vizstack">
-          {manifest ? (
+          <div className="pf-plot-t">{es
+            ? 'El autoencoder de geología pinta el mapa de anomalía por celda (error de reconstrucción): dónde la evidencia está FUERA del envolvente entrenado — "no confíes en el clasificador bajo cobertura".'
+            : 'The geology autoencoder paints the per-cell anomaly map (reconstruction error): where the evidence is OUTSIDE the trained envelope — "do not trust the classifier under cover".'}</div>
+          {!oodField ? (
+            <div className="pf-pending">
+              <strong>{es ? 'Autoencoder OOD: pendiente de entrenamiento' : 'OOD autoencoder: pending training'}</strong>
+              <p>{es ? 'Entrénalo con `--retrain`. El WofE de caja blanca corre en vivo mientras tanto.' : 'Train it with `--retrain`. The white-box WofE runs live meanwhile.'}</p>
+            </div>
+          ) : (
             <>
+              <MapView nx={cube.nx} ny={cube.ny} field={oodField.field} range={[0, Math.max(oodThr ?? 0, oodField.max)]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel="anomaly" />
               <div className="pf-kpis">
-                <Kpi label="lane" value={manifest.lane} />
-                <Kpi label="runtimes" value={manifest.gate.runtimes.join(', ')} />
-                <Kpi label={es ? 'bytes traza' : 'trace bytes'} value={`${manifest.gate.trace_bytes}`} />
+                <Kpi label={es ? 'umbral (p95 in-dist)' : 'threshold (in-dist p95)'} value={oodThr != null ? oodThr.toFixed(2) : '—'} />
+                <Kpi label={es ? '% celdas fuera de envolvente' : '% cells off-envelope'} value={pct(oodField.offFrac)} />
+                <Kpi label="OOD AUC" value={learned ? learned.ood.auc.toFixed(3) : '—'} />
               </div>
-              {manifest.flags.length > 0 && <p className="pf-note">flags: {JSON.stringify(manifest.flags)}</p>}
-              <p className="pf-note">{manifest.honesty}</p>
+              <p className="pf-note">{es
+                ? 'En estos casos sintéticos la geología es in-envelope (pocas celdas sobre el umbral). El guardia importa en dato real bajo cobertura, donde la evidencia se aleja de la distribución de entrenamiento.'
+                : 'In these synthetic cases the geology is in-envelope (few cells above the threshold). The guard matters on real data under cover, where the evidence drifts from the training distribution.'}</p>
             </>
-          ) : <p className="pf-note">{es ? 'cargando manifiesto…' : 'loading manifest…'}</p>}
+          )}
         </div>
-      ),
-    },
-    {
-      id: 'raw', label: es ? 'Traza' : 'Trace',
-      content: (
-        <pre className="codeblock" style={{ maxHeight: 360 }}>{JSON.stringify({
-          case: theCase.id, activeLayers: activeIds, nDeposits: cube.depositIdx.length,
-          rocAuc: analysis.rocAuc, captureAt10: analysis.capture.prediction.captureAt10,
-          ci: { T: ci.T, nD: ci.nD, ciRatio: ci.ciRatio, z: ci.z },
-          cv: analysis.cv, lr: analysis.lr,
-        }, null, 2)}</pre>
       ),
     },
   ];

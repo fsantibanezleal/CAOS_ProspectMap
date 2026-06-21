@@ -12,8 +12,19 @@ ort.env.wasm.numThreads = 1;
 const base = () => import.meta.env.BASE_URL || '/';
 const sessions: Record<string, Promise<ort.InferenceSession | null>> = {};
 
+// ONE global serialization chain for ALL onnxruntime-web work (session creation AND inference). The WASM EP runs
+// single-threaded and ships TWO models here (the mpm-classifier + the geology OOD autoencoder) that the App queries
+// when you switch the map method; without a global lock their concurrent create()/run() calls race the single WASM
+// runtime and throw "Session already started" / "Session mismatch". Serialising every op end-to-end removes the race.
+let ortChain: Promise<unknown> = Promise.resolve();
+function serial<T>(fn: () => Promise<T>): Promise<T> {
+  const next = ortChain.then(fn, fn);
+  ortChain = next.catch(() => {});
+  return next;
+}
+
 function get(file: string): Promise<ort.InferenceSession | null> {
-  return (sessions[file] ??= (async () => {
+  return (sessions[file] ??= serial(async () => {
     try {
       const head = await fetch(`${base()}${file}`, { method: 'HEAD' });
       if (!head.ok) return null;
@@ -21,18 +32,13 @@ function get(file: string): Promise<ort.InferenceSession | null> {
     } catch {
       return null;
     }
-  })());
+  }));
 }
 
 export const classifierAvailable = async () => (await get('mpm-classifier.onnx')) != null;
 
-// onnxruntime-web sessions are not re-entrant; serialise runs per file.
-const runChain: Record<string, Promise<unknown>> = {};
-async function runSerial(file: string, s: ort.InferenceSession, feeds: Record<string, ort.Tensor>) {
-  const prev = runChain[file] ?? Promise.resolve();
-  let release!: () => void;
-  runChain[file] = new Promise<void>((r) => { release = r; });
-  try { await prev.catch(() => {}); return await s.run(feeds); } finally { release(); }
+async function runSerial(_file: string, s: ort.InferenceSession, feeds: Record<string, ort.Tensor>) {
+  return serial(() => s.run(feeds));
 }
 
 /** the per-cell evidence feature vector in the SOURCE-OF-TRUTH order (model/learned.py :: MPM_FEATURES). */
@@ -46,4 +52,14 @@ export async function runClassifier(rows: Float32Array, nRows: number): Promise<
   if (!s) return null;
   const out = await runSerial('mpm-classifier.onnx', s, { x: new ort.Tensor('float32', rows, [nRows, N_FEATURES]) });
   return out.p.data as Float32Array;
+}
+
+/** geology OOD autoencoder over a batch of cells: feature rows -> the standardized-space reconstruction MSE (the
+ * per-cell anomaly score, computed inside the ONNX). High = the evidence is out-of-envelope (the classifier is
+ * extrapolating "under cover"). null if the model isn't trained. */
+export async function runOod(rows: Float32Array, nRows: number): Promise<Float32Array | null> {
+  const s = await get('geology-ood.onnx');
+  if (!s) return null;
+  const out = await runSerial('geology-ood.onnx', s, { x: new ort.Tensor('float32', rows, [nRows, N_FEATURES]) });
+  return out.xr.data as Float32Array;
 }
