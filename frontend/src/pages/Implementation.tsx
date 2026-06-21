@@ -3,9 +3,9 @@ import { Callout, useShellLang } from '@fasl-work/caos-app-shell';
 export default function Implementation() {
   const es = useShellLang() === 'es';
   return (
-    <article className="pf-doc">
+    <article className="page-body prose">
       <h1>{es ? 'Implementación' : 'Implementation'}</h1>
-      <p className="pf-lead">{es
+      <p className="lede">{es
         ? 'Un motor TypeScript sin dependencias corre en vivo en el navegador Y en el bake offline; dos contratos de datos en Python + un pipeline numpy-light + un carril torch→ONNX. Cómputo pesado offline → artefacto compacto → cliente delgado.'
         : 'A dependency-free TypeScript engine runs live in the browser AND in the offline bake; two Python data contracts + a numpy-light pipeline + a torch→ONNX lane. Heavy compute offline → compact artifact → thin client.'}</p>
 

@@ -30,9 +30,9 @@ export default function Experiments() {
   }, []);
 
   return (
-    <article className="pf-doc">
+    <article className="page-body prose">
       <h1>{es ? 'Experimentos' : 'Experiments'}</h1>
-      <p className="pf-lead">{es
+      <p className="lede">{es
         ? 'Los 10 casos sintéticos, horneados por el motor WofE. Cada fila lleva su ROC AUC, capture@10% (spatial CV), el CI ratio (+ z del omnibus), el gap de inflación random−spatial y el AUC de la regresión logística.'
         : 'The 10 synthetic cases, baked by the WofE engine. Each row carries its ROC AUC, capture@10% (spatial CV), the CI ratio (+ omnibus z), the random−spatial inflation gap and the logistic-regression AUC.'}</p>
 

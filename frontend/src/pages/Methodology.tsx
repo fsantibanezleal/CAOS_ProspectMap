@@ -3,9 +3,9 @@ import { Callout, Cite, Equation, InlineMath, ReferenceList, Tabs, useShellLang 
 export default function Methodology() {
   const es = useShellLang() === 'es';
   return (
-    <article className="pf-doc">
+    <article className="page-body prose">
       <h1>{es ? 'Metodología' : 'Methodology'}</h1>
-      <p className="pf-lead">{es
+      <p className="lede">{es
         ? 'Weights of Evidence → el test de independencia condicional → la regresión logística (la generalización sin CI) → la validación honesta por cross-validation espacial.'
         : 'Weights of Evidence → the conditional-independence test → logistic regression (the CI-free generalization) → honest validation by spatial cross-validation.'}</p>
 
