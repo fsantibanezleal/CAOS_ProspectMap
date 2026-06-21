@@ -14,7 +14,7 @@ export { pairwiseChi2, omnibus, ciCheck } from './ci.ts';
 export { fitLR, predictLR } from './logreg.ts';
 export type { LRFit } from './logreg.ts';
 export { captureCurve, rocAuc, captureAt } from './validate.ts';
-export { randomFolds, spatialBlockFolds, crossValAuc, nearestDepositScore } from './cv.ts';
+export { randomFolds, spatialBlockFolds, crossValAuc, crossValScores, nearestDepositScore } from './cv.ts';
 export { makeSyntheticArea } from './synth.ts';
 export type { SynthSpec, SynthLayerSpec } from './synth.ts';
 export { analyzeCase } from './analyze.ts';

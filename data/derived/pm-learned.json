@@ -1,0 +1,23 @@
+{
+  "schema": "prospectmap.learned/v1",
+  "classifier": {
+    "spatial_cv": {
+      "mlp_roc_auc": 0.9713,
+      "wofe_roc_auc": 0.9287,
+      "winner": "mlp"
+    },
+    "random_cv": {
+      "mlp_roc_auc": 0.979
+    },
+    "mlp_roc_auc": 0.9713,
+    "inflation_gap": 0.0077,
+    "nFolds": 5,
+    "nEval": 3825
+  },
+  "ood": {
+    "auc": 1,
+    "nEval": 4425,
+    "threshold": 1.633494
+  },
+  "honesty": "Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), never observed. The classifier is validated by SPATIAL block cross-validation and benchmarked against the white-box WofE posterior on the SAME spatial holdout; random-CV is reported beside it to show the inflation gap. The geology autoencoder flags out-of-envelope cells. The white-box WofE is the interpretable authority. Reported whichever way the numbers land. No fabricated win."
+}
