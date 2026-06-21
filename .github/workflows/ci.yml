@@ -22,7 +22,7 @@ jobs:
       - name: Tests
         run: pytest
       - name: Pipeline smoke (regenerate one case)
-        run: python -m pmlab.pipeline EX02_epidemic
+        run: python -m pmlab.pipeline K-PORPHYRY
       - name: CONTRACT 2 — manifests <-> artifacts consistent (no drift)
         run: python scripts/check_artifacts.py
 

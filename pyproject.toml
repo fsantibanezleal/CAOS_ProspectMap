@@ -8,8 +8,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pmlab"
 # PEP 440 form of the display version X.XX.XXX (see CHANGELOG.md + pmlab.__version__).
-version = "0.1.0"
-description = "CAOS product-repo template — offline data-pipeline + two data contracts + staged pipeline (EXAMPLE: SIR)."
+version = "0.6.0"
+description = "ProspectMap — Weights-of-Evidence mineral prospectivity mapping: offline data-pipeline + two data contracts + staged pipeline."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

@@ -1,62 +1,71 @@
-# CAOS product template — a REAL product repo (not a demo)
+# ProspectMap — Weights-of-Evidence mineral prospectivity
 
-This is the **canonical template** every Faena/CAOS data-product repo is instantiated from. It exists because
-ad-hoc products (bespoke scripts, baked cases, no reproducible env, no data contract) kept shipping — they
-*look* done but **cannot be applied to new data**, so they are demos, not tools. This template makes the standard
-**executable**: clone it, run two scripts, and you have a reproducible offline pipeline that ingests data in a
-**standard format**, processes it through **typed, seeded, tested stages**, emits **committed standard-format
-artifacts + a manifest**, and feeds a web app that **replays** them — and that any third party can point at
-**their own data**.
+[![CI](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions/workflows/ci.yml/badge.svg)](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions)
+**Live:** https://prospectmap.fasl-work.com
 
-It is modelled on the validated exemplar **CAOS_SIMLAB** (`simlab/pipeline.py`, `requirements-*.txt`,
-`scripts/setup+precompute`, `docs/frameworks`, `data/artifacts`, `manifests/`).
+ProspectMap answers *"where is the next deposit most likely to be?"* — it stacks open geophysical / geochemical /
+structural evidence layers over a study-area grid and computes a **posterior prospectivity map** P(deposit | evidence)
+per cell by **Weights of Evidence** (a Bayesian log-odds update), recomputed **live in your browser** on every control.
+Its reason to exist is honesty: it makes first-class the two ways a prospectivity map lies — **conditional-independence
+violation** inflating the posterior, and **random-CV vs spatial-CV** inflating the AUC.
 
-## The two data contracts (the thing that was missing everywhere)
+A CAOS/Faena mining web-app instantiated on the **product-repo archetype** ([ADR-0057](docs/architecture/01_overview.md)),
+with the in-app i **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md)).
 
-A product is only real if data flows through **two enforced contracts**:
+## What it does
 
-1. **Ingestion contract — `raw → processing`.** `productlab/io/contract.py` defines the required schema (columns,
-   units, ranges) of an input dataset and an explicit **outlier policy** (reject / clip / flag). This is the
-   *"bring your own data"* gate: a user's dataset is accepted iff it satisfies the contract. Documented in
-   [docs/data-contract.md](docs/data-contract.md).
-2. **Artifact contract — `processing → web`.** Every pipeline run writes a compact, standard-format artifact and a
-   `manifests/<case>.json` (params, seed, run_ms, bytes, gate verdict, format/version). The web app loads **only**
-   these — it never recomputes — and a TS type mirrors the manifest schema so a contract drift fails the build.
+- **Weights of Evidence** — per binary evidence pattern: W+/W-, the contrast C = W+ - W-, the studentized contrast
+  C/s(C); the posterior log-odds = the prior logit + the sum of the present/absent weights, under conditional
+  independence; the maximizing-contrast threshold t* binarizes a continuous layer.
+- **The conditional-independence machinery** — the pairwise chi-square + the Agterberg-Cheng omnibus test (sum of the
+  posterior ~ N(D) under CI) + the CI ratio. When correlated layers double-count, the posterior inflates and the app
+  says so.
+- **Logistic regression** — the CI-free generalization (IRLS + ridge); on independent patterns its coefficients match
+  the WofE contrasts; under CI violation it does not over-estimate.
+- **Honest validation** — the success (fitting) vs prediction-rate (held-out) capture curves; capture@10% under
+  **spatial** cross-validation is the headline; the random-vs-spatial inflation gap is shown, not hidden.
+- **mpm-classifier (learned)** — a presence-only MLP over the evidence vector, benchmarked head-to-head against the
+  white-box WofE on the SAME spatial holdout; trained offline (torch -> ONNX), run **live** (onnxruntime-web).
+- **geology-ood (learned)** — an autoencoder that flags cells whose geology is outside the labelled training envelope.
+- **Bring your own evidence** — CONTRACT 1 validates a case bundle (a co-registered evidence cube + a presence-only
+  deposit pattern + a study-area mask).
 
-If either contract is missing, the product is a demo. CI enforces both.
+## Honesty
 
-## Quickstart (proves the template runs end-to-end)
+The study areas are **synthetic** (geostatistically-grounded smooth fields + a planted fault network + deposits by an
+inhomogeneous-Poisson process on a known latent prospectivity), clearly labelled. They are the only data with known
+ground truth, so the controls are exact: `C-NEGATIVE` (uninformative -> AUC ~ 0.5), `C-CIVIOLATE` (a correlated
+duplicate -> the omnibus test fails), `C-RECOVER` (recovers the planted weight ordering), `C-SATURATE` (the analytic
+limit). The white-box WofE is the interpretable authority; the learned classifier earns its place only on the spatial
+holdout: **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929**, geology-OOD AUC 1.0. Deposit labels are presence-only
+(negatives are sampled, never observed). Outputs are exploration **target generation**, NOT a JORC / NI 43-101 resource
+estimate. No fabricated wins. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase, Geoscience Australia
+CC-BY) are a documented next step; the pipeline accepts a real cube identically.
+
+## Quickstart
 
 ```bash
-# 1. create the reproducible environment (.venv + pinned per-need requirements)
-./scripts/setup.sh                      # or scripts/setup.ps1 on Windows PowerShell
+# light lane (numpy only) - rebuild the replay artifacts + run the checks
+python -m venv .venv-pipeline && .venv-pipeline/Scripts/pip install -r data-pipeline/requirements.txt -r requirements-dev.txt -e .
+.venv-pipeline/Scripts/python -m pmlab.pipeline all      # 10 cases -> traces + manifests
+.venv-pipeline/Scripts/python scripts/check_artifacts.py # CONTRACT 2 OK
 
-# 2. run the offline pipeline over every case → data/artifacts/ + manifests/
-./scripts/precompute.sh                 # or scripts/precompute.ps1
+# the SPA (the WofE engine + the learned models run live in the browser)
+cd frontend && npm ci && npm run dev                     # http://localhost:5173
+npm test                                                 # the engine oracles (11)
 
-# 3. the tests (determinism, both data contracts, the gate, parity)
-.venv/bin/python -m pytest              # .venv/Scripts/python.exe on Windows
-
-# 4. the web app consumes the artifacts (copy-data enforces the artifact contract)
-cd web && npm install && node copy-data.mjs && npm run dev
+# heavy lane (local only) - re-bake + train the learned models (torch -> ONNX)
+python -m venv .venv-precompute && .venv-precompute/Scripts/pip install -r data-pipeline/requirements-precompute.txt
+.venv-pipeline/Scripts/python -m pmlab.pipeline all --retrain
 ```
 
-## How to instantiate this template for a NEW product
+## Layout
 
-See [docs/guides/00_instantiate.md](docs/guides/00_instantiate.md). In short: copy this tree, rename the
-`productlab` package to `<slug>lab`, **replace the EXAMPLE engine** (`productlab/stages/process.py`) with your
-product's research-chosen SOTA engine (the one documented in `docs/frameworks/`, pinned in
-`requirements-precompute.txt` — e.g. Yade/Chrono for DEM, OR-Tools for dispatch, MintPy for InSAR), write your
-ingestion contract + cases, and fill the `docs/` wiki **as you build, not at the end** (ADR-0056).
+See [STRUCTURE.md](STRUCTURE.md) and the wiki in [docs/](docs/README.md). The WofE engine is the TypeScript code in
+[`frontend/src/mpm/`](frontend/src/mpm/) (it runs in the browser **and** in the offline Node bake - no Python re-port);
+`data-pipeline/pmlab/` is the two contracts + the staged pipeline + the lane gate.
 
-## Hard rules this template bakes in
+## License
 
-- **The deep research is binding, not decoration.** Every engine/solver/library the research selected lives in
-  `docs/frameworks/<tool>/` *and* `requirements-precompute.txt`, and the pipeline actually uses it. No hand-rolled
-  substitute for a SOTA engine the research prescribed.
-- **Standard formats end-to-end** (`productlab/io/formats.py`): domain-standard in, compact-standard out.
-- **Reproducible**: pinned requirements per need; `scripts/setup`; CI installs them and runs a pipeline smoke.
-- **Applicable to new data**: the ingestion contract is the bring-your-own-data door.
-- **Versioned** (X.XX.XXX, CHANGELOG + tags from day 1) with **license/attribution hygiene**.
-
-See [docs/architecture/01_overview.md](docs/architecture/01_overview.md) for the full rationale.
+MIT - see [LICENSE](LICENSE). Third-party components in [LICENSES.md](LICENSES.md); attributions in
+[ATTRIBUTION.md](ATTRIBUTION.md).

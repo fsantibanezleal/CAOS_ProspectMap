@@ -1,39 +1,33 @@
-"""Typed objects passed between pipeline stages — the inter-stage contract. Plain dataclasses (Pyodide-safe)."""
+"""Typed objects passed between pipeline stages — the inter-stage contract. Plain dataclasses (no heavy deps)."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class SIRParams:
-    """One validated operating point (EXAMPLE domain: an SIR epidemic)."""
-    case_id: str
-    beta: float        # 1/day, effective contact rate
-    gamma: float       # 1/day, recovery rate
-    N: float           # population
-    I0: float          # initial infected
-    days: int = 160    # horizon
+# the case CATEGORIES (mirrors frontend/src/mpm/cases.ts)
+CATEGORIES = (
+    "deposit-type terrane (the geological setting)",
+    "data / validation regime (evidence richness)",
+    "control (oracle / negative control)",
+)
 
 
 @dataclass(frozen=True)
-class FeatureRow:
-    """Derived features for the surrogate (feature_extraction stage)."""
-    case_id: str
-    r0: float          # beta / gamma (basic reproduction number)
-    beta: float
-    gamma: float
-    n_scaled: float    # log10(N)
-    i0_frac: float     # I0 / N
+class CaseDescriptor:
+    """One validated MPM case bundle descriptor (CONTRACT 1 output). A case is a co-registered evidence cube
+    (nx*ny unit cells, n_layers bands) + a presence-only deposit point pattern (n_deposits occupied cells) over a
+    study-area mask. For the synthetic cases the cube + deposits are regenerated from the case SPEC by the TypeScript
+    engine (frontend/src/mpm/) — only the SPEC + the baked summary are committed (no raster blobs)."""
 
-
-@dataclass(frozen=True)
-class SIRResult:
-    """The engine output for one case (infer stage) — the raw, undecimated trajectory + scalars."""
     case_id: str
-    t: list[float]
-    S: list[float]
-    I: list[float]
-    R: list[float]
-    peak_I: float
-    t_peak: float
-    attack_rate: float
+    nx: int
+    ny: int
+    cell_km: float
+    n_layers: int
+    n_deposits: int
+    real_or_synthetic: str = "synthetic"
+    deposit_type: str = ""
+    flags: tuple[str, ...] = ()
+
+    @property
+    def n_cells(self) -> int:
+        return self.nx * self.ny

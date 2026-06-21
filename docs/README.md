@@ -1,20 +1,23 @@
-# Docs — the product wiki
+# ProspectMap - documentation
 
-SimLab-style navigable wiki (ADR-0056), authored **as the product is built**, not at the end. The pipeline +
-its validation + these docs are the primary product; the web app is a projection of a validated subset.
+The navigable wiki for ProspectMap: **Weights-of-Evidence mineral prospectivity** - stack open geophysical /
+geochemical / structural evidence layers over a study-area grid into a posterior P(deposit | evidence) map, with the
+whole computation running live in the browser, and the failure modes (conditional-independence violation, random-CV
+inflation) made first-class. Instantiated on the CAOS product-repo archetype (ADR-0057).
 
-## Map
-- **[architecture/](architecture/)** — how the repo works: the frozen base, the two data contracts, determinism +
-  trace, the live/precompute gate, the staged pipeline, model evaluation, deploy.
-- **[frameworks/](frameworks/)** — one card per research-chosen engine/library (what/why · install · usage ·
-  applying). The deep research, made binding (each is pinned in a `requirements-*.txt`).
-- **[guides/](guides/)** — runnable how-tos: **instantiate the template**, run the precompute pipeline,
-  **bring your own data**, the GPU lane, run the API.
-- **[cases/](cases/)** — the CATEGORY taxonomy + the coverage matrix + one page per documented case.
+- **[Architecture](architecture.md)** - the archetype, the lanes, the gate, the two data contracts, determinism, deploy.
+- **[Frameworks](frameworks.md)** - the WofE/CI/logistic method, the viz stack, the learned models (torch -> ONNX).
+- **[Cases](cases.md)** - the 10 cases by category + their validation anchors.
+- **[Guides](guides.md)** - instantiate, run the precompute/retrain lane, bring your own evidence stack.
 
-## Honesty + data policy
-- Numbers come from the calibrated engine / committed artifacts, never from a claim. The EXAMPLE engine (SIR) is
-  synthetic and clearly labelled; a real product states sources, licenses and what is real vs synthetic.
-- Public derived artifacts are committed (`data/derived/`); raw/private sources stay out of git (`data/raw/`,
-  vault) per ADR-0055. The two data contracts ([architecture/08_data-contracts.md](architecture/08_data-contracts.md))
-  govern raw→pipeline and pipeline→web.
+## One-paragraph orientation
+
+The engine is the **TypeScript code** in [`frontend/src/mpm/`](../frontend/src/mpm/): Weights of Evidence (per-layer
+W+/W-/contrast/studentized-C at the maximizing-contrast threshold, the posterior log-odds under conditional
+independence), the conditional-independence machinery (pairwise chi-square + the Agterberg-Cheng omnibus + the CI
+ratio), logistic regression (the CI-free generalization), and honest validation (success/prediction-rate capture
+curves under spatial cross-validation). It runs *live in the browser* (the App recomputes the posterior raster as you
+toggle layers or switch method) **and** in the offline Node bake (no Python re-port). The Python package
+[`pmlab`](../data-pipeline/pmlab/) is the two data contracts + the staged pipeline + the lane gate; its default lane is
+numpy-light, and a `--retrain` lane re-bakes the cases and trains the **mpm-classifier** + the **geology-ood** AE
+(torch -> ONNX). The `.onnx` run live via onnxruntime-web.
