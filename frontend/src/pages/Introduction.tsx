@@ -3,9 +3,9 @@ import { Callout, Cite, ReferenceList, useShellLang } from '@fasl-work/caos-app-
 export default function Introduction() {
   const es = useShellLang() === 'es';
   return (
-    <article className="pf-doc">
+    <article className="page-body prose">
       <h1>{es ? 'Introducción' : 'Introduction'}</h1>
-      <p className="pf-lead">{es
+      <p className="lede">{es
         ? 'ProspectMap responde "¿dónde es más probable el próximo depósito?" — fusiona capas de evidencia geocientífica abierta en un mapa posterior de prospectividad, y expone honestamente cuándo NO confiar en él.'
         : 'ProspectMap answers "where is the next deposit most likely to be?" — it fuses open geoscience evidence layers into a posterior prospectivity map, and honestly exposes when NOT to trust it.'}</p>
 
