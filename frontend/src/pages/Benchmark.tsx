@@ -24,9 +24,9 @@ export default function Benchmark() {
   }, []);
 
   return (
-    <article className="pf-doc">
+    <article className="page-body prose">
       <h1>Benchmark</h1>
-      <p className="pf-lead">{es
+      <p className="lede">{es
         ? 'Comparaciones cruzadas que no dependen de un solo caso: WofE (caja blanca, la autoridad) vs regresión logística, y dónde la independencia condicional se rompe.'
         : 'Cross-case comparisons that do not depend on a single case: WofE (white-box, the authority) vs logistic regression, and where conditional independence breaks.'}</p>
 
