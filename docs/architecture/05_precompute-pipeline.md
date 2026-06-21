@@ -1,19 +1,30 @@
-# The staged precompute pipeline
+# 05 - The precompute pipeline (two-language)
 
-`data-pipeline/pmlab/pipeline.py` orchestrates the **named stages** (frozen names/signatures, rework bodies):
+The default lane is numpy-light and reshapes the committed bake; the heavy `--retrain` lane is two-language (Node bake
+of the TS engine + torch training).
 
-| Stage | Module | Does |
-|---|---|---|
-| preprocess | `stages/preprocess.py` | read raw → apply **CONTRACT 1** (validate + outlier policy) |
-| feature_extraction | `stages/feature_extraction.py` | validated params → feature rows |
-| train | `stages/train.py` | fit the model → `models/` (OFFLINE; skippable; EXAMPLE = numpy lstsq surrogate) |
-| infer | `stages/infer.py` | run the engine → trace (EXAMPLE = SIR) |
-| evaluate | `stages/evaluate.py` | held-out, leakage-safe metrics (R²/RMSE) |
-| export | `stages/export.py` | **CONTRACT 2** — compact artifact + manifest |
+## The bake (Node + tsx, the SAME engine)
 
-Run: `python -m pmlab.pipeline [all|<case_id>] [--seed N]` (or `scripts/precompute.{sh,ps1}`). It writes
-`data/derived/<case>/trace.json` + `data/derived/manifests/<case>.json` + `index.json`.
+`pmlab/science/bake_cases.mjs` imports the TS engine and runs `analyzeCase(spec, layerIds)` over each case ->
+`data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The cubes are SYNTHETIC and regenerated from
+each case's SPEC (committed in case-results), so the artifact stays compact - no raster blobs. Because the bake and the
+browser run the identical engine, the live and offline numbers agree by construction.
 
-To instantiate a real product: keep the stage names, replace the bodies — `infer`/`train` call the
-research-chosen SOTA engine (pinned in `data-pipeline/requirements.txt`, documented in
-[../frameworks/](../frameworks/)). No hand-rolled toy substitute for an engine the research prescribed.
+## The light pipeline (numpy)
+
+`python -m pmlab.pipeline all` (default lane): applies CONTRACT 1 to the case descriptors, reads `case-results.json` +
+`pm-learned.json` (when present), builds the per-case `trace.json` + `manifests/*.json` (CONTRACT 2) via
+`stages/export.build_replay`, runs the lane gate, and writes the flat `index.json`. No torch / no Node, so CI is fast
+and the artifacts regenerate deterministically (byte-identical re-run).
+
+## The heavy lane (--retrain, two-language)
+
+`python -m pmlab.pipeline all --retrain`:
+1. `science/bake_cases.mjs` (Node) re-bakes `case-results.json`.
+2. `science/gen_train.mjs` (Node) samples presence cells + distance-buffered informed negatives over the terrane/rich
+   cubes, with spatial-block + random folds, and the held-out WofE posterior per fold -> `data/raw/mpm-train.json` +
+   `mpm-eval.json` (git-ignored, regenerable).
+3. `science/train_mpm.py` (torch, `.venv-precompute`) fits the classifier + the OOD-AE -> `mpm-classifier.onnx` +
+   `geology-ood.onnx` + `learned-partial.json`.
+4. `science/eval_mpm.mjs` (onnxruntime-web in Node) runs the exported classifier in the engine's runtime + assembles
+   `data/derived/pm-learned.json`.

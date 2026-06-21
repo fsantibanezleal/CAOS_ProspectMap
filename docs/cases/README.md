@@ -1,19 +1,36 @@
-# Cases + categories
+# Cases
 
-Each case (`data-pipeline/pmlab/cases/`) declares a **CATEGORY** (the domain problem-type taxonomy), its
-params, an expected band (what a domain expert should see), and a real|synthetic flag. `registry.list_categories()`
-groups them. The **App shows ONE selected case**; **Experiments/Benchmark show cross-case summaries by category**
-(never mixed into the App).
+Ten SYNTHETIC study areas (clearly labelled), grouped by CATEGORY. Each is generated deterministically from a SPEC by
+`frontend/src/mpm/synth.ts` (smooth value-noise evidence layers + a planted latent prospectivity + deposits by an
+inhomogeneous-Poisson process), so the controls have KNOWN ground truth. The App shows one case; Experiments/Benchmark
+summarize across categories. The Python registry (`pmlab/cases/mpm_cases.py`) mirrors the TS cases; a test cross-checks
+the ids against the baked `case-results.json`.
 
-## Coverage matrix (EXAMPLE — SIR; replace with your real, varied matrix)
+## K - deposit-type terrane (the geological setting)
 
-| id | category | expected band | real/synthetic |
-|---|---|---|---|
-| `EX01_subcritical` | sub-critical (R0<1) | no outbreak; attack rate ≈ 0 | synthetic |
-| `EX02_epidemic` | epidemic (R0>1) | clear single peak; attack rate ≈ 0.7–0.9 | synthetic |
-| `EX03_fast_burn` | fast-burn (high R0) | early sharp peak; attack rate → ~1 | synthetic |
-| `EX04_slow_spread` | slow-spread (R0~1.2) | broad low peak | synthetic |
-| `CTRL_degenerate` | control: degenerate | `I0=0` → no dynamics (must not crash) | synthetic |
+| Case | What it shows |
+|---|---|
+| `K-PORPHYRY` | porphyry-Cu-like: magnetic high + geochem anomaly + proximity to structure favourable; radiometrics uninformative (AUC ~ 0.91) |
+| `K-OROGENIC` | orogenic-Au-like: structure dominates; geochem secondary; magnetics uninformative (AUC ~ 0.71) |
+| `K-VMS` | VMS-like: magnetic + geochem co-located; structure uninformative |
+| `K-IOCG` | IOCG-like: a strong magnetic signature with multi-layer support |
 
-A real product fills a matrix spanning its real axes (not "two of everything") + explicit negative/sanity
-controls, and adds one `docs/cases/<category>/<case-id>.md` per case (formalization + expected results + anchor).
+## D - data / validation regime (evidence richness)
+
+| Case | What it shows |
+|---|---|
+| `D-RICH` | all four layers informative -> a high-skill posterior (but watch the CI + the spatial-CV gap) |
+| `D-SPARSE` | only a weak geochem signal -> little real skill; the product does NOT manufacture confidence (AUC ~ 0.71) |
+
+## C - control (oracle / negative control), known ground truth
+
+| Case | What it shows (the exact oracle) |
+|---|---|
+| `C-NEGATIVE` | uninformative layers -> all contrasts ~ 0, ROC AUC ~ 0.499 - no skill from noise |
+| `C-CIVIOLATE` | a correlated duplicate of a favourable layer -> the omnibus test fails (CI ratio 0.65, z 4.1); WofE inflated, logistic not |
+| `C-RECOVER` | well-separated planted weights -> WofE recovers the ordering contrast(mag) > contrast(geochem) > contrast(struct) |
+| `C-SATURATE` | a near-perfect single layer -> a near-saturated posterior, no numerical blow-up (the Haldane guard), AUC ~ 0.97 |
+
+Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase, Geoscience Australia CC-BY) are the documented
+next step; the pipeline accepts a real cube identically (the synthetic cases are the verifiable controls, exactly the
+CutoffGrade precedent of synthetic data + real method).
