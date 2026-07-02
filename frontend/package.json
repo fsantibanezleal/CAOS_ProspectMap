@@ -14,7 +14,7 @@
     "bake": "node --import tsx ../data-pipeline/pmlab/science/bake_cases.mjs"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "^0.1.2",
+    "@fasl-work/caos-app-shell": "^0.2.0",
     "katex": "^0.16.47",
     "lucide-react": "^0.460.0",
     "onnxruntime-web": "^1.27.0",
