@@ -1,5 +1,9 @@
 # ProspectMap — Weights-of-Evidence mineral prospectivity
 
+[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_ProspectMap/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions)
+[![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_ProspectMap)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-2ea44f)](https://prospectmap.fasl-work.com)
+
 [![CI](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions/workflows/ci.yml/badge.svg)](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions)
 **Live:** https://prospectmap.fasl-work.com
 
