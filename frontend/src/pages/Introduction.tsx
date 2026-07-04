@@ -30,8 +30,8 @@ export default function Introduction() {
 
       <h2>{es ? 'Datos' : 'Data'}</h2>
       <p>{es
-        ? 'Las áreas de estudio de esta versión son SINTÉTICAS (campos geoestadísticos suaves + una red de fallas plantada + depósitos por un proceso de Poisson no homogéneo sobre una prospectividad latente conocida), claramente etiquetadas. Son el único caso con ground-truth conocido, así que son los controles exactos. Datasets abiertos reales (Lawley et al. 2022 Zn-Pb de USGS ScienceBase '
-        : 'The study areas in this version are SYNTHETIC (smooth geostatistical fields + a planted fault network + deposits by an inhomogeneous-Poisson process on a known latent prospectivity), clearly labelled. They are the only data with known ground truth, so they are the exact controls. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase '}
+        ? 'Las áreas de estudio de esta versión son SINTÉTICAS (campos suaves de value-noise — geoestadísticos en espíritu — con pesos plantados por capa + depósitos muestreados por rechazo sobre una prospectividad latente conocida, conteo fijo por caso), claramente etiquetadas. Son el único caso con ground-truth conocido, así que son los controles exactos. Datasets abiertos reales (Lawley et al. 2022 Zn-Pb de USGS ScienceBase '
+        : 'The study areas in this version are SYNTHETIC (smooth value-noise fields — geostatistical in spirit — with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, fixed count per case), clearly labelled. They are the only data with known ground truth, so they are the exact controls. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase '}
         <Cite id="lawley2022" paren />{es ? ', Geoscience Australia CC-BY) son el siguiente paso; el pipeline acepta un cubo real de forma idéntica.' : ', Geoscience Australia CC-BY) are the next step; the pipeline accepts a real cube identically.'}</p>
 
       <ReferenceList />

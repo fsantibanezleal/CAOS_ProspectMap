@@ -118,7 +118,7 @@ export const CASES: MPMCase[] = [
     },
     layerIds: ['mag', 'magdup', 'geochem'],
     expectedBand: 'mag and its near-duplicate double-count the same signal ⇒ the WofE posterior is inflated',
-    validationAnchor: 'the omnibus test fails (T > N(D), CI ratio < 1, z > 0); logistic regression does not over-estimate',
+    validationAnchor: 'the omnibus test fails (T > N(D), CI ratio < 1, z > 0); logistic regression is the CI-free alternative (calibration readout not yet in-app)',
     realOrSynthetic: 'analytic control',
   },
   {

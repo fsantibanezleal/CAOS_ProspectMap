@@ -1,5 +1,6 @@
-"""Standard-format readers/writers. EXAMPLE: CSV in (params), JSON out (compact committed artifact). A real product
-adds the formats its domain demands here (parquet/npz/.vtk/.vtu/.h5/GeoTIFF) — never a bespoke ad-hoc format."""
+"""Standard-format readers/writers: CSV in (the case-bundle descriptor rows, data/examples/cases.csv), JSON out
+(the compact committed artifacts). A real-data cube adds the formats its domain demands here (GeoTIFF/parquet/npz)
+— never a bespoke ad-hoc format."""
 from __future__ import annotations
 
 import csv

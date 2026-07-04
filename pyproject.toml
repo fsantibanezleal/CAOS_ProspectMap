@@ -1,6 +1,6 @@
-# Product-repo template — the offline engine package (ADR-0057). Rename `pmlab` -> `<slug>lab` per product.
-# The EXAMPLE engine is numpy-only on purpose (an instantly-installable, no-hang reference); a real product pins
-# its research-chosen SOTA engines in data-pipeline/requirements.txt and documents them in docs/frameworks/.
+# ProspectMap — the offline pipeline package `pmlab` (ADR-0057 product-repo archetype).
+# The default lane is numpy-only (instantly installable); the heavy learned lane (torch -> ONNX) is pinned in
+# data-pipeline/requirements-precompute.txt and documented in docs/frameworks/03_torch-onnx.md.
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
@@ -28,5 +28,5 @@ line-length = 110
 target-version = "py311"
 
 [tool.ruff.lint]
-# S/I/R are the standard SIR compartment names; single-letter here is intentional domain notation, not ambiguous.
+# single-letter math notation (loop indices, contingency counts) is intentional domain notation, not ambiguous.
 ignore = ["E741"]

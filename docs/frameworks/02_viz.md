@@ -5,8 +5,10 @@ rubric).
 
 - **The prospectivity raster** (`viz/MapView.tsx`) - a scalar field over the nx*ny grid painted with a
   perceptually-uniform viridis colormap into an offscreen `ImageData` at native resolution, then `drawImage`-scaled
-  with `imageSmoothingEnabled=false` (the FragmentIQ `SceneView` pattern). Known deposits are a vector overlay; OOD
-  ("do-not-trust") cells are dimmed/cross-hatched; hover reads the cell value. Pure canvas - no GPU/map dependency for
+  with `imageSmoothingEnabled=false` (the FragmentIQ `SceneView` pattern). Known deposits are a vector overlay; hover
+  reads the cell value. An OOD ("do-not-trust") dim/cross-hatch overlay is implemented behind optional
+  `ood`/`oodThreshold` props but is not yet wired into any tab (the Anomaly tab paints the AE reconstruction-error
+  field directly). Pure canvas - no GPU/map dependency for
   a teaching-scale grid (deck.gl / MapLibre are the documented escalation path for large georeferenced cases).
 - **The curves** (`viz/CurveChart.tsx` + `UPlotChart.tsx`) - the success/prediction-rate capture curves and the ROC,
   on uPlot (theme-aware, crosshair readout, the 1:1 random diagonal).

@@ -19,8 +19,10 @@ N(D)/T (~ 1 ok; < 0.85 a problematic violation). The `C-CIVIOLATE` control demon
 ## Logistic regression
 
 The CI-free generalization: logit P = beta_0 + sum beta_j x_j, fit by IRLS + ridge. On conditionally-independent binary
-patterns beta_j ~ C_j (the WofE <-> LR equivalence); under CI violation the coefficients shrink and do not
-over-estimate, so logistic is the honest comparison when the omnibus test fails.
+patterns beta_j ~ C_j (the WofE <-> LR equivalence); under CI violation the jointly-fit coefficients are expected to
+shrink rather than double-count (the theoretical fix), so logistic is the comparison to reach for when the omnibus
+test fails. Note: the app's omnibus readout runs on the WofE posterior; an LR calibration readout (sum P_LR vs N(D))
+is not yet shown in-app.
 
 ## Honest validation
 
