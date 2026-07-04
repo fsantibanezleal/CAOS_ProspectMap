@@ -45,7 +45,7 @@ export interface Trace {
   real_or_synthetic: string;
   expected_band: string;
   validation_anchor: string;
-  spec: unknown; // the synthetic SynthSpec — the browser regenerates the cube + recomputes WofE live
+  spec: unknown; // the synthetic SynthSpec, the browser regenerates the cube + recomputes WofE live
   layer_ids: string[];
   n_cells: number;
   n_deposits: number;

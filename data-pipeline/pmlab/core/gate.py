@@ -1,6 +1,6 @@
 """The measured live-vs-precompute GATE (ADR-0054), adapted for ProspectMap's client-side lane.
 
-ProspectMap runs its WofE/CI/logistic-regression/validation entirely IN THE BROWSER — a pure-TypeScript engine
+ProspectMap runs its WofE/CI/logistic-regression/validation entirely IN THE BROWSER, a pure-TypeScript engine
 (frontend/src/mpm/) plus the learned classifier + OOD autoencoder via onnxruntime-web. A case runs LIVE iff it is
 client-side AND its runtimes are a subset of the deployed set AND a full recompute + its replay trace are within
 budget; otherwise it is PRECOMPUTE and the SPA replays the committed trace. The WofE recompute over a teaching-scale

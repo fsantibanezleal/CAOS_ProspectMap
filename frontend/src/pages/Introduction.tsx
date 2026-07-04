@@ -6,8 +6,8 @@ export default function Introduction() {
     <article className="page-body prose">
       <h1>{es ? 'Introducción' : 'Introduction'}</h1>
       <p className="lede">{es
-        ? 'ProspectMap responde "¿dónde es más probable el próximo depósito?" — fusiona capas de evidencia geocientífica abierta en un mapa posterior de prospectividad, y expone honestamente cuándo NO confiar en él.'
-        : 'ProspectMap answers "where is the next deposit most likely to be?" — it fuses open geoscience evidence layers into a posterior prospectivity map, and honestly exposes when NOT to trust it.'}</p>
+        ? 'ProspectMap responde "¿dónde es más probable el próximo depósito?", fusiona capas de evidencia geocientífica abierta en un mapa posterior de prospectividad, y expone honestamente cuándo NO confiar en él.'
+        : 'ProspectMap answers "where is the next deposit most likely to be?", it fuses open geoscience evidence layers into a posterior prospectivity map, and honestly exposes when NOT to trust it.'}</p>
 
       <h2>{es ? 'El problema' : 'The problem'}</h2>
       <p>{es
@@ -17,8 +17,8 @@ export default function Introduction() {
 
       <Callout variant="honest" title={es ? 'Lo que separa esto de un heatmap vistoso' : 'What separates this from a colourful heatmap'}>
         {es
-          ? 'ProspectMap hace de primera clase las DOS formas en que un mapa de prospectividad miente: (1) la violación de independencia condicional — capas favorables correlacionadas doble-cuentan e inflan el posterior; (2) la inflación de CV — un split aleatorio filtra vecinos de depósitos de entrenamiento y el AUC parece fantástico. El número reportado por defecto es capture@10% bajo cross-validation ESPACIAL.'
-          : 'ProspectMap makes first-class the TWO ways a prospectivity map lies: (1) conditional-independence violation — correlated favourable layers double-count and inflate the posterior; (2) CV inflation — a random split leaks neighbours of training deposits and the AUC looks fantastic. The default reported number is capture@10% under SPATIAL cross-validation.'}
+          ? 'ProspectMap hace de primera clase las DOS formas en que un mapa de prospectividad miente: (1) la violación de independencia condicional, capas favorables correlacionadas doble-cuentan e inflan el posterior; (2) la inflación de CV, un split aleatorio filtra vecinos de depósitos de entrenamiento y el AUC parece fantástico. El número reportado por defecto es capture@10% bajo cross-validation ESPACIAL.'
+          : 'ProspectMap makes first-class the TWO ways a prospectivity map lies: (1) conditional-independence violation, correlated favourable layers double-count and inflate the posterior; (2) CV inflation, a random split leaks neighbours of training deposits and the AUC looks fantastic. The default reported number is capture@10% under SPATIAL cross-validation.'}
       </Callout>
 
       <h2>{es ? 'Qué es y qué NO es' : 'What it is and is NOT'}</h2>
@@ -30,8 +30,8 @@ export default function Introduction() {
 
       <h2>{es ? 'Datos' : 'Data'}</h2>
       <p>{es
-        ? 'Las áreas de estudio de esta versión son SINTÉTICAS (campos suaves de value-noise — geoestadísticos en espíritu — con pesos plantados por capa + depósitos muestreados por rechazo sobre una prospectividad latente conocida, conteo fijo por caso), claramente etiquetadas. Son el único caso con ground-truth conocido, así que son los controles exactos. Datasets abiertos reales (Lawley et al. 2022 Zn-Pb de USGS ScienceBase '
-        : 'The study areas in this version are SYNTHETIC (smooth value-noise fields — geostatistical in spirit — with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, fixed count per case), clearly labelled. They are the only data with known ground truth, so they are the exact controls. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase '}
+        ? 'Las áreas de estudio de esta versión son SINTÉTICAS (campos suaves de value-noise, geoestadísticos en espíritu, con pesos plantados por capa + depósitos muestreados por rechazo sobre una prospectividad latente conocida, conteo fijo por caso), claramente etiquetadas. Son el único caso con ground-truth conocido, así que son los controles exactos. Datasets abiertos reales (Lawley et al. 2022 Zn-Pb de USGS ScienceBase '
+        : 'The study areas in this version are SYNTHETIC (smooth value-noise fields, geostatistical in spirit, with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, fixed count per case), clearly labelled. They are the only data with known ground truth, so they are the exact controls. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase '}
         <Cite id="lawley2022" paren />{es ? ', Geoscience Australia CC-BY) son el siguiente paso; el pipeline acepta un cubo real de forma idéntica.' : ', Geoscience Australia CC-BY) are the next step; the pipeline accepts a real cube identically.'}</p>
 
       <ReferenceList />

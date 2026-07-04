@@ -11,12 +11,12 @@ export default function Implementation() {
 
       <h2>{es ? 'El motor (frontend/src/mpm/)' : 'The engine (frontend/src/mpm/)'}</h2>
       <ul>
-        <li><code>wofe.ts</code> — {es ? 'W⁺/W⁻/contraste/studC/posterior bajo CI (con la corrección Haldane 0.5 para conteos cero).' : 'W⁺/W⁻/contrast/studC/posterior under CI (with the Haldane 0.5 zero-count correction).'}</li>
-        <li><code>binarize.ts</code> — {es ? 'el barrido de umbral de contraste máximo.' : 'the maximizing-contrast threshold sweep.'}</li>
-        <li><code>ci.ts</code> — {es ? 'χ² pairwise + el omnibus de Agterberg-Cheng + el CI ratio.' : 'pairwise χ² + the Agterberg-Cheng omnibus + the CI ratio.'}</li>
-        <li><code>logreg.ts</code> — {es ? 'regresión logística por IRLS + ridge (la generalización sin CI).' : 'logistic regression by IRLS + ridge (the CI-free generalization).'}</li>
-        <li><code>validate.ts</code> + <code>cv.ts</code> — {es ? 'curvas de captura success/prediction + capture@10% + ROC; folds aleatorios vs espaciales-por-bloques + el demostrador de inflación.' : 'success/prediction capture curves + capture@10% + ROC; random vs spatial-block folds + the inflation demonstrator.'}</li>
-        <li><code>synth.ts</code> — {es ? 'el generador determinista de áreas sintéticas con pesos plantados (= los oráculos).' : 'the deterministic synthetic-area generator with planted weights (= the oracles).'}</li>
+        <li><code>wofe.ts</code>, {es ? 'W⁺/W⁻/contraste/studC/posterior bajo CI (con la corrección Haldane 0.5 para conteos cero).' : 'W⁺/W⁻/contrast/studC/posterior under CI (with the Haldane 0.5 zero-count correction).'}</li>
+        <li><code>binarize.ts</code>, {es ? 'el barrido de umbral de contraste máximo.' : 'the maximizing-contrast threshold sweep.'}</li>
+        <li><code>ci.ts</code>, {es ? 'χ² pairwise + el omnibus de Agterberg-Cheng + el CI ratio.' : 'pairwise χ² + the Agterberg-Cheng omnibus + the CI ratio.'}</li>
+        <li><code>logreg.ts</code>, {es ? 'regresión logística por IRLS + ridge (la generalización sin CI).' : 'logistic regression by IRLS + ridge (the CI-free generalization).'}</li>
+        <li><code>validate.ts</code> + <code>cv.ts</code>, {es ? 'curvas de captura success/prediction + capture@10% + ROC; folds aleatorios vs espaciales-por-bloques + el demostrador de inflación.' : 'success/prediction capture curves + capture@10% + ROC; random vs spatial-block folds + the inflation demonstrator.'}</li>
+        <li><code>synth.ts</code>, {es ? 'el generador determinista de áreas sintéticas con pesos plantados (= los oráculos).' : 'the deterministic synthetic-area generator with planted weights (= the oracles).'}</li>
       </ul>
 
       <Callout variant="note" title={es ? 'El bake de dos lenguajes' : 'The two-language bake'}>

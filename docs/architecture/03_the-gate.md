@@ -1,6 +1,6 @@
 # The live-vs-precompute gate
 
-`data-pipeline/pmlab/core/gate.py :: classify_lane()`. A case runs **live** in the browser iff — by MEASUREMENT,
+`data-pipeline/pmlab/core/gate.py :: classify_lane()`. A case runs **live** in the browser iff, by MEASUREMENT,
 never by hand-wave:
 
 - it is **client-side** (no server needed), AND
@@ -15,5 +15,5 @@ pipeline bakes the artifact and the SPA replays it. Either way a committed artif
 instantly on first paint (ADR-0054).
 
 The verdict + the measured budgets are written into the manifest (`gate` field) and CI fails if `manifest.lane`
-disagrees with the gate — so a case can never be mislabeled "live".
+disagrees with the gate, so a case can never be mislabeled "live".
 """

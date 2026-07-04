@@ -1,7 +1,7 @@
 // The typed raster-cube + result types for the Weights-of-Evidence MPM engine. A study area is a regular grid of
 // nx*ny unit cells; each evidence Layer is one value per cell; deposits are the indices of occupied cells. Everything
 // downstream (WofE weights, the posterior raster, the CI checks, the capture/ROC curves, the CV folds) is computed
-// over this in-memory cube — the SAME structure the browser renders and the Node bake consumes (CONTRACT-2 mirror).
+// over this in-memory cube, the SAME structure the browser renders and the Node bake consumes (CONTRACT-2 mirror).
 
 export type LayerKind = 'continuous' | 'binary' | 'categorical';
 
@@ -27,7 +27,7 @@ export interface Cube {
   depositIdx: number[];
   /** active cells (the study-area mask); if omitted, all nx*ny cells are active. */
   maskIdx?: number[];
-  /** real | synthetic — honesty flag carried from the case metadata. */
+  /** real | synthetic, honesty flag carried from the case metadata. */
   realOrSynthetic?: 'real' | 'synthetic' | 'analytic control';
 }
 

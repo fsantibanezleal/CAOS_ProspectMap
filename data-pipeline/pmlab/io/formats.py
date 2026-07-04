@@ -1,6 +1,6 @@
 """Standard-format readers/writers: CSV in (the case-bundle descriptor rows, data/examples/cases.csv), JSON out
 (the compact committed artifacts). A real-data cube adds the formats its domain demands here (GeoTIFF/parquet/npz)
-— never a bespoke ad-hoc format."""
+,  never a bespoke ad-hoc format."""
 from __future__ import annotations
 
 import csv

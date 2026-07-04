@@ -17,8 +17,8 @@ function colormap(t: number): [number, number, number] {
 
 /** The prospectivity raster: a scalar field over the nx*ny grid painted with a perceptually-uniform colormap, known
  * deposits overlaid as markers; OOD ("do-not-trust") cells are dimmed/cross-hatched when the optional ood/oodThreshold
- * props are passed (no tab passes them yet — the Anomaly tab paints the AE field directly). Hover reads the cell value
- * out. Pure canvas + ImageData (the FragmentIQ SceneView pattern) — no GPU/map dependency for a teaching-scale grid. */
+ * props are passed (no tab passes them yet, the Anomaly tab paints the AE field directly). Hover reads the cell value
+ * out. Pure canvas + ImageData (the FragmentIQ SceneView pattern), no GPU/map dependency for a teaching-scale grid. */
 export function MapView({ nx, ny, field, range, deposits, ood, oodThreshold, height = 360, lang = 'en', valueLabel = 'P' }: {
   nx: number; ny: number; field: Float64Array; range: [number, number]; deposits: number[];
   ood?: Float64Array; oodThreshold?: number; height?: number; lang?: 'en' | 'es'; valueLabel?: string;

@@ -1,4 +1,4 @@
-// Generate the learned-model training data by running the SAME TypeScript engine the browser runs — so the classifier
+// Generate the learned-model training data by running the SAME TypeScript engine the browser runs, so the classifier
 // trains on EXACTLY the cubes the App shows, and is benchmarked against the SAME white-box WofE posterior on the SAME
 // spatial holdout. Writes to data/raw/ (git-ignored, regenerable). Invoked by pipeline.retrain before train_mpm.py.
 // Run (from frontend/ so tsx resolves):  node --import tsx ../data-pipeline/pmlab/science/gen_train.mjs

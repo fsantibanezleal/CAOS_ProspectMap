@@ -1,4 +1,4 @@
-// Assemble the final data/derived/pm-learned.json — and confirm the exported classifier RUNS in the engine's own
+// Assemble the final data/derived/pm-learned.json, and confirm the exported classifier RUNS in the engine's own
 // runtime (onnxruntime-web in Node), the honest end-to-end check. The honest skill numbers (the classifier's
 // spatial-CV AUC vs the white-box WofE posterior on the SAME spatial holdout, + the random-vs-spatial inflation gap)
 // are computed by train_mpm.py and carried in data/raw/learned-partial.json; here we load mpm-classifier.onnx via
@@ -16,7 +16,7 @@ const RAW = resolve(ROOT, 'data/raw');
 const DERIVED = resolve(ROOT, 'data/derived');
 const FRONTEND = resolve(ROOT, 'frontend');
 
-// load onnxruntime-web (resolved from frontend/node_modules) — node build, WASM EP, single-threaded, local wasm.
+// load onnxruntime-web (resolved from frontend/node_modules), node build, WASM EP, single-threaded, local wasm.
 const req = createRequire(pathToFileURL(resolve(FRONTEND, 'pkg.js')));
 const ortMod = await import(pathToFileURL(req.resolve('onnxruntime-web')));
 const ort = ortMod.default ?? ortMod;

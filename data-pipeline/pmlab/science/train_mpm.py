@@ -1,14 +1,14 @@
-"""HEAVY lane (local-only) — train ProspectMap's two learned models and export them to ONNX. Run inside the
+"""HEAVY lane (local-only), train ProspectMap's two learned models and export them to ONNX. Run inside the
 .venv-precompute (torch) AFTER gen_train.mjs has written data/raw/{mpm-train,mpm-eval}.json:
 
     python data-pipeline/pmlab/science/train_mpm.py
 
-1. mpm-classifier — a small MLP over the per-cell evidence feature vector -> P(deposit). Presence-only labels
+1. mpm-classifier, a small MLP over the per-cell evidence feature vector -> P(deposit). Presence-only labels
    (positives = known deposit cells; negatives are SAMPLED, distance-buffered, NEVER observed). It is benchmarked
    head-to-head against the white-box WofE posterior on the IDENTICAL SPATIAL holdout (block K-fold); the random-CV
    AUC is computed too, to surface the inflation gap. The standardisation is folded into the export wrapper, so the
    ONNX takes RAW features and returns P(deposit). The white-box WofE is the interpretable authority; no fabricated win.
-2. geology-ood — a small autoencoder over the standardized feature vector; the reconstruction MSE separates
+2. geology-ood, a small autoencoder over the standardized feature vector; the reconstruction MSE separates
    in-envelope geology from out-of-envelope (the "the classifier is extrapolating under cover" flag). AUC reported here.
 
 Outputs: data/derived/{mpm-classifier.onnx, geology-ood.onnx} + data/raw/learned-partial.json (eval_mpm.mjs assembles
@@ -139,7 +139,7 @@ def train_ood(X: np.ndarray, mu: np.ndarray, sd: np.ndarray, in_eval: np.ndarray
 
     # export wrapper: RAW features -> standardise -> AE -> the standardized-space reconstruction MSE (the anomaly score
     # itself, [batch, 1]). Computing it INSIDE the ONNX means the browser reads an interpretable, correctly-scaled score
-    # directly (the SAME quantity used for the AUC + threshold above) — no client-side scaler needed.
+    # directly (the SAME quantity used for the AUC + threshold above), no client-side scaler needed.
     class AEExport(nn.Module):
         def __init__(self, core: OODAE) -> None:
             super().__init__()
@@ -157,7 +157,7 @@ def train_ood(X: np.ndarray, mu: np.ndarray, sd: np.ndarray, in_eval: np.ndarray
 
 def _strip_metadata(path: Path) -> None:
     """Remove any machine-specific provenance an ONNX exporter may bake in (node metadata_props / doc_strings can carry
-    absolute source paths) — keeps the committed ONNX clean (base-integrity guard) and reproducible across machines."""
+    absolute source paths), keeps the committed ONNX clean (base-integrity guard) and reproducible across machines."""
     import onnx
     m = onnx.load(str(path))
     m.doc_string = ""

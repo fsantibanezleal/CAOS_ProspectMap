@@ -13,7 +13,7 @@ export function maskCells(cube: Cube): number[] {
   return all;
 }
 
-/** N(S) — number of active unit cells. */
+/** N(S), number of active unit cells. */
 export function nCells(cube: Cube): number {
   return maskCells(cube).length;
 }
@@ -26,12 +26,12 @@ export function depositSet(cube: Cube): Set<number> {
   return s;
 }
 
-/** N(D) — number of occupied (deposit) cells in the mask. */
+/** N(D), number of occupied (deposit) cells in the mask. */
 export function nDeposits(cube: Cube): number {
   return depositSet(cube).size;
 }
 
-/** look up a layer by id (throws if unknown — a silent miss would corrupt every weight). */
+/** look up a layer by id (throws if unknown, a silent miss would corrupt every weight). */
 export function getLayer(cube: Cube, layerId: string): Layer {
   const l = cube.layers.find((x) => x.id === layerId);
   if (!l) throw new Error(`unknown layer: ${layerId}. have: ${cube.layers.map((x) => x.id).join(', ')}`);

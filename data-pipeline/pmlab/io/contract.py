@@ -1,8 +1,8 @@
-"""CONTRACT 1 — ingestion (a raw evidence-stack bundle -> pipeline). The *bring-your-own-evidence* gate.
+"""CONTRACT 1, ingestion (a raw evidence-stack bundle -> pipeline). The *bring-your-own-evidence* gate.
 
 * ``validate_records`` validates MPM case-bundle descriptor rows (one per study area). This is what the pipeline runs
   over the case set; it proves the gate and carries flags into the manifest.
-* ``validate_case`` validates a single dropped descriptor (a dict) — the same policy.
+* ``validate_case`` validates a single dropped descriptor (a dict), the same policy.
 
 A record is ACCEPTED iff it passes; ill-formed records are REJECTED with a reason (never silently coerced);
 plausible-but-honesty-relevant records are FLAGGED (accepted; the flag travels into the manifest). The key MPM honesty
