@@ -1,5 +1,5 @@
 // Prebuild: overlay the committed CONTRACT-2 artifacts (../data/derived) into the SPA's public/ so the static site
-// loads them. Canonical copies live in ../data/derived — public/ is a build-time overlay (git-ignored). ProspectMap's
+// loads them. Canonical copies live in ../data/derived, public/ is a build-time overlay (git-ignored). ProspectMap's
 // live lane is the TypeScript WofE engine (frontend/src/mpm/) + onnxruntime-web; there is no Pyodide lane to inline.
 import { copyFileSync, cpSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -11,7 +11,7 @@ const PUB = join(HERE, 'public');
 const derived = join(ROOT, 'data', 'derived');
 
 if (!existsSync(derived)) {
-  console.warn('[copy-data] no data/derived — run `npm run bake` (or `python -m pmlab.pipeline all`) first');
+  console.warn('[copy-data] no data/derived, run `npm run bake` (or `python -m pmlab.pipeline all`) first');
 } else {
   mkdirSync(join(PUB, 'data'), { recursive: true });
   cpSync(derived, join(PUB, 'data'), { recursive: true });

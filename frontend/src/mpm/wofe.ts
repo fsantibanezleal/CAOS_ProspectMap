@@ -1,4 +1,4 @@
-// Weights-of-Evidence — the canonical data-driven Bayesian MPM method (Bonham-Carter, Agterberg & Wright 1988-1994;
+// Weights-of-Evidence, the canonical data-driven Bayesian MPM method (Bonham-Carter, Agterberg & Wright 1988-1994;
 // Bonham-Carter 1994 ch.9). For a binary evidence pattern B over the study area with deposit set D:
 //   W+ = ln[ P(B|D) / P(B|D̄) ],  W- = ln[ P(B̄|D) / P(B̄|D̄) ],  contrast C = W+ - W-
 //   posterior logit = prior logit + Σ W^(±)  (under conditional independence).
@@ -26,7 +26,7 @@ export function contingency2x2(cube: Cube, pattern: Binarized, deposits?: Set<nu
   let nBbarDbar = 0;
   for (const i of maskCells(cube)) {
     const p = pattern.present[i];
-    if (p === 255) continue; // missing — contributes nothing
+    if (p === 255) continue; // missing, contributes nothing
     const isDep = dep.has(i);
     if (p === 1) {
       if (isDep) nBD++;
@@ -119,7 +119,7 @@ export function posterior(
       if (!w) continue;
       const scale = weightScale?.[pat.layerId] ?? 1;
       const p = pat.present[i];
-      if (p === 255) continue; // missing — contributes nothing
+      if (p === 255) continue; // missing, contributes nothing
       if (p === 1) {
         lg += scale * w.wPlus;
         var_ += w.sWPlus * w.sWPlus;

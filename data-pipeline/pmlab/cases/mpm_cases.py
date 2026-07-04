@@ -1,7 +1,7 @@
 """ProspectMap cases spanning CATEGORIES (the prospectivity problem-type taxonomy). The App shows ONE selected case;
 Experiments/Benchmark show cross-case summaries by category. The cases MIRROR the SPA's frontend/src/mpm/cases.ts
 (ids + metadata kept in lock-step; a test cross-checks them against the baked case-results.json). Every case is a
-SYNTHETIC study area (clearly labelled), generated deterministically from its SPEC by the TypeScript engine — the only
+SYNTHETIC study area (clearly labelled), generated deterministically from its SPEC by the TypeScript engine, the only
 data with KNOWN ground truth, so the controls are exact (C-RECOVER weight recovery, C-NEGATIVE noise, C-CIVIOLATE the
 conditional-dependence trap, C-SATURATE the analytic limit). Real open datasets are a documented next step."""
 from __future__ import annotations

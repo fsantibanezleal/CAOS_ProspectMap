@@ -1,6 +1,6 @@
 // ProspectMap cases by CATEGORY (the prospectivity problem-type taxonomy). The App shows ONE selected case;
 // Experiments/Benchmark show cross-case summaries. Every case is a SYNTHETIC study area (clearly labelled) generated
-// deterministically from its SPEC — the only data with KNOWN ground truth, so the controls are exact: C-RECOVER
+// deterministically from its SPEC, the only data with KNOWN ground truth, so the controls are exact: C-RECOVER
 // (WofE must recover the planted weight ordering), C-NEGATIVE (uninformative ⇒ AUC≈0.5), C-CIVIOLATE (a correlated
 // duplicate ⇒ the omnibus test fails on purpose), C-SATURATE (the analytic W⁺→∞ limit). Real open datasets
 // (Lawley-2022 USGS Zn-Pb, GA CC-BY) are a documented next step; the pipeline accepts a real cube identically.
@@ -99,17 +99,17 @@ export const CASES: MPMCase[] = [
   },
   {
     id: 'C-NEGATIVE',
-    name: 'Negative control — uninformative layers',
+    name: 'Negative control, uninformative layers',
     category: CAT_CONTROL,
     spec: { nx: NX, ny: NY, seed: 301, nDeposits: ND, gain: GAIN, layers: [L('mag', 0.0), L('rad', 0.0), L('geochem', 0.0), L('struct', 0.0)] },
     layerIds: ALL,
     expectedBand: 'no layer is associated with the (randomly-placed) deposits',
-    validationAnchor: 'all contrasts ≈ 0, |studentized-C| < 1.96, ROC AUC ≈ 0.5 — no skill from noise',
+    validationAnchor: 'all contrasts ≈ 0, |studentized-C| < 1.96, ROC AUC ≈ 0.5, no skill from noise',
     realOrSynthetic: 'analytic control',
   },
   {
     id: 'C-CIVIOLATE',
-    name: 'CI-violation oracle — a correlated duplicate',
+    name: 'CI-violation oracle, a correlated duplicate',
     category: CAT_CONTROL,
     spec: {
       nx: NX, ny: NY, seed: 302, nDeposits: ND, gain: GAIN,
@@ -123,7 +123,7 @@ export const CASES: MPMCase[] = [
   },
   {
     id: 'C-RECOVER',
-    name: 'Positive control — planted weight recovery',
+    name: 'Positive control, planted weight recovery',
     category: CAT_CONTROL,
     spec: { nx: NX, ny: NY, seed: 303, nDeposits: ND, gain: GAIN, layers: [L('mag', 2.4), L('rad', 0.0), L('geochem', 1.4), L('struct', 0.7)] },
     layerIds: ALL,
@@ -133,7 +133,7 @@ export const CASES: MPMCase[] = [
   },
   {
     id: 'C-SATURATE',
-    name: 'Analytic limit — a near-perfect single layer',
+    name: 'Analytic limit, a near-perfect single layer',
     category: CAT_CONTROL,
     spec: { nx: NX, ny: NY, seed: 304, nDeposits: ND, gain: 12, layers: [L('mag', 4.0), L('rad', 0.0), L('geochem', 0.0), L('struct', 0.0)] },
     layerIds: ['mag'],

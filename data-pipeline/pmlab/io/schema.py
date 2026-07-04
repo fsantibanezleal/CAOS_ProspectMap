@@ -1,4 +1,4 @@
-"""Typed objects passed between pipeline stages — the inter-stage contract. Plain dataclasses (no heavy deps)."""
+"""Typed objects passed between pipeline stages, the inter-stage contract. Plain dataclasses (no heavy deps)."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,7 +16,7 @@ class CaseDescriptor:
     """One validated MPM case bundle descriptor (CONTRACT 1 output). A case is a co-registered evidence cube
     (nx*ny unit cells, n_layers bands) + a presence-only deposit point pattern (n_deposits occupied cells) over a
     study-area mask. For the synthetic cases the cube + deposits are regenerated from the case SPEC by the TypeScript
-    engine (frontend/src/mpm/) — only the SPEC + the baked summary are committed (no raster blobs)."""
+    engine (frontend/src/mpm/), only the SPEC + the baked summary are committed (no raster blobs)."""
 
     case_id: str
     nx: int

@@ -1,4 +1,4 @@
-// The conditional-independence (CI) machinery — the honesty core. WofE's posterior sum is only valid if the evidence
+// The conditional-independence (CI) machinery, the honesty core. WofE's posterior sum is only valid if the evidence
 // patterns are conditionally independent given D; correlated favourable layers double-count and INFLATE the posterior.
 // We surface this: the pairwise χ² heatmap (CI given D), and the Agterberg-Cheng (2002) new omnibus test
 // (T = Σ posterior ≈ N(D) under CI; z = (T-N(D))/s(T)) + the CI ratio N(D)/T.

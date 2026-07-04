@@ -1,4 +1,4 @@
-# data/ — the data contract + layout
+# data/, the data contract + layout
 
 This folder is governed by the **two data contracts** of ADR-0057, specialised for ProspectMap: an MPM
 case-bundle descriptor in, a baked trace + manifest out.
@@ -13,7 +13,7 @@ case-bundle descriptor in, a baked trace + manifest out.
 | `derived/manifests/` | per-case `<case>.json` (Contract 2) + the flat `index.json` inventory | committed |
 | `demo/` | placeholder (empty, `.gitkeep` only) | committed |
 
-## CONTRACT 1 — ingestion (raw → pipeline) — the *bring-your-own-evidence* gate
+## CONTRACT 1, ingestion (raw → pipeline), the *bring-your-own-evidence* gate
 
 Defined in `data-pipeline/pmlab/io/contract.py`. A case-bundle descriptor row is **accepted** iff it satisfies
 the schema; **rejected** with a reason otherwise (never silently coerced); plausible-but-honesty-relevant rows
@@ -23,13 +23,13 @@ Descriptor schema (`examples/cases.csv`):
 
 | Column | Unit | Rule | Notes |
 |---|---|---|---|
-| `case_id` | — | non-empty | identifier |
+| `case_id` | n/a | non-empty | identifier |
 | `nx`, `ny` | cells | > 0 | study-area grid |
 | `cell_km` | km | > 0 | cell size |
 | `n_layers` | count | ≥ 1 | evidence layers to fuse |
 | `n_deposits` | count | ≥ 1 | known (presence-only) deposits |
-| `real_or_synthetic` | — | optional (default `synthetic`) | honesty label |
-| `deposit_type` | — | optional | free text |
+| `real_or_synthetic` | n/a | optional (default `synthetic`) | honesty label |
+| `deposit_type` | n/a | optional | free text |
 
 **Outlier policy:** missing/empty required column → reject · non-numeric grid/layer/deposit field → reject ·
 non-positive `nx`/`ny`/`cell_km` → reject · `n_layers < 1` or `n_deposits < 1` → reject.
@@ -38,7 +38,7 @@ classifier will overfit; trust the white-box WofE + the OOD mask) · `n_layers =
 no conditional independence to test) · grid > 4,000,000 cells → *very large* (reduce offline) ·
 `real_or_synthetic` starting with `synth` → *SYNTHETIC study area* (clearly labelled).
 
-## CONTRACT 2 — artifact (pipeline → web)
+## CONTRACT 2, artifact (pipeline → web)
 
 Each pipeline run writes a compact trace (`derived/<case>/trace.json`, schema `prospectmap.trace/v1`) and a
 manifest (`derived/manifests/<case>.json`, schema `prospectmap.manifest/v2`; flat inventory `index.json`,

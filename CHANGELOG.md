@@ -2,6 +2,13 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.06.001] - 2026-07-04
+
+### Changed
+- Content standards (ADR-0067): removed every em-dash from tracked content (replaced with commas, or
+  "n/a" in table cells). No behaviour change. Added `scripts/check_content_standards.py` + wired it
+  into the CI `guards` job so the repo cannot regress on em-dashes or emojis.
+
 ## [0.06.000] - 2026-06-21
 
 First full build on the product-repo archetype (ADR-0057). Weights-of-Evidence mineral prospectivity mapping.

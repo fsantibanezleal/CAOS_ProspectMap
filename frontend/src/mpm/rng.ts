@@ -1,8 +1,8 @@
 // Dependency-free numerics: a seeded RNG (mulberry32), erf/normCdf (same Abramowitz-Stegun impl as the CutoffGrade
-// engine), the inverse normal CDF, and a few small stats helpers. No DOM, no npm — runs in the browser AND in the
+// engine), the inverse normal CDF, and a few small stats helpers. No DOM, no npm, runs in the browser AND in the
 // Node bake under tsx.
 
-/** mulberry32 — a small fast deterministic PRNG. Returns a function yielding uniforms in [0,1). */
+/** mulberry32, a small fast deterministic PRNG. Returns a function yielding uniforms in [0,1). */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {

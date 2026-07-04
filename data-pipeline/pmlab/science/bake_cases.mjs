@@ -1,5 +1,5 @@
 // Bake the per-case WofE/CI/validation analysis through the SAME TypeScript engine the browser runs, and write
-// data/derived/case-results.json — the committed, deterministic per-case outputs the LIGHT Python pipeline reshapes
+// data/derived/case-results.json, the committed, deterministic per-case outputs the LIGHT Python pipeline reshapes
 // into per-case replay traces + manifests (CONTRACT 2). No Python re-port of the WofE engine. The cubes are SYNTHETIC
 // and regenerated from each case's SPEC (committed in case-results), so the artifact stays compact (no raster blobs);
 // the learned-model metrics are added by --retrain once trained. Run (from frontend/ so tsx resolves):

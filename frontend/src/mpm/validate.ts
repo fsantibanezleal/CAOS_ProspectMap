@@ -1,4 +1,4 @@
-// Honest validation — the product's spine. The capture (prediction-rate) curve: rank cells by descending
+// Honest validation, the product's spine. The capture (prediction-rate) curve: rank cells by descending
 // prospectivity, plot % of deposits captured vs % of area (Chung & Fabbri 2003). capture@10% is the headline
 // target-generation number. ROC/AUC is secondary (presence-only caveat) via the Mann-Whitney rank statistic.
 

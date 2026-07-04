@@ -1,4 +1,4 @@
-// Logistic regression — the CI-free generalization of WofE. logit P = β₀ + Σ βⱼ xⱼ, fit by IRLS / Newton-Raphson on
+// Logistic regression, the CI-free generalization of WofE. logit P = β₀ + Σ βⱼ xⱼ, fit by IRLS / Newton-Raphson on
 // the penalized log-likelihood (L2 ridge on the slopes, not the intercept) for the tiny imbalanced positive set.
 // On conditionally-independent binary patterns βⱼ ≈ the WofE contrast Cⱼ (the WofE↔LR equivalence). Cheap → runs live.
 
@@ -31,7 +31,7 @@ function solve(A: number[][], b: number[]): number[] | null {
 }
 
 /**
- * Fit logistic regression by IRLS. X = rows of feature vectors (WITHOUT the intercept column — added here).
+ * Fit logistic regression by IRLS. X = rows of feature vectors (WITHOUT the intercept column, added here).
  * ridge = L2 penalty on the slopes (not the intercept). Returns coefficients + their standard errors.
  */
 export function fitLR(
