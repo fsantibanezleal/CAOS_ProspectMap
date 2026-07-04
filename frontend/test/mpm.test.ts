@@ -1,4 +1,4 @@
-// Engine correctness — run with: node --import tsx --test test/mpm.test.ts
+// Engine correctness, run with: node --import tsx --test test/mpm.test.ts
 //
 // The science is pinned against closed forms + WofE theory + the synthetic controls (known ground truth):
 //   · a hand-computed 2x2 gives the exact W+/W-/contrast/studentized-C;
@@ -62,7 +62,7 @@ test('posterior is higher inside a favourable pattern than outside', () => {
   assert.ok(left > right, `posterior inside ${left} > outside ${right}`);
 });
 
-test('synthetic positive control — WofE recovers the planted weight ordering + ranks deposits', () => {
+test('synthetic positive control, WofE recovers the planted weight ordering + ranks deposits', () => {
   const { cube, planted } = makeSyntheticArea({
     nx: 100, ny: 100, seed: 7, nDeposits: 90, gain: 7,
     layers: [
@@ -89,7 +89,7 @@ test('synthetic positive control — WofE recovers the planted weight ordering +
   assert.ok(auc > 0.62, `WofE ROC AUC ${auc} should beat random`);
 });
 
-test('negative control — an uninformative layer makes no skill from noise', () => {
+test('negative control, an uninformative layer makes no skill from noise', () => {
   const { cube } = makeSyntheticArea({
     nx: 90, ny: 90, seed: 3, nDeposits: 70, gain: 7,
     layers: [
@@ -133,7 +133,7 @@ test('WofE ↔ logistic-regression equivalence (sign + ordering on binary patter
   assert.equal(betaOrder, contrastOrder, 'LR coefficient ordering matches WofE contrast ordering');
 });
 
-test('Agterberg-Cheng omnibus — CI≈1 when independent, T>N(D) on a planted CI violation', () => {
+test('Agterberg-Cheng omnibus, CI≈1 when independent, T>N(D) on a planted CI violation', () => {
   // CI-true: two independent informative layers
   const ind = makeSyntheticArea({
     nx: 100, ny: 100, seed: 21, nDeposits: 90, gain: 6,
@@ -165,7 +165,7 @@ test('Agterberg-Cheng omnibus — CI≈1 when independent, T>N(D) on a planted C
   assert.ok(omDep.z > 1.5, `violation z ${omDep.z} flags CI failure`);
 });
 
-test('capture curve — perfect ranking vs random', () => {
+test('capture curve, perfect ranking vs random', () => {
   const { cube } = makeSyntheticArea({
     nx: 60, ny: 60, seed: 5, nDeposits: 40, gain: 6,
     layers: [{ id: 'a', weight: 2.0, favHigh: true, coarse: 10 }],
@@ -185,7 +185,7 @@ test('capture curve — perfect ranking vs random', () => {
   assert.ok(Math.abs(cRand.aucCapture - 0.5) < 0.12, `random capture AUC ${cRand.aucCapture} ≈ 0.5`);
 });
 
-test('spatial-CV inflation — the SAME model scores higher under random CV than spatial-block CV', () => {
+test('spatial-CV inflation, the SAME model scores higher under random CV than spatial-block CV', () => {
   const { cube } = makeSyntheticArea({
     nx: 100, ny: 100, seed: 33, nDeposits: 80, gain: 7,
     layers: [{ id: 'a', weight: 2.2, favHigh: true, coarse: 12 }],

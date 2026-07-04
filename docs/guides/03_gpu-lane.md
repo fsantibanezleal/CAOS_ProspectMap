@@ -1,4 +1,4 @@
-# Guide — the GPU lane (optional)
+# Guide, the GPU lane (optional)
 
 Only for products whose offline engine/sweep/training genuinely needs CUDA (large DEM, big Monte-Carlo, heavy
 model training). Never required for the live/replay path.
@@ -9,5 +9,5 @@ model training). Never required for the live/replay path.
 
 The committed artifacts are produced offline regardless of lane, so a GPU-only product still deploys as a static
 replay (the browser never needs the GPU). ProspectMap's heavy lane (torch → ONNX, pinned CPU-only in
-`data-pipeline/requirements-precompute.txt`) needs no CUDA; there is no `requirements-gpu.txt` in this repo — add
+`data-pipeline/requirements-precompute.txt`) needs no CUDA; there is no `requirements-gpu.txt` in this repo, add
 one only if a future heavy case genuinely needs it.

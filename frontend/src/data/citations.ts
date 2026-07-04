@@ -1,6 +1,6 @@
 import type { Citation } from '@fasl-work/caos-app-shell';
 
-// The references ProspectMap's methodology rests on — Weights-of-Evidence, the conditional-independence test, the
+// The references ProspectMap's methodology rests on, Weights-of-Evidence, the conditional-independence test, the
 // WofE->logistic-regression bridge, the honest spatial-CV / capture-curve validation, and the real Zn-Pb dataset.
 export const CITATIONS: Citation[] = [
   {

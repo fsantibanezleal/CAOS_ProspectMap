@@ -32,8 +32,8 @@ export default function Benchmark() {
 
       <Callout variant="honest" title={es ? 'Sin victoria fabricada' : 'No fabricated win'}>
         {es
-          ? 'El posterior WofE de caja blanca es la autoridad interpretable. El clasificador aprendido (torch→ONNX, carril --retrain) se mide contra WofE en el MISMO holdout espacial y gana su lugar sólo si lo supera capturando interacciones no lineales. Si empata o pierde, el benchmark lo dice — y ese es el resultado honesto.'
-          : 'The white-box WofE posterior is the interpretable authority. The learned classifier (torch→ONNX, the --retrain lane) is measured against WofE on the SAME spatial holdout and earns its place only if it beats it by capturing non-linear interactions. If it ties or loses, the benchmark says so — and that is the honest result.'}
+          ? 'El posterior WofE de caja blanca es la autoridad interpretable. El clasificador aprendido (torch→ONNX, carril --retrain) se mide contra WofE en el MISMO holdout espacial y gana su lugar sólo si lo supera capturando interacciones no lineales. Si empata o pierde, el benchmark lo dice, y ese es el resultado honesto.'
+          : 'The white-box WofE posterior is the interpretable authority. The learned classifier (torch→ONNX, the --retrain lane) is measured against WofE on the SAME spatial holdout and earns its place only if it beats it by capturing non-linear interactions. If it ties or loses, the benchmark says so, and that is the honest result.'}
       </Callout>
 
       {rows == null ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
@@ -58,9 +58,9 @@ export default function Benchmark() {
 
       <h2>{es ? 'Clasificador aprendido vs WofE' : 'Learned classifier vs WofE'}</h2>
       {learned ? (
-        <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? '—')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda — separable por construcción)' : ' (synthetic out-of-band eval set — separable by construction)'}</p>
+        <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? ', ')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda, separable por construcción)' : ' (synthetic out-of-band eval set, separable by construction)'}</p>
       ) : (
-        <p className="pf-note">{es ? 'Modelos aprendidos pendientes — corre `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending — run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
+        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, corre `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
       )}
     </article>
   );

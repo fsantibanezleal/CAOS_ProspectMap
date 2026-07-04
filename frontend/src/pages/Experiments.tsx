@@ -63,8 +63,8 @@ export default function Experiments() {
         </table>
       )}
       <p className="pf-note">{es
-        ? 'Anclas: C-NEGATIVE — capas no informativas ⇒ AUC ≈ 0.5. C-CIVIOLATE — un duplicado correlacionado ⇒ CI ratio < 1 (z alto), posterior inflado. C-RECOVER — recupera el orden de pesos plantados. C-SATURATE — una capa casi perfecta, sin blow-up numérico.'
-        : 'Anchors: C-NEGATIVE — uninformative layers ⇒ AUC ≈ 0.5. C-CIVIOLATE — a correlated duplicate ⇒ CI ratio < 1 (high z), inflated posterior. C-RECOVER — recovers the planted weight ordering. C-SATURATE — a near-perfect single layer, no numerical blow-up.'}</p>
+        ? 'Anclas: C-NEGATIVE, capas no informativas ⇒ AUC ≈ 0.5. C-CIVIOLATE, un duplicado correlacionado ⇒ CI ratio < 1 (z alto), posterior inflado. C-RECOVER, recupera el orden de pesos plantados. C-SATURATE, una capa casi perfecta, sin blow-up numérico.'
+        : 'Anchors: C-NEGATIVE, uninformative layers ⇒ AUC ≈ 0.5. C-CIVIOLATE, a correlated duplicate ⇒ CI ratio < 1 (high z), inflated posterior. C-RECOVER, recovers the planted weight ordering. C-SATURATE, a near-perfect single layer, no numerical blow-up.'}</p>
     </article>
   );
 }

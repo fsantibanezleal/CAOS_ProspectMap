@@ -1,4 +1,4 @@
-"""pmlab — the offline+light engine for ProspectMap (Weights-of-Evidence mineral prospectivity mapping), instantiated
+"""pmlab, the offline+light engine for ProspectMap (Weights-of-Evidence mineral prospectivity mapping), instantiated
 on the CAOS product-repo template (ADR-0057).
 
 The live + bake science is the dependency-free TypeScript engine (frontend/src/mpm/). This Python package is the
@@ -8,4 +8,4 @@ by the SAME TS engine the browser runs) into per-case CONTRACT-2 traces + manife
 (torch -> ONNX) in pmlab/science/.
 """
 
-__version__ = "0.06.000"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.6.0)
+__version__ = "0.06.001"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.6.1)

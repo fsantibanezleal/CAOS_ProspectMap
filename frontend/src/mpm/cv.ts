@@ -1,4 +1,4 @@
-// Spatial cross-validation — the single most important honesty mechanism. Deposit cells and their neighbours are
+// Spatial cross-validation, the single most important honesty mechanism. Deposit cells and their neighbours are
 // NOT independent (spatial autocorrelation), so a RANDOM train/test split leaks neighbours of training deposits into
 // the test set and the AUC/capture look fantastic and are a lie. SPATIAL block CV holds out whole contiguous blocks
 // so train/test are spatially separated. The mandatory demonstration: the SAME model collapses from random-CV to
@@ -36,7 +36,7 @@ export function spatialBlockFolds(cube: Cube, k: number, blockCells: number): Fo
 /**
  * A model-agnostic CV driver: for each fold f, fit a score from the TRAINING deposits (deposits NOT in fold f) via
  * scoreFn, then record the held-out cells' scores. Returns the held-out score array (assembled across folds) and its
- * ROC AUC vs the true deposit labels — the honest, leakage-controlled skill estimate.
+ * ROC AUC vs the true deposit labels, the honest, leakage-controlled skill estimate.
  */
 export function crossValScores(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): Float64Array {
   const n = cube.nx * cube.ny;
@@ -61,7 +61,7 @@ export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trai
 
 /**
  * The demonstrator "model": each cell's score = exp(-d_nearest_training_deposit / scale). It captures spatial
- * autocorrelation literally — "close to a known deposit = prospective". Under random CV it LEAKS (held-out deposits
+ * autocorrelation literally, "close to a known deposit = prospective". Under random CV it LEAKS (held-out deposits
  * have training neighbours → high score → inflated AUC); under spatial-block CV it collapses (held-out blocks have no
  * nearby training deposits). The same model, two schemes → the inflation gap. (O(cells·deposits); fine for the grid.)
  */
