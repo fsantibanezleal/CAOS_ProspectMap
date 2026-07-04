@@ -21,6 +21,7 @@ score here"). The 95th-percentile in-envelope MSE is the committed threshold.
 ## The honest numbers
 
 Measured (not fabricated): mpm-classifier **spatial-CV AUC 0.971 vs WofE 0.929** (winner: the MLP, on the multi-layer
-interactions WofE's CI form omits) - random-CV 0.979 (inflation +0.008) - geology-OOD AUC 1.0. `train_mpm.py` exports
+interactions WofE's CI form omits) - random-CV 0.979 (inflation +0.008) - geology-OOD AUC 1.0 (on a synthetic
+out-of-band eval set, separable by construction - not a field-detection claim). `train_mpm.py` exports
 the 2 ONNX + `learned-partial.json`; `eval_mpm.mjs` runs the exported classifier in onnxruntime-web (the engine's own
 runtime, the honest end-to-end check) and assembles `pm-learned.json` (schema `prospectmap.learned/v1`).

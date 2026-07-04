@@ -25,7 +25,8 @@ with the in-app i **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md))
   posterior ~ N(D) under CI) + the CI ratio. When correlated layers double-count, the posterior inflates and the app
   says so.
 - **Logistic regression** — the CI-free generalization (IRLS + ridge); on independent patterns its coefficients match
-  the WofE contrasts; under CI violation it does not over-estimate.
+  the WofE contrasts; under CI violation its jointly-fit coefficients are expected not to double-count (the in-app
+  omnibus check runs on the WofE posterior; an LR calibration readout is not yet shown).
 - **Honest validation** — the success (fitting) vs prediction-rate (held-out) capture curves; capture@10% under
   **spatial** cross-validation is the headline; the random-vs-spatial inflation gap is shown, not hidden.
 - **mpm-classifier (learned)** — a presence-only MLP over the evidence vector, benchmarked head-to-head against the
@@ -36,12 +37,14 @@ with the in-app i **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md))
 
 ## Honesty
 
-The study areas are **synthetic** (geostatistically-grounded smooth fields + a planted fault network + deposits by an
-inhomogeneous-Poisson process on a known latent prospectivity), clearly labelled. They are the only data with known
+The study areas are **synthetic** (smooth value-noise fields — geostatistical in spirit, not variogram-controlled —
+with planted per-layer weights; deposits rejection-sampled on the known latent prospectivity, fixed count per case),
+clearly labelled. They are the only data with known
 ground truth, so the controls are exact: `C-NEGATIVE` (uninformative -> AUC ~ 0.5), `C-CIVIOLATE` (a correlated
 duplicate -> the omnibus test fails), `C-RECOVER` (recovers the planted weight ordering), `C-SATURATE` (the analytic
 limit). The white-box WofE is the interpretable authority; the learned classifier earns its place only on the spatial
-holdout: **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929**, geology-OOD AUC 1.0. Deposit labels are presence-only
+holdout: **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929**; geology-OOD AUC 1.0 (on a synthetic out-of-band eval
+set, separable by construction — not a field-detection claim). Deposit labels are presence-only
 (negatives are sampled, never observed). Outputs are exploration **target generation**, NOT a JORC / NI 43-101 resource
 estimate. No fabricated wins. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase, Geoscience Australia
 CC-BY) are a documented next step; the pipeline accepts a real cube identically.

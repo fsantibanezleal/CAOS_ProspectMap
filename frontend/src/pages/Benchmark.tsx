@@ -52,10 +52,13 @@ export default function Benchmark() {
           </tbody>
         </table>
       )}
+      <p className="pf-note">{es
+        ? 'Procedencia de las métricas: las columnas WofE AUC y LR AUC son números in-sample (de ajuste); la columna de inflación CV viene de cross-validation. La captura held-out espacial vive en la pestaña Tasas de captura del App.'
+        : 'Metric provenance: the WofE AUC and LR AUC columns are in-sample (fitting) numbers; the CV-inflation column comes from cross-validation. Spatially held-out capture lives in the App\'s Capture-rates tab.'}</p>
 
       <h2>{es ? 'Clasificador aprendido vs WofE' : 'Learned classifier vs WofE'}</h2>
       {learned ? (
-        <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? '—')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b></p>
+        <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? '—')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda — separable por construcción)' : ' (synthetic out-of-band eval set — separable by construction)'}</p>
       ) : (
         <p className="pf-note">{es ? 'Modelos aprendidos pendientes — corre `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending — run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
       )}

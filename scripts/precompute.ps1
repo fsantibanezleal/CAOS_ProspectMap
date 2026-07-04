@@ -1,4 +1,4 @@
-# Run the offline pipeline (pass-through args). E.g.:  ./scripts/precompute.ps1 EX02_epidemic --seed 7
+# Run the offline pipeline (pass-through args). E.g.:  ./scripts/precompute.ps1 K-PORPHYRY --seed 42
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 $vp = Join-Path ".venv-pipeline" "Scripts\python.exe"

@@ -1,46 +1,58 @@
 # data/ — the data contract + layout
 
-This folder is governed by the **two data contracts** of ADR-0057. Replace the EXAMPLE (SIR) schema below with
-your product's real contract when you instantiate.
+This folder is governed by the **two data contracts** of ADR-0057, specialised for ProspectMap: an MPM
+case-bundle descriptor in, a baked trace + manifest out.
 
 ## Layout
 
 | Path | What | Git |
 |---|---|---|
-| `raw/` | private/large source inputs | **git-ignored** (never committed; staged via `scripts/fetch-data`) |
-| `examples/` | a tiny standard-format sample that PASSES Contract 1 (clone-verify) | committed |
-| `derived/<case>/` | the compact, standard-format artifacts the web replays | committed |
+| `raw/` | local intermediates of the learned lane (`mpm-train.json`, `mpm-eval.json`, `learned-partial.json`) | **git-ignored** |
+| `examples/cases.csv` | the case-bundle descriptor sample that PASSES Contract 1 (clone-verify) | committed |
+| `derived/<case>/trace.json` | the compact per-case artifacts the web replays | committed |
 | `derived/manifests/` | per-case `<case>.json` (Contract 2) + the flat `index.json` inventory | committed |
-| `demo/` | small deterministic payload for smoke | committed |
+| `demo/` | placeholder (empty, `.gitkeep` only) | committed |
 
-## CONTRACT 1 — ingestion (raw → pipeline) — the *bring-your-own-data* gate
+## CONTRACT 1 — ingestion (raw → pipeline) — the *bring-your-own-evidence* gate
 
-Defined in `data-pipeline/pmlab/io/contract.py`. A parameter row is **accepted** iff it satisfies the schema;
-**rejected** with a reason otherwise (never silently coerced); plausible-but-suspicious rows are **flagged**.
+Defined in `data-pipeline/pmlab/io/contract.py`. A case-bundle descriptor row is **accepted** iff it satisfies
+the schema; **rejected** with a reason otherwise (never silently coerced); plausible-but-honesty-relevant rows
+are **flagged** (accepted; the flag travels into the manifest).
 
-EXAMPLE schema (an SIR parameterization — `examples/params.csv`):
+Descriptor schema (`examples/cases.csv`):
 
-| Column | Unit | Range | Notes |
+| Column | Unit | Rule | Notes |
 |---|---|---|---|
 | `case_id` | — | non-empty | identifier |
-| `beta` | 1/day (contact rate) | (1e-6, 5.0] | outside → reject |
-| `gamma` | 1/day (recovery rate) | (1e-6, 2.0] | outside → reject |
-| `N` | individuals | [1, 1e9] | population |
-| `I0` | individuals | [0, N] | `I0 > N` → reject |
-| `days` | days | ≥1 (default 160) | horizon |
+| `nx`, `ny` | cells | > 0 | study-area grid |
+| `cell_km` | km | > 0 | cell size |
+| `n_layers` | count | ≥ 1 | evidence layers to fuse |
+| `n_deposits` | count | ≥ 1 | known (presence-only) deposits |
+| `real_or_synthetic` | — | optional (default `synthetic`) | honesty label |
+| `deposit_type` | — | optional | free text |
 
-**Outlier policy:** missing/empty column → reject · non-numeric → reject · NaN/Inf → reject · out-of-range → reject ·
-`I0 > N` → reject · `R0 = beta/gamma > 20` → **flag** (accepted; the flag is recorded in the manifest).
+**Outlier policy:** missing/empty required column → reject · non-numeric grid/layer/deposit field → reject ·
+non-positive `nx`/`ny`/`cell_km` → reject · `n_layers < 1` or `n_deposits < 1` → reject.
+**Honesty flags** (accepted; recorded in the manifest): `n_deposits < 10` → *presence-only-tiny* (a black-box
+classifier will overfit; trust the white-box WofE + the OOD mask) · `n_layers == 1` → *single-layer* (no fusion,
+no conditional independence to test) · grid > 4,000,000 cells → *very large* (reduce offline) ·
+`real_or_synthetic` starting with `synth` → *SYNTHETIC study area* (clearly labelled).
 
 ## CONTRACT 2 — artifact (pipeline → web)
 
-Each pipeline run writes a compact trace (`derived/<case>/trace.json`, schema `example.trace/v1`) and a manifest
-(`derived/manifests/<case>.json`, schema `example.manifest/v2`) recording params, seed, engine+version, the
-artifact byte size, the measured **lane/gate** verdict, Contract-1 flags, and the evaluation metrics.
-`frontend/src/lib/contract.types.ts` mirrors these schemas so any drift fails the web build. The web loads ONLY
-these committed artifacts — it never recomputes (except the optional live lane, which uses the same trace schema).
+Each pipeline run writes a compact trace (`derived/<case>/trace.json`, schema `prospectmap.trace/v1`) and a
+manifest (`derived/manifests/<case>.json`, schema `prospectmap.manifest/v2`; flat inventory `index.json`,
+schema `prospectmap.index/v1`) recording the case identity + anchors, the engine + version, the seed, the
+shared learned artifacts (`mpm-classifier.onnx`, `geology-ood.onnx`, `pm-learned.json`, `case-results.json`),
+the trace pointer + byte size, the measured **lane/gate** verdict, the Contract-1 flags, the case metrics and
+the honesty statement. `frontend/src/lib/contract.types.ts` mirrors these schemas so any drift fails the web
+build. The cross-case pages (Experiments / Benchmark / the learned metrics) load ONLY these committed
+artifacts; the App recomputes the WofE analysis live in the browser with the SAME TypeScript engine.
 
 ## Provenance / license
 
-EXAMPLE data is **synthetic** (generated by the SIR engine). A real product documents here: source, license,
-redistribution terms (public derived artifacts only; raw/private sources stay in the vault per ADR-0055).
+All study areas are **synthetic** (clearly labelled): smooth value-noise evidence fields with planted per-layer
+weights + deposits rejection-sampled on the known latent prospectivity (fixed count per case), generated by
+`frontend/src/mpm/synth.ts` (the browser and the Node bake run the same code). No real geoscience data is used
+or redistributed. Real open datasets (Lawley et al. 2022 Zn-Pb ScienceBase, Geoscience Australia CC-BY) are a
+documented next step; their licence terms will be recorded here when integrated.
