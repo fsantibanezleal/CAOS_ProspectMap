@@ -15,7 +15,8 @@ export const architecture: ArchitectureConfig = {
         '/ structural evidence layers over a study-area grid and computes a posterior prospectivity map P(deposit | ' +
         'evidence) per cell by Weights of Evidence (a Bayesian log-odds update).\n\n' +
         'It is a real system, not a colourful heatmap. The WofE / logistic-regression engine (frontend/src/mpm/) ' +
-        'recomputes the posterior LIVE in the browser when you toggle a layer or drag a binarization threshold; the ' +
+        'recomputes the posterior LIVE in the browser when you toggle an evidence layer or switch the method ' +
+        '(binarization is automatic at the maximizing-contrast threshold t*); the ' +
         'per-layer weights table, the capture / ROC curves and the conditional-independence test update with it. The ' +
         'whole point is that it exposes WofE’s failure modes HONESTLY — conditional-independence violation inflating ' +
         'the posterior, and random-CV vs spatial-CV inflating the AUC. The synthetic controls (C-NEGATIVE, C-CIVIOLATE, ' +
@@ -26,7 +27,8 @@ export const architecture: ArchitectureConfig = {
         'prospectividad P(depósito | evidencia) por celda con Weights of Evidence (una actualización bayesiana de ' +
         'log-odds).\n\n' +
         'Es un sistema real, no un heatmap vistoso. El motor WofE / regresión logística (frontend/src/mpm/) recalcula ' +
-        'el posterior EN VIVO en el navegador al activar una capa o arrastrar un umbral de binarización; la tabla de ' +
+        'el posterior EN VIVO en el navegador al activar/desactivar una capa de evidencia o cambiar el método (la ' +
+        'binarización es automática en el umbral de contraste máximo t*); la tabla de ' +
         'pesos por capa, las curvas de captura / ROC y el test de independencia condicional se actualizan con él. Lo ' +
         'central es que expone HONESTAMENTE las fallas de WofE — la violación de independencia condicional que infla el ' +
         'posterior, y el CV aleatorio vs el CV espacial que infla el AUC. Los controles sintéticos (C-NEGATIVE, ' +
@@ -62,7 +64,7 @@ export const architecture: ArchitectureConfig = {
       svg: 'svg/tech/03-web-flow.svg',
       body_en:
         'The App page recomputes live: inputs (the case selector or your own evidence stack, plus the per-layer on/off ' +
-        'toggles + binarization thresholds + the method chip) feed the TypeScript WofE engine and the onnxruntime-web ' +
+        'toggles + the method chip; each layer binarizes automatically at t*) feed the TypeScript WofE engine and the onnxruntime-web ' +
         'models, which feed the interactive viz — the canvas prospectivity raster, the per-layer weights table, the ' +
         'capture / ROC curves and the CI readout, each reading values back on hover. The six sibling pages (App · ' +
         'Introduction · Methodology · Implementation · Experiments · Benchmark) are identical across every CAOS ' +
@@ -70,7 +72,7 @@ export const architecture: ArchitectureConfig = {
         'the static output, and GitHub Pages serves it at prospectmap.fasl-work.com.',
       body_es:
         'La página App recalcula en vivo: las entradas (el selector de casos o tu propio stack de evidencia, más los ' +
-        'toggles on/off por capa + los umbrales de binarización + el chip de método) alimentan el motor WofE en ' +
+        'toggles on/off por capa + el chip de método; cada capa se binariza automáticamente en t*) alimentan el motor WofE en ' +
         'TypeScript y los modelos onnxruntime-web, que alimentan la visualización interactiva — el raster de ' +
         'prospectividad en canvas, la tabla de pesos por capa, las curvas de captura / ROC y el lectura de CI, cada uno ' +
         'devolviendo valores al pasar el cursor. Las seis páginas hermanas (App · Introducción · Metodología · ' +

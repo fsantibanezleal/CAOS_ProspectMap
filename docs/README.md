@@ -8,7 +8,7 @@ inflation) made first-class. Instantiated on the CAOS product-repo archetype (AD
 - **[Architecture](architecture.md)** - the archetype, the lanes, the gate, the two data contracts, determinism, deploy.
 - **[Frameworks](frameworks.md)** - the WofE/CI/logistic method, the viz stack, the learned models (torch -> ONNX).
 - **[Cases](cases.md)** - the 10 cases by category + their validation anchors.
-- **[Guides](guides.md)** - instantiate, run the precompute/retrain lane, bring your own evidence stack.
+- **[Guides](guides.md)** - run the precompute/retrain lane, bring your own evidence stack.
 
 ## One-paragraph orientation
 

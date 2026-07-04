@@ -59,7 +59,7 @@ CASES: list[Case] = [
          real_or_synthetic="analytic control"),
     Case("C-CIVIOLATE", "CI-violation oracle - a correlated duplicate", CAT_CONTROL, 3,
          "mag and its near-duplicate double-count the same signal -> the WofE posterior is inflated",
-         "the omnibus test fails (T > N(D), CI ratio < 1, z > 0); logistic regression does not over-estimate",
+         "the omnibus test fails (T > N(D), CI ratio < 1, z > 0); logistic regression is the CI-free alternative (calibration readout not yet in-app)",
          real_or_synthetic="analytic control"),
     Case("C-RECOVER", "Positive control - planted weight recovery", CAT_CONTROL, 4,
          "well-separated planted weights mag > geochem > struct",

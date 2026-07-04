@@ -22,5 +22,6 @@ measured against the white-box WofE posterior - NOT bolted-on. The WofE posterio
 classifier is validated by SPATIAL block cross-validation and benchmarked head-to-head against WofE on the IDENTICAL
 spatial holdout; the random-CV AUC is reported beside it to surface the inflation gap. Measured (not fabricated):
 **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929** (winner: the MLP, on the multi-layer interactions WofE's CI form
-omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0**. Deposit labels are presence-only; negatives are
-sampled, never observed. Reported whichever way the numbers land. No fabricated win.
+omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set - uniform
+features pushed outside the training band, separable by construction; not a field-detection claim). Deposit labels are
+presence-only; negatives are sampled, never observed. Reported whichever way the numbers land. No fabricated win.

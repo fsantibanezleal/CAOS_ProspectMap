@@ -1,8 +1,8 @@
 # Cases
 
 Ten SYNTHETIC study areas (clearly labelled), grouped by CATEGORY. Each is generated deterministically from a SPEC by
-`frontend/src/mpm/synth.ts` (smooth value-noise evidence layers + a planted latent prospectivity + deposits by an
-inhomogeneous-Poisson process), so the controls have KNOWN ground truth. The App shows one case; Experiments/Benchmark
+`frontend/src/mpm/synth.ts` (smooth value-noise evidence layers + a planted latent prospectivity + deposits
+rejection-sampled on it, fixed count per case), so the controls have KNOWN ground truth. The App shows one case; Experiments/Benchmark
 summarize across categories. The Python registry (`pmlab/cases/mpm_cases.py`) mirrors the TS cases; a test cross-checks
 the ids against the baked `case-results.json`.
 
@@ -27,7 +27,7 @@ the ids against the baked `case-results.json`.
 | Case | What it shows (the exact oracle) |
 |---|---|
 | `C-NEGATIVE` | uninformative layers -> all contrasts ~ 0, ROC AUC ~ 0.499 - no skill from noise |
-| `C-CIVIOLATE` | a correlated duplicate of a favourable layer -> the omnibus test fails (CI ratio 0.65, z 4.1); WofE inflated, logistic not |
+| `C-CIVIOLATE` | a correlated duplicate of a favourable layer -> the omnibus test fails (CI ratio 0.65, z 4.1); the WofE posterior is inflated (logistic is the CI-free alternative; its calibration is not yet read out in-app) |
 | `C-RECOVER` | well-separated planted weights -> WofE recovers the ordering contrast(mag) > contrast(geochem) > contrast(struct) |
 | `C-SATURATE` | a near-perfect single layer -> a near-saturated posterior, no numerical blow-up (the Haldane guard), AUC ~ 0.97 |
 

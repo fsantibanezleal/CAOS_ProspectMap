@@ -1,6 +1,6 @@
 // Deterministic synthetic study-area generator (CLEARLY LABELLED synthetic). Smooth value-noise evidence layers + a
-// known latent prospectivity (a weighted sum of the informative layers) + deposits drawn by an inhomogeneous-Poisson
-// process on that latent field. This is the only case family with KNOWN ground-truth → the exact oracles: WofE/LR
+// known latent prospectivity (a weighted sum of the informative layers) + deposits rejection-sampled on that latent
+// field (probability-weighted, fixed count per case). This is the only case family with KNOWN ground-truth → the exact oracles: WofE/LR
 // must recover the planted weight ORDERING (positive control), a duplicated correlated layer makes the omnibus test
 // fail on purpose (the CI-trap), and an uninformative layer is the negative control. Used by the tests now and the
 // synthetic cases later. Geostatistically-grounded in spirit (smooth correlated fields), not a real deposit model.
@@ -57,7 +57,7 @@ function valueNoise(nx: number, ny: number, coarse: number, rnd: () => number): 
   return out;
 }
 
-/** build a synthetic Cube with planted weights + Poisson-sampled deposits. Deterministic given the seed. */
+/** build a synthetic Cube with planted weights + rejection-sampled deposits. Deterministic given the seed. */
 export function makeSyntheticArea(spec: SynthSpec): { cube: Cube; planted: Record<string, number> } {
   const { nx, ny, seed } = spec;
   const n = nx * ny;
@@ -93,7 +93,8 @@ export function makeSyntheticArea(spec: SynthSpec): { cube: Cube; planted: Recor
     }
     latent[i] = z;
   }
-  // calibrate the intercept so the expected deposit count ≈ nDeposits, then place by an inhomogeneous Poisson process
+  // calibrate the intercept so the expected deposit count ≈ nDeposits, then place deposits by probability-weighted
+  // rejection sampling until exactly nDeposits are placed (a conditioned draw, not a Poisson count)
   let lo = -20;
   let hi = 20;
   for (let it = 0; it < 60; it++) {

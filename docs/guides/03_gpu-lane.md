@@ -8,5 +8,6 @@ model training). Never required for the live/replay path.
 3. Document the engine in `docs/frameworks/<tool>/`.
 
 The committed artifacts are produced offline regardless of lane, so a GPU-only product still deploys as a static
-replay (the browser never needs the GPU). The template's EXAMPLE has no GPU step — `requirements-gpu.txt` is a
-commented placeholder.
+replay (the browser never needs the GPU). ProspectMap's heavy lane (torch → ONNX, pinned CPU-only in
+`data-pipeline/requirements-precompute.txt`) needs no CUDA; there is no `requirements-gpu.txt` in this repo — add
+one only if a future heavy case genuinely needs it.

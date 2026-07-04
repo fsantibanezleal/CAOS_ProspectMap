@@ -179,8 +179,8 @@ export default function Tool() {
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? '% de depósitos capturados vs % del área (ranking por prospectividad). prediction = held-out espacial (honesto); fitting = sobre los datos de entrenamiento (optimista).'
-            : '% of deposits captured vs % of area (ranked by prospectivity). prediction = spatial held-out (honest); fitting = on the training data (optimistic).'}</div>
+            ? '% de depósitos capturados vs % del área (ranking por prospectividad). prediction = held-out espacial (W⁺/W⁻ se reajustan por fold; el umbral t* se elige con todos los depósitos — un sesgo optimista pequeño); fitting = sobre los datos de entrenamiento (optimista).'
+            : '% of deposits captured vs % of area (ranked by prospectivity). prediction = spatial held-out (W⁺/W⁻ refit per fold; the binarization threshold t* is chosen on all deposits — a small optimism); fitting = on the training data (optimistic).'}</div>
           <CurveChart x={xs} series={captureSeries} xLabel={es ? '% área' : '% area'} yLabel={es ? '% depósitos' : '% deposits'} diagonal />
           <p className="pf-note">{es
             ? `El top 10% del área captura ${pct(analysis.capture.prediction.captureAt10)} de los depósitos held-out (spatial CV). El gap fitting−prediction mide el sobreajuste.`
@@ -223,7 +223,7 @@ export default function Tool() {
             </tbody>
           </table>
           <p className="pf-note">{ci.ciRatio < 0.85
-            ? (es ? `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 ⇒ violación: el posterior WofE está sobre-estimado. Usa el ranking relativo o la regresión logística (AUC ${analysis.lr.rocAuc.toFixed(3)}).` : `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 ⇒ violation: the WofE posterior is over-estimated. Use the relative ranking or logistic regression (AUC ${analysis.lr.rocAuc.toFixed(3)}).`)
+            ? (es ? `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 ⇒ violación: el posterior WofE está sobre-estimado. Usa el ranking relativo, o la regresión logística como alternativa sin supuesto de CI (AUC ${analysis.lr.rocAuc.toFixed(3)} — una métrica de ranking; su calibración aún no se muestra en la app).` : `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 ⇒ violation: the WofE posterior is over-estimated. Use the relative ranking, or logistic regression as the CI-free alternative (AUC ${analysis.lr.rocAuc.toFixed(3)} — a ranking metric; its calibration is not yet read out in-app).`)
             : (es ? `CI ratio ${ci.ciRatio.toFixed(2)} ≈ 1 ⇒ consistente con independencia condicional; el posterior WofE es razonable.` : `CI ratio ${ci.ciRatio.toFixed(2)} ≈ 1 ⇒ consistent with conditional independence; the WofE posterior is reasonable.`)}</p>
         </div>
       ),
@@ -259,8 +259,8 @@ export default function Tool() {
             </tbody>
           </table>
           <p className="pf-note">{es
-            ? 'Cuando se cumple la independencia condicional, la logística ≈ WofE. Cuando se viola (caso C-CIVIOLATE), la logística no sobre-estima — esa es la razón de preferirla.'
-            : 'When conditional independence holds, logistic ≈ WofE. When it is violated (case C-CIVIOLATE), logistic does not over-estimate — that is the reason to prefer it.'}</p>
+            ? 'Cuando se cumple la independencia condicional, la logística ≈ WofE. Cuando se viola (caso C-CIVIOLATE), la logística ajusta las capas EN CONJUNTO y se espera que no doble-cuente — la app aún no muestra un readout de calibración que lo demuestre (el test omnibus corre sobre el posterior WofE).'
+            : 'When conditional independence holds, logistic ≈ WofE. When it is violated (case C-CIVIOLATE), logistic fits the layers JOINTLY and is expected not to double-count — the app does not yet show a calibration readout demonstrating it (the omnibus test runs on the WofE posterior).'}</p>
         </div>
       ),
     },

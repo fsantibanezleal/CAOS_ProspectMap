@@ -1,6 +1,5 @@
-# PRECOMPUTE lane — the heavy, research-chosen SOTA engines, in the .venv-pipeline (local-only, never deployed).
-# THIS is where the deep research becomes binding: every engine pinned here is documented in docs/frameworks/<tool>/
-# and actually used by data-pipeline/pmlab/stages/. The EXAMPLE engine (SIR) is numpy-only on purpose so the
-# template installs instantly with no native build; a real product adds e.g. yade / pychrono / ortools / mintpy /
-# torch here, each PINNED to the version it installs+verifies.
+# DEFAULT lane — the numpy-light pipeline deps for .venv-pipeline (local-only, never deployed). Kept numpy-only on
+# purpose so CI + the clone-verify install instantly with no native build; the WofE/CI/LR algorithm itself is the
+# TypeScript engine (frontend/src/mpm/), run by the bake via tsx. The heavy learned lane (torch -> ONNX) is pinned
+# separately in data-pipeline/requirements-precompute.txt and documented in docs/frameworks/03_torch-onnx.md.
 numpy==2.4.6
