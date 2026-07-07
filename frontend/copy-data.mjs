@@ -15,7 +15,8 @@ if (!existsSync(derived)) {
 } else {
   mkdirSync(join(PUB, 'data'), { recursive: true });
   cpSync(derived, join(PUB, 'data'), { recursive: true });
-  for (const f of ['case-results.json', 'pm-learned.json', 'mpm-classifier.onnx', 'geology-ood.onnx']) {
+  for (const f of ['case-results.json', 'pm-learned.json', 'mpm-classifier.onnx', 'geology-ood.onnx',
+    'pm-learned-real.json', 'mpm-classifier-real.onnx', 'geology-ood-real.onnx']) {
     const src = join(derived, f);
     if (existsSync(src)) copyFileSync(src, join(PUB, f));
   }

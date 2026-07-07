@@ -2,6 +2,43 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.07.000] - 2026-07-07
+
+First-level Synthetic | Real Source selector (the Faena "Real sample" lane) on real, openly-licensed data.
+
+### Added
+- **Real-data lane on the US Midcontinent MVT Zn-Pb belt** from the Lawley et al. (2022) Tri-National
+  Critical Minerals Mapping Initiative (CMMI) open release (USGS ScienceBase item
+  6193e9f3d34eb622f68f13a5, data DOI 10.5066/P970GDD5, paper DOI 10.1016/j.oregeorev.2021.104635;
+  US public domain). New offline builder `data-pipeline/pmlab/real_usmvt.py` clips + rasterizes the
+  evidential layers to a 144x176 grid (~5.4 km cells) over W-97/E-88/S35/N43.5: REAL measured
+  geophysics (`mag`, `grav`, `lab` depth-to-LAB tomography, `satgrav`), DERIVED proximity layers
+  (`faultprox`, `marginprox`), and `depositIdx` = cells with a real Pb-Zn (MVT/CD) occurrence (858
+  deposit cells from 5837 occurrences). Bakes `data/derived/REAL-USMVT/cube.json` + `provenance.json`.
+- **FIRST-LEVEL Source selector** (`Synthetic | Real sample`) at the top of the Tool sidebar. In Real
+  mode the synthetic case knobs (planted-weight generators) disable, you pick the real datum, and all
+  App tools run live on the real Cube. The `realOrSynthetic: 'real (open dataset)'` contract path is
+  now wired.
+- **Two new method tabs** (method-tab floor 9 -> 11): a fuzzy-logic / index-overlay combiner (gamma
+  operator, no fitting, no CI assumption; Bonham-Carter 1994, Carranza 2009) and a calibration /
+  reliability readout (decile reliability diagram + Brier + ECE; the C-SATURATE case had flagged it
+  missing).
+- **Real learned models** (`data-pipeline/pmlab/real_learned.py`): `mpm-classifier-real.onnx` +
+  `geology-ood-real.onnx` retrained on the real 6-feature cube (the synthetic 4-feature ONNX are NOT
+  silently applied to the real cube). Spatial-block CV, distance-buffered presence-only negatives.
+- **In-app honesty block** in the real lane: REAL / DERIVED / RECOMPUTED legend, the Lawley 2022
+  citation + license, and the conditional-independence caveat (real geophysics is physically correlated,
+  so the omnibus test fires; route to logistic regression). The posterior is stated as OUR browser WofE
+  recomputation, NOT the published H3 + gradient-boosting model.
+- Engine: `analyzeCube(cube, layerIds)` runs the full WofE/CI/validation/LR analysis on an already-built
+  Cube; `analyzeCase` now delegates to it. Node bake `science/bake_real.mjs` emits the real
+  `trace.json` + merges the real case into `case-results.json` through the SAME TS engine.
+
+### Changed
+- Version sources normalized to `0.07.000` (X.XX.XXX): `frontend/package.json`, root `VERSION`,
+  `CHANGELOG`, and the footer (the shell version is now derived from `package.json`, no longer a
+  hard-coded string that drifted to `0.06.000`).
+
 ## [0.06.001] - 2026-07-04
 
 ### Changed
