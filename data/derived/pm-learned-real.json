@@ -1,0 +1,24 @@
+{
+ "schema": "prospectmap.learned/v1",
+ "case_id": "REAL-USMVT",
+ "classifier": {
+  "spatial_cv": {
+   "mlp_roc_auc": 0.9456,
+   "wofe_roc_auc": 0.7321,
+   "winner": "mlp"
+  },
+  "random_cv": {
+   "mlp_roc_auc": 0.9817
+  },
+  "mlp_roc_auc": 0.9456,
+  "inflation_gap": 0.0361,
+  "nFolds": 5,
+  "nEval": 3432
+ },
+ "ood": {
+  "auc": null,
+  "nEval": 25025,
+  "threshold": 0.2929
+ },
+ "honesty": "Trained on the REAL US Midcontinent MVT cube (6 real evidence features), NOT the synthetic 4-feature models. Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), never observed. Validated by SPATIAL block cross-validation and reported beside random-CV (the inflation gap) and the white-box WofE AUC. MVT occurrences are strongly clustered, so the honest spatial-CV skill is modest; the random-CV number is inflated and shown only to expose that. The OOD AE flags cells outside the labelled geology envelope. No fabricated win."
+}

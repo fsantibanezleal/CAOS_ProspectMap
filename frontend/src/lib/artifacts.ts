@@ -2,6 +2,7 @@
 // (src/mpm) for full reactivity; these baked outputs are the replay fallback + the cross-case data Benchmark/
 // Experiments summarise. Paths are relative to the Vite base.
 import type { CaseIndex, CaseManifest, Trace } from './contract.types.ts';
+import type { RealCubeFile } from '../mpm/real.ts';
 
 const base = () => import.meta.env.BASE_URL || '/';
 
@@ -32,6 +33,8 @@ export interface LearnedFile {
 
 export const loadCaseResults = () => getJSON<CaseResultsFile>('case-results.json');
 export const loadLearned = () => getJSON<LearnedFile>('pm-learned.json');
+export const loadLearnedReal = () => getJSON<LearnedFile>('pm-learned-real.json');
+export const loadRealCube = (rel: string) => getJSON<RealCubeFile>(rel);
 export const loadIndex = () => getJSON<CaseIndex>('data/manifests/index.json');
 export const loadManifest = (caseId: string) => getJSON<CaseManifest>(`data/manifests/${caseId}.json`);
 export const loadTrace = (caseId: string) => getJSON<Trace>(`data/${caseId}/trace.json`);

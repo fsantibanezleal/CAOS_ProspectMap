@@ -62,3 +62,12 @@
 .cmp-table { border-collapse: collapse; width: 100%; font-size: 0.84rem; margin-top: 0.6rem; }
 .cmp-table th, .cmp-table td { padding: 0.4rem 0.55rem; text-align: center; border-bottom: 1px solid var(--color-border); }
 .cmp-table thead th { color: var(--color-fg-faint); font-weight: 600; font-size: 0.78rem; }
+
+/* real-lane provenance + honesty block (Source selector) */
+.pf-provbox { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--color-border); }
+.pf-prov-legend { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.76rem; color: var(--color-fg-subtle); line-height: 1.5; }
+.pf-prov-legend b { font-weight: 700; letter-spacing: 0.02em; }
+.pf-real { color: var(--color-ok, #2ea043); }
+.pf-derived { color: var(--color-accent); }
+.pf-recomp { color: var(--color-warn, #d29922); }
+.pf-cite { font-size: 0.72rem; color: var(--color-fg-faint); line-height: 1.5; margin-top: 0.5rem; }

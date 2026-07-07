@@ -28,7 +28,7 @@ export interface LayerResult {
 }
 
 export interface CaseAnalysis {
-  spec: SynthSpec;
+  spec: SynthSpec | null;
   layerIds: string[];
   nx: number;
   ny: number;
@@ -55,6 +55,12 @@ function wofeScoreFn(cube: Cube, pats: Binarized[]): (train: Set<number>) => Flo
 
 export function analyzeCase(spec: SynthSpec, layerIds: string[], k = 5, blockCells = 20): CaseAnalysis {
   const { cube } = makeSyntheticArea(spec);
+  return analyzeCube(cube, layerIds, k, blockCells, spec);
+}
+
+/** the same full WofE/CI/validation/LR analysis, run on an ALREADY-BUILT cube (the real-data lane loads a baked
+ * Cube instead of regenerating a synthetic one, so live and offline numbers stay identical by construction). */
+export function analyzeCube(cube: Cube, layerIds: string[], k = 5, blockCells = 20, spec: SynthSpec | null = null): CaseAnalysis {
   const best = layerIds.map((id) => ({ id, ...bestWeights(cube, id) }));
   const pats = best.map((b) => b.pattern);
   const ws = best.map((b) => b.weights);
