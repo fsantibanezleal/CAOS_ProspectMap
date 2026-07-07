@@ -7,6 +7,7 @@ import '@fasl-work/caos-app-shell/styles.css';
 import './prospectmap.css';
 import { CITATIONS } from './data/citations.ts';
 import { architecture } from './architecture.ts';
+import pkg from '../package.json';
 import Tool from './pages/Tool.tsx';
 import Introduction from './pages/Introduction.tsx';
 import Methodology from './pages/Methodology.tsx';
@@ -27,7 +28,7 @@ const config: ShellConfig = {
     { path: '/benchmark', en: 'Benchmark', es: 'Benchmark' },
   ],
   links: { github: 'https://github.com/fsantibanezleal/CAOS_ProspectMap' },
-  version: '0.06.000',
+  version: pkg.version,
   architecture,
 };
 

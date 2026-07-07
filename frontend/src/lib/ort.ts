@@ -4,7 +4,7 @@
 // The classifier's value is a per-cell "what-if" probe + the cross-case benchmark vs WofE; the OOD AE is the
 // "where-not-to-trust" mask. WASM EP, single-threaded; the npm package + CDN wasmPaths are pinned to 1.27.
 import * as ort from 'onnxruntime-web';
-import { MPM_FEATURES, N_FEATURES } from './learned.ts';
+import { MPM_FEATURES, N_FEATURES, REAL_FEATURES, N_REAL_FEATURES } from './learned.ts';
 
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/';
 ort.env.wasm.numThreads = 1;
@@ -41,25 +41,37 @@ async function runSerial(_file: string, s: ort.InferenceSession, feeds: Record<s
   return serial(() => s.run(feeds));
 }
 
-/** the per-cell evidence feature vector in the SOURCE-OF-TRUTH order (model/learned.py :: MPM_FEATURES). */
-export function featureVec(values: Record<string, number>): Float32Array {
-  return Float32Array.from(MPM_FEATURES.map((k) => values[k] ?? 0));
+// The two lanes ship distinct model files + feature spaces: the synthetic 4-feature models and the real 6-feature
+// models (pmlab/real_learned.py). The App selects the lane, so the classifier/AE are always applied on the feature
+// space they were trained on (never the synthetic model on the real cube).
+export type Lane = 'synthetic' | 'real';
+const MODELS: Record<Lane, { clf: string; ood: string; nf: number }> = {
+  synthetic: { clf: 'mpm-classifier.onnx', ood: 'geology-ood.onnx', nf: N_FEATURES },
+  real: { clf: 'mpm-classifier-real.onnx', ood: 'geology-ood-real.onnx', nf: N_REAL_FEATURES },
+};
+
+/** the per-cell evidence feature vector in the SOURCE-OF-TRUTH order for the lane. */
+export function featureVec(values: Record<string, number>, lane: Lane = 'synthetic'): Float32Array {
+  const keys = lane === 'real' ? REAL_FEATURES : MPM_FEATURES;
+  return Float32Array.from(keys.map((k) => values[k] ?? 0));
 }
 
 /** Classifier forward over a batch of cells: feature rows -> P(deposit). null if the model isn't trained. */
-export async function runClassifier(rows: Float32Array, nRows: number): Promise<Float32Array | null> {
-  const s = await get('mpm-classifier.onnx');
+export async function runClassifier(rows: Float32Array, nRows: number, lane: Lane = 'synthetic'): Promise<Float32Array | null> {
+  const m = MODELS[lane];
+  const s = await get(m.clf);
   if (!s) return null;
-  const out = await runSerial('mpm-classifier.onnx', s, { x: new ort.Tensor('float32', rows, [nRows, N_FEATURES]) });
+  const out = await runSerial(m.clf, s, { x: new ort.Tensor('float32', rows, [nRows, m.nf]) });
   return out.p.data as Float32Array;
 }
 
 /** geology OOD autoencoder over a batch of cells: feature rows -> the standardized-space reconstruction MSE (the
  * per-cell anomaly score, computed inside the ONNX). High = the evidence is out-of-envelope (the classifier is
  * extrapolating "under cover"). null if the model isn't trained. */
-export async function runOod(rows: Float32Array, nRows: number): Promise<Float32Array | null> {
-  const s = await get('geology-ood.onnx');
+export async function runOod(rows: Float32Array, nRows: number, lane: Lane = 'synthetic'): Promise<Float32Array | null> {
+  const m = MODELS[lane];
+  const s = await get(m.ood);
   if (!s) return null;
-  const out = await runSerial('geology-ood.onnx', s, { x: new ort.Tensor('float32', rows, [nRows, N_FEATURES]) });
+  const out = await runSerial(m.ood, s, { x: new ort.Tensor('float32', rows, [nRows, m.nf]) });
   return out.xr.data as Float32Array;
 }

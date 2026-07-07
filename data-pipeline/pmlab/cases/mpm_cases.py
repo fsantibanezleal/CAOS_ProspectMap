@@ -11,6 +11,7 @@ from dataclasses import dataclass
 CAT_TERRANE = "deposit-type terrane (the geological setting)"
 CAT_DATA = "data / validation regime (evidence richness)"
 CAT_CONTROL = "control (oracle / negative control)"
+CAT_REAL = "real open dataset (a published mineral system)"
 
 _NX = 100
 _NY = 100
@@ -69,6 +70,14 @@ CASES: list[Case] = [
          "a single dominant layer drives a near-saturated posterior",
          "high W+ + posterior near 1 inside the pattern, no numerical blow-up (Haldane guard); AUC high",
          real_or_synthetic="analytic control"),
+    Case("REAL-USMVT", "US Midcontinent MVT Zn-Pb belt (Lawley 2022, CMMI)", CAT_REAL, 6,
+         "real published data: 4 measured geophysics layers (mag, grav, LAB tomography, satellite gravity) + 2 derived "
+         "proximity layers (fault, passive-margin), over the US Midcontinent MVT belt with 858 real Pb-Zn occurrence cells",
+         "our browser WofE recomputation (NOT the published H3 + gradient-boosting model); naive AUC is inflated by the "
+         "strong deposit clustering (Tri-State district), so the reported skill is the SPATIAL-CV AUC (near chance), an honest result",
+         real_or_synthetic="real (open dataset)",
+         deposit_type="sediment-hosted Zn-Pb (MVT)",
+         nx=144, ny=176, cell_km=5.364, n_deposits=858),
 ]
 
 
