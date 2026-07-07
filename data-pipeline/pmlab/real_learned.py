@@ -18,7 +18,6 @@ OOD in 'x'[N,6] out 'xr'[N,1]. Run (isolated venv):
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
 
 import numpy as np
@@ -238,7 +237,7 @@ def main():
     (DERIVED / "pm-learned-real.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
     print(f"classifier: spatial-CV AUC={mlp_spatial:.3f} random-CV AUC={mlp_random:.3f} "
           f"(WofE spatial {wofe_spatial:.3f}); OOD p95 threshold={threshold:.3f}")
-    print(f"wrote mpm-classifier-real.onnx, geology-ood-real.onnx, pm-learned-real.json")
+    print("wrote mpm-classifier-real.onnx, geology-ood-real.onnx, pm-learned-real.json")
 
 
 if __name__ == "__main__":
