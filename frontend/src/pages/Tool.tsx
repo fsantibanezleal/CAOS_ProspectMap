@@ -314,6 +314,16 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
     return () => { cancel = true; };
   }, [cube, lane]);
 
+  // the nnPU score compresses near 0, so an adaptive [min,max] range reveals its spatial structure (the [0,1] scale
+  // would render an almost-uniform map). This is a display stretch only; the values read at the cursor are unchanged.
+  const puRange = useMemo<[number, number]>(() => {
+    if (!puField) return [0, 1];
+    let mn = Infinity;
+    let mx = -Infinity;
+    for (const v of puField) { if (Number.isNaN(v)) continue; if (v < mn) mn = v; if (v > mx) mx = v; }
+    return Number.isFinite(mn) && mx > mn ? [mn, mx] : [0, 1];
+  }, [puField]);
+
   // the selected pi row of the offline sensitivity sweep + its conformal level at the selected alpha
   const piRow = puConformal?.pi_sensitivity?.[piIdx] ?? null;
   const confLevel = piRow?.conformal?.[alphaIdx] ?? puConformal?.conformal?.levels?.[alphaIdx] ?? null;
@@ -628,7 +638,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             </div>
           ) : (
             <>
-              <MapView nx={cube.nx} ny={cube.ny} field={puField} range={[0, 1]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={es ? 'P (nnPU)' : 'P (nnPU)'} />
+              <MapView nx={cube.nx} ny={cube.ny} field={puField} range={puRange} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={es ? 'P (nnPU)' : 'P (nnPU)'} />
               <div className="pf-controls-row">
                 <div>
                   <div className="pf-card-t">{es ? 'Prior de clase pi (sensibilidad)' : 'Class prior pi (sensitivity)'}</div>
