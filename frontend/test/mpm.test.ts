@@ -16,7 +16,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   bestWeights, captureCurve, ciCheck, contingency2x2, crossValAuc, makeSyntheticArea, nearestDepositScore,
-  normCdf, omnibus, posterior, randomFolds, rocAuc, spatialBlockFolds, weightsFromCounts, fitLR, binarize, getLayer,
+  normCdf, omnibus, pairwiseChi2, posterior, randomFolds, rocAuc, spatialBlockFolds, weightsFromCounts, fitLR,
+  binarize, getLayer,
 } from '../src/mpm/index.ts';
 import type { Cube } from '../src/mpm/index.ts';
 
@@ -163,6 +164,27 @@ test('Agterberg-Cheng omnibus, CI≈1 when independent, T>N(D) on a planted CI v
   assert.ok(omDep.ciRatio < omInd.ciRatio, `violation ratio ${omDep.ciRatio} < independent ${omInd.ciRatio}`);
   assert.ok(omDep.T > omDep.nD, `violation inflates posterior: T ${omDep.T} > N(D) ${omDep.nD}`);
   assert.ok(omDep.z > 1.5, `violation z ${omDep.z} flags CI failure`);
+});
+
+test('pairwise CI chi-square is non-degenerate: correlated patterns >> independent patterns', () => {
+  // A CI-violation area: 'x' and its near-duplicate 'xdup' are strongly correlated; 'y' is independent of 'x'.
+  const { cube } = makeSyntheticArea({
+    nx: 100, ny: 100, seed: 21, nDeposits: 90, gain: 6,
+    layers: [
+      { id: 'x', weight: 1.6, favHigh: true, coarse: 17 },
+      { id: 'y', weight: 1.4, favHigh: true, coarse: 9 },
+    ],
+    duplicate: { srcId: 'x', id: 'xdup', noise: 0.05 },
+  });
+  const px = bestWeights(cube, 'x').pattern;
+  const pxdup = bestWeights(cube, 'xdup').pattern;
+  const py = bestWeights(cube, 'y').pattern;
+  const corr = pairwiseChi2(cube, px, pxdup);
+  const indep = pairwiseChi2(cube, px, py);
+  // the stratified (2x2x2) test must return real, non-zero values (the previous deposit-only test collapsed to 0)
+  assert.ok(corr.n > cube.depositIdx.length, 'the stratified test spans both D strata (far more than the deposit cells)');
+  assert.ok(corr.chi2 > 5 && corr.cramersV > 0.05, `correlated pair has real association: chi2 ${corr.chi2}, V ${corr.cramersV}`);
+  assert.ok(corr.cramersV > indep.cramersV, `duplicate pair V ${corr.cramersV} > independent pair V ${indep.cramersV}`);
 });
 
 test('capture curve, perfect ranking vs random', () => {

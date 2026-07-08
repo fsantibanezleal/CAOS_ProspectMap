@@ -1,7 +1,7 @@
 {
   "name": "prospectmap-frontend",
   "private": true,
-  "version": "0.07.000",
+  "version": "0.08.000",
   "type": "module",
   "scripts": {
     "predev": "node copy-data.mjs",

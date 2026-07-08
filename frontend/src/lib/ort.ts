@@ -50,6 +50,9 @@ const MODELS: Record<Lane, { clf: string; ood: string; nf: number }> = {
   real: { clf: 'mpm-classifier-real.onnx', ood: 'geology-ood-real.onnx', nf: N_REAL_FEATURES },
 };
 
+// The PU-Conformal lane exists only on the REAL 6-feature cube (nnPU trained offline; pmlab/pu_conformal.py).
+const PUCONFORMAL_FILE = 'mpm-puconformal-real.onnx';
+
 /** the per-cell evidence feature vector in the SOURCE-OF-TRUTH order for the lane. */
 export function featureVec(values: Record<string, number>, lane: Lane = 'synthetic'): Float32Array {
   const keys = lane === 'real' ? REAL_FEATURES : MPM_FEATURES;
@@ -74,4 +77,14 @@ export async function runOod(rows: Float32Array, nRows: number, lane: Lane = 'sy
   if (!s) return null;
   const out = await runSerial(m.ood, s, { x: new ort.Tensor('float32', rows, [nRows, m.nf]) });
   return out.xr.data as Float32Array;
+}
+
+/** PU-Conformal nnPU score over a batch of REAL-cube cells: 6 features -> a bias-corrected prospectivity p_hat[N,1]
+ * in [0,1] (the sigmoid is baked into the ONNX). The browser then applies the offline conformal quantile from
+ * pu-conformal.json to draw the coverage-guaranteed prospective set. null if the model isn't present. */
+export async function runPuConformal(rows: Float32Array, nRows: number): Promise<Float32Array | null> {
+  const s = await get(PUCONFORMAL_FILE);
+  if (!s) return null;
+  const out = await runSerial(PUCONFORMAL_FILE, s, { x: new ort.Tensor('float32', rows, [nRows, N_REAL_FEATURES]) });
+  return out.p.data as Float32Array;
 }

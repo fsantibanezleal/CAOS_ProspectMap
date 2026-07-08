@@ -29,6 +29,7 @@ frontend/public/pyodide/
 frontend/public/case-results.json
 frontend/public/pm-learned.json
 frontend/public/pm-learned-real.json
+frontend/public/pu-conformal.json
 frontend/public/*.onnx
 *.tsbuildinfo
 

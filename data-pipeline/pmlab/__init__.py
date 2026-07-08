@@ -8,4 +8,4 @@ by the SAME TS engine the browser runs) into per-case CONTRACT-2 traces + manife
 (torch -> ONNX) in pmlab/science/.
 """
 
-__version__ = "0.06.001"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.6.1)
+__version__ = "0.08.000"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.8.0)
