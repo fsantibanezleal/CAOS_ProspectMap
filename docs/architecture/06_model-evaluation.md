@@ -25,3 +25,33 @@ spatial holdout; the random-CV AUC is reported beside it to surface the inflatio
 omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set - uniform
 features pushed outside the training band, separable by construction; not a field-detection claim). Deposit labels are
 presence-only; negatives are sampled, never observed. Reported whichever way the numbers land. No fabricated win.
+
+## The PU-Conformal head-to-head + negative controls (`data-pipeline/pmlab/pu_conformal.py`)
+
+The beyond-SOTA lane scores six models on the REAL US MVT cube under **identical contiguous spatial folds** and reads
+the ranking verdict directly off bootstrap CIs.
+
+### Spatial-block protocol
+
+Folds are **contiguous** geographic regions (k-means on cell coordinates, k=5), deliberately stricter than the App's
+interleaved `blockId % k`: interleaving 20-cell blocks leaves every held-out block adjacent to training blocks, which
+lets a fine-grained learned model memorize the autocorrelated local feature signature and inflate the held-out AUC.
+Under contiguous holdout a held-out region is spatially separated from its training, so the transfer question is honest
+(Roberts et al. 2017, doi:10.1111/ecog.02881). AUC is reported with a 95% bootstrap CI.
+
+### Negative controls (must pass, on the real cube)
+
+- **Label permutation** - shuffle the deposit labels; every model must collapse to ~0.5 (measured: WofE 0.506, PU
+  0.490). A high score on permuted labels would mean leakage.
+- **Uninformative layer** - append a pure-noise feature; it must not lift AUC (measured: 0.638 with noise vs 0.656
+  without).
+- **Distance-to-deposit null** - score each cell by proximity to the nearest training deposit; any real model must beat
+  this trivial autocorrelation baseline to claim it learned geology. Measured: **0.783**, which beats WofE/RF/GBM/PU,
+  so most apparent skill is spatial proximity, not geology.
+
+### The honest result
+
+Under strict contiguous holdout PU-Conformal (block-CV AUC 0.656) does NOT beat classical WofE (0.732). PU corrects the
+label bias, not the regional signal; its advance is calibrated, bias-corrected, coverage-guaranteed uncertainty (see
+[frameworks/06 - uncertainty and conformal](../frameworks/06_uncertainty-and-conformal.md)) that passes the controls,
+not a higher AUC. Committed numbers: `data/derived/pu-conformal.json`. No fabricated win.

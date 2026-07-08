@@ -30,9 +30,16 @@ export default function Introduction() {
 
       <h2>{es ? 'Datos' : 'Data'}</h2>
       <p>{es
-        ? 'Las áreas de estudio de esta versión son SINTÉTICAS (campos suaves de value-noise, geoestadísticos en espíritu, con pesos plantados por capa + depósitos muestreados por rechazo sobre una prospectividad latente conocida, conteo fijo por caso), claramente etiquetadas. Son el único caso con ground-truth conocido, así que son los controles exactos. Datasets abiertos reales (Lawley et al. 2022 Zn-Pb de USGS ScienceBase '
-        : 'The study areas in this version are SYNTHETIC (smooth value-noise fields, geostatistical in spirit, with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, fixed count per case), clearly labelled. They are the only data with known ground truth, so they are the exact controls. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase '}
-        <Cite id="lawley2022" paren />{es ? ', Geoscience Australia CC-BY) son el siguiente paso; el pipeline acepta un cubo real de forma idéntica.' : ', Geoscience Australia CC-BY) are the next step; the pipeline accepts a real cube identically.'}</p>
+        ? 'Un selector de Fuente de primer nivel ofrece dos carriles. SINTÉTICO: áreas con pesos plantados por capa + depósitos muestreados por rechazo sobre una prospectividad latente conocida, el único dato con ground-truth exacto, así que son los controles. MUESTRA REAL: el cubo abierto de Lawley et al. 2022 Zn-Pb (USGS ScienceBase '
+        : 'A first-level Source selector offers two lanes. SYNTHETIC: areas with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, the only data with exact ground truth, so they are the controls. REAL SAMPLE: the open Lawley et al. 2022 Zn-Pb cube (USGS ScienceBase '}
+        <Cite id="lawley2022" paren />{es ? ', dominio público de EE. UU.), 6 capas reales sobre el belt MVT del Midcontinente de EE. UU. con 858 celdas de ocurrencia; todas las herramientas corren en vivo sobre él.' : ', US public domain), 6 real layers over the US Midcontinent MVT belt with 858 occurrence cells; every tool runs live on it.'}</p>
+
+      <Callout variant="honest" title={es ? 'Alcance honesto: la transferencia espacial es difícil' : 'Honest scope: spatial transfer is hard'}>
+        {es
+          ? 'Para depósitos AGRUPADOS (los MVT se concentran en distritos como Tri-State), la geofísica regional interpola dentro de un distrito conocido pero apenas EXTRAPOLA a uno nuevo. Bajo holdout espacial estricto, incluso el null trivial de distancia-al-depósito rivaliza con los modelos aprendidos, así que la mayor parte del "skill" aparente es proximidad, no geología. El marco de sistemas minerales (fuente, transporte, trampa) explica por qué una sola capa raramente localiza; ProspectMap reporta esa dificultad en vez de ocultarla '
+          : 'For CLUSTERED deposits (MVT concentrate in districts like Tri-State), regional geophysics interpolates within a known district but barely EXTRAPOLATES to a new one. Under strict spatial holdout even the trivial distance-to-deposit null rivals the learned models, so most apparent "skill" is proximity, not geology. The mineral-systems framing (source, transport, trap) explains why a single layer rarely localizes; ProspectMap reports that difficulty rather than hiding it '}
+        <Cite id="roberts2017" paren />{es ? '.' : '.'}
+      </Callout>
 
       <ReferenceList />
     </article>
