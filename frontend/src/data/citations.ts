@@ -31,7 +31,32 @@ export const CITATIONS: Citation[] = [
   {
     id: 'roberts2017',
     label: 'Roberts et al. 2017',
-    citation: 'Roberts, D.R. et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography, 40(8), 913–929.',
+    citation: 'Roberts, D.R. et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography, 40(8), 913–929. doi:10.1111/ecog.02881.',
+  },
+  {
+    id: 'rodriguezgaliano2015',
+    label: 'Rodriguez-Galiano et al. 2015',
+    citation: 'Rodriguez-Galiano, V., Sanchez-Castillo, M., Chica-Olmo, M. & Chica-Rivas, M. (2015). Machine learning predictive models for mineral prospectivity: an evaluation of neural networks, random forest, regression trees and support vector machines. Ore Geology Reviews, 71, 804–818. doi:10.1016/j.oregeorev.2015.01.001.',
+  },
+  {
+    id: 'xiongzuo2021',
+    label: 'Xiong & Zuo 2021',
+    citation: 'Xiong, Y. & Zuo, R. (2021). A positive and unlabeled learning algorithm for mineral prospectivity mapping. Computers & Geosciences, 147, 104667. doi:10.1016/j.cageo.2020.104667.',
+  },
+  {
+    id: 'elkannoto2008',
+    label: 'Elkan & Noto 2008',
+    citation: 'Elkan, C. & Noto, K. (2008). Learning classifiers from only positive and unlabeled data. Proc. 14th ACM SIGKDD Int. Conf. on Knowledge Discovery and Data Mining (KDD), 213–220. doi:10.1145/1401890.1401920.',
+  },
+  {
+    id: 'kiryo2017',
+    label: 'Kiryo et al. 2017',
+    citation: 'Kiryo, R., Niu, G., du Plessis, M.C. & Sugiyama, M. (2017). Positive-Unlabeled learning with non-negative risk estimator. Advances in Neural Information Processing Systems 30 (NeurIPS). arXiv:1703.00593.',
+  },
+  {
+    id: 'angelopoulos2021',
+    label: 'Angelopoulos & Bates 2021',
+    citation: 'Angelopoulos, A.N. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. arXiv:2107.07511.',
   },
   {
     id: 'carranza2009',

@@ -53,6 +53,41 @@ export default function Methodology() {
               <Callout variant="strong" title={es ? 'Inflación por CV aleatorio' : 'Random-CV inflation'}>
                 {es ? 'Las celdas de depósitos y sus vecinas no son independientes (autocorrelación espacial). Un split aleatorio pone una celda de test junto a una de entrenamiento ⇒ el AUC se infla. El arreglo es el CV espacial por bloques + buffered leave-one-deposit-out ' : 'Deposit cells and their neighbours are not independent (spatial autocorrelation). A random split puts a test cell next to a training cell ⇒ the AUC inflates. The fix is spatial block CV + buffered leave-one-deposit-out '}<Cite id="roberts2017" paren />{es ? '. ProspectMap muestra el MISMO modelo colapsar de aleatorio a espacial.' : '. ProspectMap shows the SAME model collapse from random to spatial.'}
               </Callout>
+              <p>{es ? 'El Benchmark refuerza esto con particiones espaciales CONTIGUAS (k-means sobre coordenadas), más estrictas que el esquema entrelazado blockId % k: entrelazar deja cada bloque held-out adyacente a bloques de entrenamiento, lo que permite a un modelo de grano fino memorizar la firma local autocorrelada e inflar el AUC.' : 'The Benchmark hardens this with CONTIGUOUS spatial folds (k-means on coordinates), stricter than the interleaved blockId % k scheme: interleaving leaves each held-out block adjacent to training blocks, which lets a fine-grained model memorize the autocorrelated local signature and inflate the AUC.'} <Cite id="roberts2017" paren /></p>
+            </div>
+          ),
+        },
+        {
+          id: 'tabular', label: es ? 'ML tabular (RF/GBM)' : 'Tabular ML (RF/GBM)',
+          content: (
+            <div className="pf-doc-sec">
+              <p>{es ? 'El rung SOTA-clásico: modelos tabulares no lineales que aprenden interacciones que WofE (aditivo en log-odds) no puede. En la evaluación canónica de MPM (Au epitermal), el random forest supera a redes, árboles de regresión y SVM ' : 'The SOTA-classical rung: non-linear tabular models that learn interactions the additive-in-log-odds WofE cannot. In the canonical MPM evaluation (epithermal Au), random forest beat neural nets, regression trees and SVM '}<Cite id="rodriguezgaliano2015" paren />{es ? '. El gradient boosting ajusta una suma aditiva por etapas de árboles ' : '. Gradient boosting fits a stagewise additive sum of trees '}<InlineMath tex="F_M(x)=\sum_{m=1}^{M}\nu\,h_m(x)" />{es ? ', cada árbol ' : ', each tree '}<InlineMath tex="h_m" />{es ? ' ajustado al gradiente negativo de la pérdida logística; el random forest promedia árboles bagged decorrelacionados.' : ' fit to the negative gradient of the logistic loss; the random forest averages decorrelated bagged trees.'}</p>
+              <Equation tex="\hat p(x)=\sigma\big(F_M(x)\big),\qquad F_m(x)=F_{m-1}(x)+\nu\,\arg\min_{h}\sum_i \ell\big(y_i,\,F_{m-1}(x_i)+h(x_i)\big)" />
+              <p>{es ? 'Entrenados con negativos muestreados (buffered) sobre el cubo real, se puntúan en las MISMAS particiones espaciales que WofE/LR/PU. Cuándo fallan: sin control espacial sobreajustan la autocorrelación (por eso el CV contiguo estricto), y siguen necesitando pseudo-negativos, el sesgo que corrige PU.' : 'Trained with sampled (buffered) negatives on the real cube, they are scored on the SAME spatial folds as WofE/LR/PU. When they fail: without spatial control they overfit autocorrelation (hence the strict contiguous CV), and they still need pseudo-negatives, the bias PU corrects.'}</p>
+            </div>
+          ),
+        },
+        {
+          id: 'pu', label: es ? 'Aprendizaje PU' : 'PU learning',
+          content: (
+            <div className="pf-doc-sec">
+              <p>{es ? 'La falacia del negativo verdadero: en exploración, una celda sin depósito conocido NO es un negativo, es NO ETIQUETADA (puede alojar un depósito no descubierto). Entrenar con pseudo-negativos sesga el clasificador. El aprendizaje PU trata los depósitos como positivos y todo lo demás como no etiquetado ' : 'The true-negative fallacy: in exploration, a cell with no known deposit is NOT a negative, it is UNLABELED (it may host an undiscovered deposit). Training on pseudo-negatives biases the classifier. PU learning treats deposits as positives and everything else as unlabeled '}<Cite id="xiongzuo2021" paren />{es ? '. Bajo el supuesto SCAR (positivos etiquetados al azar), Elkan-Noto relacionan el score observado con el posterior verdadero por una constante de frecuencia de etiqueta ' : '. Under the SCAR assumption (labeled positives selected at random), Elkan-Noto relate the observed score to the true posterior by a label-frequency constant '}<InlineMath tex="c" /> <Cite id="elkannoto2008" paren />{es ? ':' : ':'}</p>
+              <Equation tex="p(s{=}1\mid x)=c\,\cdot\,p(y{=}1\mid x),\qquad c=p(s{=}1\mid y{=}1)" />
+              <p>{es ? 'Para un modelo flexible sobre pocos positivos, el estimador de riesgo no negativo (nnPU) evita el sobreajuste ' : 'For a flexible model over few positives, the non-negative risk estimator (nnPU) prevents overfitting '}<Cite id="kiryo2017" paren />{es ? ', usando el prior de clase ' : ', using the class prior '}<InlineMath tex="\pi=p(y{=}1)" />{es ? ':' : ':'}</p>
+              <Equation tex="\widetilde R_{\text{nnPU}}=\pi\,\hat R_p^{+}+\max\!\Big(0,\;\hat R_u^{-}-\pi\,\hat R_p^{-}\Big)" />
+              <p>{es ? 'El clamp en 0 corrige el término de riesgo negativo cuando se vuelve negativo por sobreajuste. Crítica adversarial: SCAR se viola por sesgo de exploración (los depósitos se sobre-etiquetan en cinturones bien explorados), así que ' : 'The clamp at 0 corrects the negative-risk term when overfitting drives it below zero. Adversarial critique: SCAR is violated by exploration bias (deposits are over-labeled in well-explored belts), so '}<InlineMath tex="\pi" />{es ? ' se trata como un parámetro de sensibilidad y se barre, no se fija.' : ' is treated as a sensitivity parameter and swept, not fixed.'}</p>
+            </div>
+          ),
+        },
+        {
+          id: 'conformal', label: es ? 'Incertidumbre / conforme' : 'Uncertainty / conformal',
+          content: (
+            <div className="pf-doc-sec">
+              <p>{es ? 'La mayoría de los mapas MPM entregan una sola probabilidad sin banda calibrada. La predicción conforme da conjuntos de predicción libres de distribución con cobertura garantizada en muestra finita ' : 'Most MPM maps ship a single probability with no calibrated band. Conformal prediction yields distribution-free prediction sets with finite-sample coverage '}<Cite id="angelopoulos2021" paren />{es ? '. Con una puntuación de no conformidad de clase positiva ' : '. With a positive-class nonconformity score '}<InlineMath tex="s_i=1-\hat p(x_i)" />{es ? ' sobre depósitos de calibración espacialmente separados, el cuantil conforme ' : ' over spatially-separated calibration deposits, the conformal quantile '}<InlineMath tex="\hat q=\text{Quantile}\big(\{s_i\};\,\lceil(n+1)(1-\alpha)\rceil/n\big)" />{es ? ' define el conjunto prospectivo:' : ' defines the prospective set:'}</p>
+              <Equation tex="\mathcal{C}_\alpha(x)=\{\,x:\hat p(x)\ge 1-\hat q\,\},\qquad \Pr\big(\text{un depósito held-out}\in\mathcal{C}_\alpha\big)\ge 1-\alpha" />
+              <Callout variant="honest" title={es ? 'Exchangeabilidad rota' : 'Exchangeability broken'}>
+                {es ? 'La garantía conforme supone exchangeabilidad, que la autocorrelación espacial rompe. Bajo bloqueo espacial la garantía es marginal sobre bloques y se degrada con el shift de distribución bloque-a-bloque. Sobre MVT muy agrupado los conjuntos pueden ser casi vacíos (marcar casi todo el belt): esa banda ancha ES el hallazgo honesto ' : 'The conformal guarantee assumes exchangeability, which spatial autocorrelation breaks. Under spatial blocking the guarantee is marginal over blocks and degrades under block-to-block distribution shift. On strongly clustered MVT the sets can be near-vacuous (flagging almost the whole belt): that wide band IS the honest finding '}<Cite id="roberts2017" paren />{es ? ', no un defecto a ocultar.' : ', not a defect to hide.'}
+              </Callout>
             </div>
           ),
         },

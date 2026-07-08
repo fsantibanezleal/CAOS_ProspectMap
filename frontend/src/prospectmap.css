@@ -71,3 +71,7 @@
 .pf-derived { color: var(--color-accent); }
 .pf-recomp { color: var(--color-warn, #d29922); }
 .pf-cite { font-size: 0.72rem; color: var(--color-fg-faint); line-height: 1.5; margin-top: 0.5rem; }
+
+/* PU-Conformal tab: side-by-side pi + alpha control groups */
+.pf-controls-row { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 0.6rem 0; }
+.pf-controls-row > div { min-width: 220px; }

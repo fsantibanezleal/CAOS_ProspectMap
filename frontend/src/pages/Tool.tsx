@@ -5,8 +5,8 @@ import {
   makeSyntheticArea, maskCells, posterior, predictLR, REAL_CASES, realCaseById, rocAuc,
   type Cube, type MPMCase, type RealCase, type RealCubeFile,
 } from '../mpm/index.ts';
-import { loadLearned, loadLearnedReal, loadRealCube, type LearnedFile } from '../lib/artifacts.ts';
-import { runClassifier, runOod, type Lane } from '../lib/ort.ts';
+import { loadLearned, loadLearnedReal, loadPuConformal, loadRealCube, type LearnedFile, type PuConformalFile } from '../lib/artifacts.ts';
+import { runClassifier, runOod, runPuConformal, type Lane } from '../lib/ort.ts';
 import { MapView } from '../viz/MapView.tsx';
 import { CurveChart } from '../viz/CurveChart.tsx';
 
@@ -99,6 +99,7 @@ export default function Tool() {
 
   const [learned, setLearned] = useState<LearnedFile | null>(null);
   const [learnedReal, setLearnedReal] = useState<LearnedFile | null>(null);
+  const [puConformal, setPuConformal] = useState<PuConformalFile | null>(null);
 
   const isReal = source === 'real';
   const theCase = useMemo<MPMCase>(() => caseById(caseId), [caseId]);
@@ -114,6 +115,7 @@ export default function Tool() {
   useEffect(() => { setLayerOff({}); }, [caseId, realCaseId, source]);
   useEffect(() => { loadLearned().then(setLearned).catch(() => setLearned(null)); }, []);
   useEffect(() => { loadLearnedReal().then(setLearnedReal).catch(() => setLearnedReal(null)); }, []);
+  useEffect(() => { loadPuConformal().then(setPuConformal).catch(() => setPuConformal(null)); }, []);
 
   // load the baked real cube when the Real lane is picked (arrays only; the WofE engine runs LIVE on it)
   useEffect(() => {
@@ -205,7 +207,7 @@ export default function Tool() {
         {cube && (
           <CubeViews
             cube={cube} activeIds={activeIds} method={method} lane={lane}
-            learned={activeLearned} isReal={isReal} es={es}
+            learned={activeLearned} isReal={isReal} es={es} puConformal={puConformal}
           />
         )}
       </main>
@@ -213,12 +215,15 @@ export default function Tool() {
   );
 }
 
-function CubeViews({ cube, activeIds, method, lane, learned, isReal, es }: {
+function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConformal }: {
   cube: Cube; activeIds: string[]; method: Method; lane: Lane; learned: LearnedFile | null;
-  isReal: boolean; es: boolean;
+  isReal: boolean; es: boolean; puConformal: PuConformalFile | null;
 }) {
   const [learnedField, setLearnedField] = useState<Float64Array | null>(null);
   const [oodField, setOodField] = useState<{ field: Float64Array; max: number; offFrac: number } | null>(null);
+  const [puField, setPuField] = useState<Float64Array | null>(null);
+  const [piIdx, setPiIdx] = useState(1); // default -> pi = 0.05 (pi_sensitivity index 1)
+  const [alphaIdx, setAlphaIdx] = useState(0); // default -> alpha = 0.10 (nominal coverage 0.90)
   const oodThr = (learned?.ood as { threshold?: number } | undefined)?.threshold ?? null;
 
   const best = useMemo(() => activeIds.map((id) => ({ id, ...bestWeights(cube, id) })), [cube, activeIds]);
@@ -283,6 +288,60 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es }: {
     });
     return () => { cancel = true; };
   }, [cube, activeIds, lane, learned]);
+
+  // PU-Conformal nnPU score, run LIVE over the REAL cube (the offline lane trains only the 6-feature real model).
+  useEffect(() => {
+    let cancel = false;
+    setPuField(null);
+    if (lane !== 'real') return;
+    const feats = ['mag', 'grav', 'lab', 'satgrav', 'faultprox', 'marginprox'];
+    const cells = maskCells(cube);
+    const F = feats.length;
+    const rows = new Float32Array(cells.length * F);
+    for (let r = 0; r < cells.length; r++) {
+      for (let j = 0; j < F; j++) {
+        const layer = cube.layers.find((l) => l.id === feats[j]);
+        const v = layer ? layer.values[cells[r]] : 0;
+        rows[r * F + j] = Number.isNaN(v) ? 0 : v;
+      }
+    }
+    runPuConformal(rows, cells.length).then((p) => {
+      if (cancel || !p) return;
+      const f = new Float64Array(cube.nx * cube.ny).fill(NaN);
+      for (let r = 0; r < cells.length; r++) f[cells[r]] = p[r];
+      setPuField(f);
+    });
+    return () => { cancel = true; };
+  }, [cube, lane]);
+
+  // the nnPU score compresses near 0, so an adaptive [min,max] range reveals its spatial structure (the [0,1] scale
+  // would render an almost-uniform map). This is a display stretch only; the values read at the cursor are unchanged.
+  const puRange = useMemo<[number, number]>(() => {
+    if (!puField) return [0, 1];
+    let mn = Infinity;
+    let mx = -Infinity;
+    for (const v of puField) { if (Number.isNaN(v)) continue; if (v < mn) mn = v; if (v > mx) mx = v; }
+    return Number.isFinite(mn) && mx > mn ? [mn, mx] : [0, 1];
+  }, [puField]);
+
+  // the selected pi row of the offline sensitivity sweep + its conformal level at the selected alpha
+  const piRow = puConformal?.pi_sensitivity?.[piIdx] ?? null;
+  const confLevel = piRow?.conformal?.[alphaIdx] ?? puConformal?.conformal?.levels?.[alphaIdx] ?? null;
+  const puSet = useMemo(() => {
+    if (!puField || !confLevel || !Number.isFinite(confLevel.threshold)) return null;
+    const thr = confLevel.threshold;
+    const f = new Float64Array(cube.nx * cube.ny).fill(NaN);
+    let inSet = 0;
+    let n = 0;
+    for (const i of maskCells(cube)) {
+      if (Number.isNaN(puField[i])) continue;
+      n++;
+      const member = puField[i] >= thr ? 1 : 0;
+      f[i] = member;
+      inSet += member;
+    }
+    return { field: f, frac: n ? inSet / n : 0 };
+  }, [puField, confLevel, cube]);
 
   const Kpi = ({ label, value }: { label: string; value: string }) => (
     <div className="pf-kpi"><div className="pf-kpi-v">{value}</div><div className="pf-kpi-l">{label}</div></div>
@@ -555,6 +614,66 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es }: {
               <p className="pf-note">{es
                 ? 'El guardia OOD marca dónde la evidencia se aleja de la distribución de entrenamiento, donde el clasificador extrapola y su score es menos confiable.'
                 : 'The OOD guard flags where the evidence drifts from the training distribution, where the classifier extrapolates and its score is less trustworthy.'}</p>
+            </>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'puconformal', label: es ? 'PU-Conformal' : 'PU-Conformal',
+      content: (
+        <div className="pf-vizstack">
+          <div className="pf-plot-t">{es
+            ? 'La propuesta más allá del SOTA: un score nnPU (depósitos = positivos, TODO lo demás = NO etiquetado, no negativo) calibrado con predicción conforme espacialmente bloqueada. El mapa es el posterior corregido por sesgo; abajo, el conjunto prospectivo con cobertura garantizada y la sensibilidad al prior de clase pi.'
+            : 'The beyond-SOTA proposal: an nnPU score (deposits = positives, EVERYTHING else = UNLABELED, not negative) calibrated with spatially-blocked conformal prediction. The map is the bias-corrected posterior; below, the coverage-guaranteed prospective set and the sensitivity to the class prior pi.'}</div>
+          {!isReal ? (
+            <div className="pf-pending">
+              <strong>{es ? 'Carril entrenado sobre el cubo REAL' : 'Lane trained on the REAL cube'}</strong>
+              <p>{es ? 'El modelo PU-Conformal se entrena solo sobre el cubo real de 6 capas (US Midcontinent MVT). Cambia la Fuente a "Muestra real" para verlo en vivo. El WofE de caja blanca corre en vivo en modo sintético.' : 'The PU-Conformal model is trained only on the real 6-layer cube (US Midcontinent MVT). Switch Source to "Real sample" to see it live. The white-box WofE runs live in synthetic mode.'}</p>
+            </div>
+          ) : !puField ? (
+            <div className="pf-pending">
+              <strong>{es ? 'PU-Conformal: pendiente de entrenamiento' : 'PU-Conformal: pending training'}</strong>
+              <p>{es ? 'Corre el carril offline (pmlab/pu_conformal.py -> ONNX + JSON). El WofE corre en vivo mientras tanto.' : 'Run the offline lane (pmlab/pu_conformal.py -> ONNX + JSON). The white-box WofE runs live meanwhile.'}</p>
+            </div>
+          ) : (
+            <>
+              <MapView nx={cube.nx} ny={cube.ny} field={puField} range={puRange} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={es ? 'P (nnPU)' : 'P (nnPU)'} />
+              <div className="pf-controls-row">
+                <div>
+                  <div className="pf-card-t">{es ? 'Prior de clase pi (sensibilidad)' : 'Class prior pi (sensitivity)'}</div>
+                  <div className="pf-chips">
+                    {(puConformal?.pi_sensitivity ?? []).map((row, i) => (
+                      <button key={row.pi} className={`chip ${piIdx === i ? 'on' : ''}`} onClick={() => setPiIdx(i)}>pi={row.pi.toFixed(3)}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="pf-card-t">{es ? 'Nivel conforme (cobertura nominal)' : 'Conformal level (nominal coverage)'}</div>
+                  <div className="pf-chips">
+                    {(puConformal?.conformal?.levels ?? []).map((lv, i) => (
+                      <button key={lv.alpha} className={`chip ${alphaIdx === i ? 'on' : ''}`} onClick={() => setAlphaIdx(i)}>{pct(lv.nominal, 0)}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="pf-kpis">
+                <Kpi label={es ? 'AUC CV-espacial (pi)' : 'spatial-CV AUC (pi)'} value={num(piRow?.block_cv_auc)} />
+                <Kpi label={es ? 'cobertura empírica' : 'empirical coverage'} value={confLevel ? pct(confLevel.empirical_coverage, 0) : 'n/a'} />
+                <Kpi label={es ? 'nominal' : 'nominal'} value={confLevel ? pct(confLevel.nominal, 0) : 'n/a'} />
+                <Kpi label={es ? 'tamaño del conjunto (área)' : 'set size (area)'} value={confLevel ? pct(confLevel.set_size_frac, 0) : 'n/a'} />
+              </div>
+              {puSet && (
+                <>
+                  <div className="pf-plot-t" style={{ marginTop: 8 }}>{es
+                    ? `Conjunto prospectivo con cobertura garantizada al ${pct(confLevel?.nominal ?? 0, 0)}: las celdas dentro del conjunto (claras) contienen un depósito held-out con probabilidad >= nominal.`
+                    : `Coverage-guaranteed prospective set at ${pct(confLevel?.nominal ?? 0, 0)}: cells inside the set (bright) contain a held-out deposit with probability >= nominal.`}</div>
+                  <MapView nx={cube.nx} ny={cube.ny} field={puSet.field} range={[0, 1]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={es ? 'en conjunto' : 'in set'} />
+                </>
+              )}
+              <p className="pf-note">{es
+                ? `Resultado honesto: sobre el belt MVT agrupado, PU-Conformal (AUC CV-espacial ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) NO supera al WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) en ranking; el null de distancia-a-depósito ya alcanza ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. La cobertura conforme se cumple, pero solo marcando ~${pct(confLevel?.set_size_frac ?? 0, 0)} del belt: un conjunto casi vacío que reporta honestamente que la geofísica regional no localiza MVT bajo transferencia espacial. El avance es la incertidumbre calibrada y corregida por sesgo, no un AUC mayor.`
+                : `Honest result: over the clustered MVT belt, PU-Conformal (spatial-CV AUC ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) does NOT beat WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) in ranking; the distance-to-deposit null alone reaches ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. Conformal coverage holds, but only by flagging ~${pct(confLevel?.set_size_frac ?? 0, 0)} of the belt: a near-vacuous set that honestly reports regional geophysics cannot localize MVT under spatial transfer. The advance is calibrated, bias-corrected uncertainty, not a higher AUC.`}</p>
             </>
           )}
         </div>

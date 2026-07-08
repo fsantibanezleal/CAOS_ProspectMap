@@ -1,0 +1,229 @@
+{
+ "schema": "prospectmap.puconformal/v1",
+ "case_id": "REAL-USMVT",
+ "features": [
+  "mag",
+  "grav",
+  "lab",
+  "satgrav",
+  "faultprox",
+  "marginprox"
+ ],
+ "protocol": {
+  "folds": 5,
+  "block_cells": 20,
+  "scheme": "contiguous spatial blocks (blockId % k), identical to the live TS engine",
+  "pi_default": 0.05
+ },
+ "benchmark": [
+  {
+   "model": "wofe",
+   "label": "Weights of Evidence (classical, white-box)",
+   "auc": 0.7316,
+   "ap": 0.0616,
+   "brier": 0.0324,
+   "ece": 0.0208,
+   "auc_ci95": [
+    0.7206,
+    0.7426
+   ]
+  },
+  {
+   "model": "logistic",
+   "label": "Logistic regression (CI-free)",
+   "auc": 0.846,
+   "ap": 0.1265,
+   "brier": 0.1151,
+   "ece": 0.2177,
+   "auc_ci95": [
+    0.8357,
+    0.8556
+   ]
+  },
+  {
+   "model": "random_forest",
+   "label": "Random forest (SOTA tabular)",
+   "auc": 0.745,
+   "ap": 0.0706,
+   "brier": 0.0834,
+   "ece": 0.149,
+   "auc_ci95": [
+    0.7331,
+    0.7577
+   ]
+  },
+  {
+   "model": "gradient_boosting",
+   "label": "Gradient boosting (SOTA tabular)",
+   "auc": 0.7251,
+   "ap": 0.0678,
+   "brier": 0.0918,
+   "ece": 0.1114,
+   "auc_ci95": [
+    0.7126,
+    0.7378
+   ]
+  },
+  {
+   "model": "naive_mlp",
+   "label": "Naive MLP (pseudo-negatives)",
+   "auc": 0.7834,
+   "ap": 0.0798,
+   "brier": 0.1342,
+   "ece": 0.1465,
+   "auc_ci95": [
+    0.7733,
+    0.7932
+   ]
+  },
+  {
+   "model": "pu_conformal",
+   "label": "PU-Conformal (nnPU, proposed)",
+   "auc": 0.656,
+   "ap": 0.0497,
+   "brier": 0.0338,
+   "ece": 0.0336,
+   "auc_ci95": [
+    0.6403,
+    0.6686
+   ]
+  }
+ ],
+ "inflation": {
+  "pu_random_cv_auc": 0.6784,
+  "pu_spatial_cv_auc": 0.656
+ },
+ "conformal": {
+  "pi": 0.05,
+  "nCalibPos": 313,
+  "nTestPos": 353,
+  "levels": [
+   {
+    "alpha": 0.1,
+    "nominal": 0.9,
+    "threshold": 0.0,
+    "empirical_coverage": 0.9773,
+    "set_size_frac": 0.8756
+   },
+   {
+    "alpha": 0.2,
+    "nominal": 0.8,
+    "threshold": 0.0001,
+    "empirical_coverage": 0.9717,
+    "set_size_frac": 0.783
+   }
+  ]
+ },
+ "pi_sensitivity": [
+  {
+   "pi": 0.034,
+   "block_cv_auc": 0.6454,
+   "conformal": [
+    {
+     "alpha": 0.1,
+     "nominal": 0.9,
+     "threshold": 0.0,
+     "empirical_coverage": 0.9773,
+     "set_size_frac": 0.8778
+    },
+    {
+     "alpha": 0.2,
+     "nominal": 0.8,
+     "threshold": 0.0001,
+     "empirical_coverage": 0.9717,
+     "set_size_frac": 0.7895
+    }
+   ]
+  },
+  {
+   "pi": 0.05,
+   "block_cv_auc": 0.656,
+   "conformal": [
+    {
+     "alpha": 0.1,
+     "nominal": 0.9,
+     "threshold": 0.0,
+     "empirical_coverage": 0.9773,
+     "set_size_frac": 0.8756
+    },
+    {
+     "alpha": 0.2,
+     "nominal": 0.8,
+     "threshold": 0.0001,
+     "empirical_coverage": 0.9717,
+     "set_size_frac": 0.783
+    }
+   ]
+  },
+  {
+   "pi": 0.07,
+   "block_cv_auc": 0.6703,
+   "conformal": [
+    {
+     "alpha": 0.1,
+     "nominal": 0.9,
+     "threshold": 0.0,
+     "empirical_coverage": 0.9773,
+     "set_size_frac": 0.8704
+    },
+    {
+     "alpha": 0.2,
+     "nominal": 0.8,
+     "threshold": 0.0001,
+     "empirical_coverage": 0.9745,
+     "set_size_frac": 0.7707
+    }
+   ]
+  },
+  {
+   "pi": 0.1,
+   "block_cv_auc": 0.6735,
+   "conformal": [
+    {
+     "alpha": 0.1,
+     "nominal": 0.9,
+     "threshold": 0.0001,
+     "empirical_coverage": 0.983,
+     "set_size_frac": 0.8432
+    },
+    {
+     "alpha": 0.2,
+     "nominal": 0.8,
+     "threshold": 0.0001,
+     "empirical_coverage": 0.9745,
+     "set_size_frac": 0.7279
+    }
+   ]
+  }
+ ],
+ "negative_controls": {
+  "label_permutation": {
+   "wofe_auc": 0.5063,
+   "pu_auc": 0.4899,
+   "expectation": "both must collapse to ~0.5 (no signal in permuted labels)"
+  },
+  "uninformative_layer": {
+   "pu_auc_with_noise_layer": 0.6385,
+   "pu_auc_without": 0.656,
+   "expectation": "adding a pure-noise layer must not lift block-CV AUC (no free skill from noise)"
+  },
+  "distance_to_deposit_null": {
+   "distance_to_deposit_auc": 0.7833,
+   "expectation": "the trivial autocorrelation baseline; a real model must beat it to claim geology"
+  }
+ },
+ "verdict": {
+  "ranking_win": false,
+  "coverage_within_tolerance": true,
+  "text": "Honest null on ranking: PU-Conformal (block-CV AUC 0.656, CI [0.6403, 0.6686]) does NOT beat classical WofE (0.732) in spatial-transfer ranking for this strongly clustered MVT belt, the expected outcome under strict contiguous spatial holdout. Notably the trivial distance-to-known-deposit null already reaches AUC 0.783, so most apparent skill is spatial proximity, not learned geology. PU-Conformal's genuine advance is elsewhere: the negative controls collapse as they must (label permutation to chance, no lift from a noise layer), and the conformal band delivers its coverage guarantee (empirical 0.98 >= nominal 0.90) but only by flagging 88% of the belt: an HONEST near-vacuous set that correctly reports regional geophysics cannot localize MVT under spatial transfer, rather than a false-confidence point map."
+ },
+ "references": {
+  "nnpu": "Kiryo et al. 2017, NeurIPS, arXiv:1703.00593",
+  "elkan_noto": "Elkan & Noto 2008, KDD, doi:10.1145/1401890.1401920",
+  "conformal": "Angelopoulos & Bates 2021, arXiv:2107.07511",
+  "block_cv": "Roberts et al. 2017, Ecography, doi:10.1111/ecog.02881",
+  "tabular_rung": "Rodriguez-Galiano et al. 2015, Ore Geol. Rev., doi:10.1016/j.oregeorev.2015.01.001",
+  "pu_mpm": "Xiong & Zuo 2021, Comput. Geosci., doi:10.1016/j.cageo.2020.104667"
+ },
+ "honesty": "Trained OFFLINE on the real US Midcontinent MVT cube. PU treats deposit cells as positives and ALL other cells as UNLABELED (nnPU risk), fixing the false-negative bias of pseudo-negative training. Every model is scored on IDENTICAL spatial-block folds; the random-CV number is shown only to expose its inflation. Conformal coverage is a distribution-free split-conformal guarantee under spatial blocking (marginal over blocks). SCAR is assumed and likely violated by exploration bias, hence pi is swept, not fixed. No fabricated win: the ranking verdict is read directly off the bootstrap CIs and the negative controls."
+}

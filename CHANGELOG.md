@@ -2,6 +2,47 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.08.000] - 2026-07-07
+
+The PU-Conformal beyond-SOTA lane, the RF/GBM SOTA-classical rung, a validated honest benchmark with
+negative controls, deeper docs, and a pre-existing conditional-independence table fix.
+
+### Added
+- **PU-Conformal lane** (`data-pipeline/pmlab/pu_conformal.py`), trained OFFLINE on the real US
+  Midcontinent MVT cube and exported as `mpm-puconformal-real.onnx` + `pu-conformal.json`. It composes
+  three verified ingredients the WofE/logistic ladder lacks: a non-negative PU risk estimator (nnPU,
+  Kiryo et al. 2017, arXiv:1703.00593; deposits = positives, ALL other cells = UNLABELED, fixing the
+  pseudo-negative bias; Elkan & Noto 2008, doi:10.1145/1401890.1401920), spatially-blocked evaluation
+  (Roberts et al. 2017, doi:10.1111/ecog.02881), and a distribution-free positive-class split-conformal
+  band (Angelopoulos & Bates 2021, arXiv:2107.07511). The class prior pi is a swept sensitivity
+  parameter.
+- **SOTA-classical tabular rung**: random forest + gradient boosting (Rodriguez-Galiano et al. 2015,
+  doi:10.1016/j.oregeorev.2015.01.001), plus logistic and a naive pseudo-negative MLP, all scored on
+  IDENTICAL contiguous spatial folds so PU-Conformal is judged against the real ML frontier.
+- **New App tab "PU-Conformal"** (11 -> 12 tabs): the calibrated nnPU posterior map, the
+  coverage-guaranteed prospective set, a coverage/set-size readout, and a class-prior pi sensitivity
+  selector. Live via onnxruntime-web on the real cube.
+- **Benchmark + Experiments** now carry the six-model head-to-head (block-CV AUC with bootstrap CIs, AP,
+  Brier, ECE), the mandatory negative-control matrix (label permutation, uninformative layer,
+  distance-to-deposit null), and the conformal coverage table.
+- **Deep docs**: `docs/frameworks/{04_ml-ladder,05_pu-learning,06_uncertainty-and-conformal}.md`, an
+  extended `docs/architecture/06_model-evaluation.md`, three new Methodology SubTabs (tabular ML / PU /
+  conformal) with term-by-term math, and inline real-DOI citations across the pages.
+
+### Fixed
+- **Conditional-independence pairwise table read 0.00** on every case. `ci.ts::pairwiseChi2` built its
+  2x2 over the DEPOSIT cells only, which degenerates at the maximizing-contrast threshold (favourable
+  patterns are present at nearly every deposit). Now the proper stratified (2x2x2) conditional test,
+  summing the deposit and non-deposit strata; regression test added.
+
+### Honesty
+- Under strict contiguous spatial holdout PU-Conformal (block-CV AUC 0.656) does NOT beat classical
+  WofE (0.732); the trivial distance-to-deposit null alone reaches 0.783, so most apparent skill is
+  spatial proximity, not learned geology. The negative controls collapse as required and the conformal
+  band meets its coverage guarantee (0.98 >= 0.90) but only by flagging ~88% of the belt: an honest,
+  near-vacuous prospective set. The genuine advance is calibrated, bias-corrected uncertainty, not a
+  higher AUC. No fabricated "beats SOTA" number.
+
 ## [0.07.000] - 2026-07-07
 
 First-level Synthetic | Real Source selector (the Faena "Real sample" lane) on real, openly-licensed data.
