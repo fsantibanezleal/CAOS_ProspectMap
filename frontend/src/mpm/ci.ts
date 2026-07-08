@@ -6,15 +6,15 @@
 import type { Binarized, CICheck, Cube, Posterior } from './types.ts';
 import { maskCells, depositSet } from './grid.ts';
 
-/** Pearson χ² (Yates-corrected) of two binary patterns over the DEPOSIT cells (conditional independence given D). */
-export function pairwiseChi2(cube: Cube, a: Binarized, b: Binarized): { chi2: number; cramersV: number; n: number } {
-  const dep = depositSet(cube);
-  // 2x2 of (a present/absent) × (b present/absent) over deposit cells
+/** One D-stratum's Yates-corrected 2x2 chi-square of patterns a,b (a present/absent × b present/absent) over the
+ * cells whose deposit membership equals `inDep`. Missing cells (255) are dropped. */
+function stratumChi2(cube: Cube, a: Binarized, b: Binarized, dep: Set<number>, inDep: boolean): { chi2: number; n: number } {
   let n11 = 0;
   let n10 = 0;
   let n01 = 0;
   let n00 = 0;
-  for (const i of dep) {
+  for (const i of maskCells(cube)) {
+    if (dep.has(i) !== inDep) continue;
     const pa = a.present[i];
     const pb = b.present[i];
     if (pa === 255 || pb === 255) continue;
@@ -24,21 +24,39 @@ export function pairwiseChi2(cube: Cube, a: Binarized, b: Binarized): { chi2: nu
     else n00++;
   }
   const n = n11 + n10 + n01 + n00;
-  if (n === 0) return { chi2: 0, cramersV: 0, n: 0 };
+  if (n === 0) return { chi2: 0, n: 0 };
   const r1 = n11 + n10;
   const r0 = n01 + n00;
   const c1 = n11 + n01;
   const c0 = n10 + n00;
-  // Yates continuity correction for the 2x2
   const obs = [n11, n10, n01, n00];
   const exp = [(r1 * c1) / n, (r1 * c0) / n, (r0 * c1) / n, (r0 * c0) / n];
   let chi2 = 0;
   for (let k = 0; k < 4; k++) {
     if (exp[k] <= 0) continue;
-    const d = Math.max(0, Math.abs(obs[k] - exp[k]) - 0.5);
+    const d = Math.max(0, Math.abs(obs[k] - exp[k]) - 0.5); // Yates continuity correction
     chi2 += (d * d) / exp[k];
   }
-  const cramersV = Math.sqrt(chi2 / n); // 2x2 ⇒ min(r-1,c-1)=1
+  return { chi2, n };
+}
+
+/**
+ * Conditional-independence-given-D test for two binary patterns: the STRATIFIED (2x2x2) Yates-corrected chi-square,
+ * summing the association of a,b WITHIN the deposit stratum (D=1) AND within the non-deposit stratum (D=0), df=2.
+ * Testing ONLY the deposit stratum (the previous implementation) is degenerate at the maximizing-contrast threshold:
+ * favourable patterns are present at nearly every deposit, so that 2x2 collapses (n11≈n, the rest≈0) and chi2 -> 0,
+ * which is exactly why the pairwise table read 0.00. The non-deposit stratum, which holds the overwhelming majority
+ * of the cells, carries the evidence-layer correlation that double-counts and inflates the WofE posterior. Cramer's V
+ * is the pooled effect size over both strata (per-stratum min(r-1,c-1)=1).
+ */
+export function pairwiseChi2(cube: Cube, a: Binarized, b: Binarized): { chi2: number; cramersV: number; n: number } {
+  const dep = depositSet(cube);
+  const sD = stratumChi2(cube, a, b, dep, true);
+  const sDbar = stratumChi2(cube, a, b, dep, false);
+  const chi2 = sD.chi2 + sDbar.chi2;
+  const n = sD.n + sDbar.n;
+  if (n === 0) return { chi2: 0, cramersV: 0, n: 0 };
+  const cramersV = Math.sqrt(chi2 / n);
   return { chi2, cramersV, n };
 }
 
