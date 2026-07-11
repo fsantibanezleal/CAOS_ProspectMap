@@ -8,6 +8,7 @@ import {
 import { loadLearned, loadLearnedReal, loadPuConformal, loadRealCube, type LearnedFile, type PuConformalFile } from '../lib/artifacts.ts';
 import { runClassifier, runOod, runPuConformal, type Lane } from '../lib/ort.ts';
 import { MapView } from '../viz/MapView.tsx';
+import { PanelBoundary } from '../viz/PanelBoundary.tsx';
 import { CurveChart } from '../viz/CurveChart.tsx';
 
 const CATS = [
@@ -681,5 +682,5 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
     },
   ];
 
-  return <Tabs tabs={tabs} ariaLabel={es ? 'vistas de prospectividad' : 'prospectivity views'} />;
+  return <Tabs tabs={tabs.map((t) => ({ ...t, content: <PanelBoundary key={t.id} lang={es ? 'es' : 'en'}>{t.content}</PanelBoundary> }))} ariaLabel={es ? 'vistas de prospectividad' : 'prospectivity views'} />;
 }
