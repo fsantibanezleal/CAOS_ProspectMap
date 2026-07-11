@@ -2,6 +2,18 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.08.001] - 2026-07-11
+
+### Fixed
+- Reference integrity (ADR-0017 §4): all 13 `citations.ts` entries were link-less, so every on-page citation
+  rendered as non-clickable text. Populated a real, verified `doi` or `url` for the 11 that have one (Agterberg
+  & Cheng 2002, Chung & Fabbri 2003, Roberts 2017, Rodriguez-Galiano 2015, Xiong & Zuo 2021, Elkan & Noto 2008,
+  Lawley 2022, Kiryo 2017, Angelopoulos & Bates 2021, Bonham-Carter 1994, Carranza 2009). The two genuinely
+  pre-DOI print sources (Bonham-Carter et al. 1989 GSC Paper 89-9; Agterberg & Bonham-Carter 1990 APCOM
+  proceedings) are explicitly marked as having no open landing page (never a fabricated link).
+- Docs wiki: plain-text `doi:` / `arXiv:` citations in `docs/architecture/06` and `docs/frameworks/04,05,06`
+  now render as clickable `doi.org` / `arxiv.org` links.
+
 ## [0.08.000] - 2026-07-07
 
 The PU-Conformal beyond-SOTA lane, the RF/GBM SOTA-classical rung, a validated honest benchmark with

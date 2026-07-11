@@ -9,14 +9,14 @@ bias into the score. Positive-Unlabeled (PU) learning fixes it.
 The App's current `mpm-classifier` (and the RF/GBM/logistic baselines) draw negatives by SAMPLING non-deposit cells.
 Those "negatives" include future discoveries, so the learned boundary is pulled toward the exploration history, not the
 geology. The first PU algorithm for mineral prospectivity (Xiong & Zuo 2021, Computers & Geosciences 147, 104667,
-doi:10.1016/j.cageo.2020.104667) showed PU beats one-class SVM and pseudo-negative ANN precisely because it stops
+[doi:10.1016/j.cageo.2020.104667](https://doi.org/10.1016/j.cageo.2020.104667)) showed PU beats one-class SVM and pseudo-negative ANN precisely because it stops
 treating the unlabeled majority as negatives.
 
 ## Elkan-Noto and the SCAR assumption
 
 Under **Selected Completely At Random** (SCAR), labeled positives are a random subset of all positives. Then the
 observed "is-labeled" score and the true posterior differ only by a constant label frequency `c` (Elkan & Noto 2008,
-KDD, 213-220, doi:10.1145/1401890.1401920):
+KDD, 213-220, [doi:10.1145/1401890.1401920](https://doi.org/10.1145/1401890.1401920)):
 
 ```
 p(s=1 | x) = c * p(y=1 | x),    c = p(s=1 | y=1)
@@ -29,7 +29,7 @@ rather than trust one value.
 ## nnPU: the non-negative risk estimator
 
 For a flexible model on very few positives, the unbiased PU risk can go negative and the model overfits. The
-non-negative estimator clamps it (Kiryo, Niu, du Plessis & Sugiyama 2017, NeurIPS, arXiv:1703.00593). With the sigmoid
+non-negative estimator clamps it (Kiryo, Niu, du Plessis & Sugiyama 2017, NeurIPS, [arXiv:1703.00593](https://arxiv.org/abs/1703.00593)). With the sigmoid
 surrogate loss `l(+1,g)=sigmoid(-g)`, `l(-1,g)=sigmoid(g)` on the raw score `g`:
 
 ```
@@ -56,5 +56,5 @@ optimizer ascends it back toward zero instead of descending further. Implemented
 ## Related PU refinements (cited, not implemented)
 
 Bagging-PU with cost-sensitive Bayesian logistic regression (Yang, Cheng et al. 2022,
-doi:10.1007/s11053-022-10120-0) and the large-scale porphyry-Cu PU proof over the American Cordillera (Alfonso, Muller,
-Mather & Anthony 2024, GSA Bulletin, doi:10.1130/B37614.1) are the field context for the PU family.
+[doi:10.1007/s11053-022-10120-0](https://doi.org/10.1007/s11053-022-10120-0)) and the large-scale porphyry-Cu PU proof over the American Cordillera (Alfonso, Muller,
+Mather & Anthony 2024, GSA Bulletin, [doi:10.1130/B37614.1](https://doi.org/10.1130/B37614.1)) are the field context for the PU family.

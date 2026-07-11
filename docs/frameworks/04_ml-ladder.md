@@ -9,7 +9,7 @@ the PU-Conformal lane must be judged against, not just WofE and logistic regress
 In the canonical head-to-head for mineral prospectivity mapping (epithermal Au, Rodalquilar), random forest beat
 artificial neural networks, regression trees and support vector machines on success rate and ROC, and was the most
 stable to training-parameter choices (Rodriguez-Galiano, Sanchez-Castillo, Chica-Olmo & Chica-Rivas 2015, Ore Geology
-Reviews 71, 804-818, doi:10.1016/j.oregeorev.2015.01.001). So RF/GBM is the honest "which ML model for MPM" reference.
+Reviews 71, 804-818, [doi:10.1016/j.oregeorev.2015.01.001](https://doi.org/10.1016/j.oregeorev.2015.01.001)). So RF/GBM is the honest "which ML model for MPM" reference.
 
 ## Gradient boosting
 
@@ -48,7 +48,7 @@ observed absences). Every model in the benchmark is scored on the SAME contiguou
 
 ## The deep learning ceiling (named, not implemented)
 
-Beyond tabular ML the field uses deep autoencoders (Xiong, Zuo & Carranza 2018, doi:10.1016/j.oregeorev.2018.10.006),
-CNN/GeoCNN with augmentation for tiny positive sets (Li, Zuo, Zhao & Zhao 2022, doi:10.1016/j.oregeorev.2022.104693),
-and self-supervised geospatial foundation models (GFM4MPM, arXiv:2406.12756). Our grid is small, so a CNN is optional;
+Beyond tabular ML the field uses deep autoencoders (Xiong, Zuo & Carranza 2018, [doi:10.1016/j.oregeorev.2018.10.006](https://doi.org/10.1016/j.oregeorev.2018.10.006)),
+CNN/GeoCNN with augmentation for tiny positive sets (Li, Zuo, Zhao & Zhao 2022, [doi:10.1016/j.oregeorev.2022.104693](https://doi.org/10.1016/j.oregeorev.2022.104693)),
+and self-supervised geospatial foundation models (GFM4MPM, [arXiv:2406.12756](https://arxiv.org/abs/2406.12756)). Our grid is small, so a CNN is optional;
 these are cited as the honest ceiling this build does not train.
