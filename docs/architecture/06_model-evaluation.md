@@ -37,7 +37,7 @@ Folds are **contiguous** geographic regions (k-means on cell coordinates, k=5), 
 interleaved `blockId % k`: interleaving 20-cell blocks leaves every held-out block adjacent to training blocks, which
 lets a fine-grained learned model memorize the autocorrelated local feature signature and inflate the held-out AUC.
 Under contiguous holdout a held-out region is spatially separated from its training, so the transfer question is honest
-(Roberts et al. 2017, doi:10.1111/ecog.02881). AUC is reported with a 95% bootstrap CI.
+(Roberts et al. 2017, [doi:10.1111/ecog.02881](https://doi.org/10.1111/ecog.02881)). AUC is reported with a 95% bootstrap CI.
 
 ### Negative controls (must pass, on the real cube)
 
