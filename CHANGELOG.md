@@ -2,6 +2,13 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.08.002] - 2026-07-11
+
+### Added
+- Per-panel error boundary (`viz/PanelBoundary.tsx`, mirroring the RotorVitals reference): a crash inside one
+  prospectivity view now renders a small inline message instead of unmounting the whole App to a blank page; the
+  tab bar stays usable.
+
 ## [0.08.001] - 2026-07-11
 
 ### Fixed
