@@ -43,7 +43,7 @@ export const architecture: ArchitectureConfig = {
       body_en:
         'Three lanes. WEB (live, in the browser): the TypeScript WofE / CI / logistic-regression / validation engine ' +
         '(frontend/src/mpm/) recomputes the posterior raster on every control, and onnxruntime-web runs the learned ' +
-        'classifier + the geology OOD autoencoder, no server. OFFLINE / COMPUTE (your machine, isolated .venv): the ' +
+        'classifier + the geology OOD autoencoder, no server. offline / COMPUTE (your machine, isolated .venv): the ' +
         'Python pipeline bakes the canonical case artifacts (the SAME TS engine via tsx) and the heavy lane (--retrain, ' +
         'torch) trains the two learned models and exports them to ONNX. REPLAY: the small committed artifacts in ' +
         'data/derived are overlaid into the SPA by copy-data.mjs and loaded live; the typed mirror ' +
@@ -51,7 +51,7 @@ export const architecture: ArchitectureConfig = {
       body_es:
         'Tres carriles. WEB (en vivo, en el navegador): el motor TypeScript de WofE / CI / regresión logística / ' +
         'validación (frontend/src/mpm/) recalcula el raster posterior con cada control, y onnxruntime-web ejecuta el ' +
-        'clasificador aprendido + el autoencoder OOD de geología, sin servidor. OFFLINE / CÓMPUTO (tu máquina, .venv ' +
+        'clasificador aprendido + el autoencoder OOD de geología, sin servidor. offline / CÓMPUTO (tu máquina, .venv ' +
         'aislado): el pipeline Python hornea los artefactos canónicos por caso (el MISMO motor TS vía tsx) y el carril ' +
         'pesado (--retrain, torch) entrena los dos modelos aprendidos y los exporta a ONNX. REPLAY: los artefactos ' +
         'pequeños versionados en data/derived se superponen al SPA con copy-data.mjs y se cargan en vivo; el espejo ' +
