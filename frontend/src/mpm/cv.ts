@@ -1,7 +1,7 @@
 // Spatial cross-validation, the single most important honesty mechanism. Deposit cells and their neighbours are
-// NOT independent (spatial autocorrelation), so a RANDOM train/test split leaks neighbours of training deposits into
-// the test set and the AUC/capture look fantastic and are a lie. SPATIAL block CV holds out whole contiguous blocks
-// so train/test are spatially separated. The mandatory demonstration: the SAME model collapses from random-CV to
+// not independent (spatial autocorrelation), so a random train/test split leaks neighbours of training deposits into
+// the test set and the AUC/capture look fantastic and are a lie. Spatial block CV holds out whole contiguous blocks
+// so train/test are spatially separated. The mandatory demonstration: the same model collapses from random-CV to
 // spatial-CV (Roberts et al. 2017; Valavi et al. 2019).
 
 import type { Cube, FoldId } from './types.ts';
@@ -18,7 +18,7 @@ export function randomFolds(cube: Cube, k: number, seed = 1): FoldId {
   return folds;
 }
 
-/** assign cells to k folds by CONTIGUOUS spatial blocks of blockCells×blockCells (a checkerboard of folds). */
+/** assign cells to k folds by contiguous spatial blocks of blockCells×blockCells (a checkerboard of folds). */
 export function spatialBlockFolds(cube: Cube, k: number, blockCells: number): FoldId {
   const n = cube.nx * cube.ny;
   const folds = new Int32Array(n).fill(-1);
@@ -34,7 +34,7 @@ export function spatialBlockFolds(cube: Cube, k: number, blockCells: number): Fo
 }
 
 /**
- * A model-agnostic CV driver: for each fold f, fit a score from the TRAINING deposits (deposits NOT in fold f) via
+ * A model-agnostic CV driver: for each fold f, fit a score from the training deposits (deposits not in fold f) via
  * scoreFn, then record the held-out cells' scores. Returns the held-out score array (assembled across folds) and its
  * ROC AUC vs the true deposit labels, the honest, leakage-controlled skill estimate.
  */

@@ -9,4 +9,4 @@
 - [07 - deploy](architecture/07_deploy.md)
 - [08 - the two data contracts](architecture/08_data-contracts.md)
 
-Binding decision: ADR-0057 (product-repo archetype). The in-app i Architecture modal is ADR-0058.
+Binding decision: ADR-0057 (product-repo archetype). The in-app ⓘ Architecture modal is ADR-0058.

@@ -12,7 +12,7 @@ continuous layer is binarized at the maximizing-contrast threshold t* = argmax C
 ## Conditional independence
 
 The posterior sum is only valid if the patterns are conditionally independent given D. Correlated favourable layers
-double-count and OVER-ESTIMATE the posterior. ProspectMap surfaces this: the pairwise chi-square (Yates-corrected) +
+double-count and over-estimate the posterior. ProspectMap surfaces this: the pairwise chi-square (Yates-corrected) +
 the **Agterberg-Cheng omnibus test** (T = sum of the posterior ~ N(D) under CI; z = (T - N(D))/s(T)) + the CI ratio
 N(D)/T (~ 1 ok; < 0.85 a problematic violation). The `C-CIVIOLATE` control demonstrates it on purpose.
 
@@ -26,8 +26,8 @@ is not yet shown in-app.
 
 ## Honest validation
 
-A model fitting its own training deposits is NOT evidence of predictive skill; only spatially held-out capture is. The
-prediction-rate capture curve (% deposits captured vs % area, ranked by prospectivity, under SPATIAL block CV +
+A model fitting its own training deposits is not evidence of predictive skill; only spatially held-out capture is. The
+prediction-rate capture curve (% deposits captured vs % area, ranked by prospectivity, under spatial block CV +
 buffered leave-one-deposit-out) is the headline; capture@10% under spatial CV is the reported number; ROC/AUC is
-secondary (presence-only). The mandatory demonstration: the SAME model collapses from random-CV to spatial-CV - the
+secondary (presence-only). The mandatory demonstration: the same model collapses from random-CV to spatial-CV - the
 inflation gap.

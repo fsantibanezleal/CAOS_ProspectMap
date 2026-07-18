@@ -1,6 +1,6 @@
-// CONTRACT 2 mirror (frontend side). MUST stay in lock-step with the Python schemas in
+// Contract 2 mirror (frontend side). It must stay in lock-step with the Python schemas in
 // data-pipeline/pmlab/core/{trace.py, manifest.py}. A drift here makes `tsc` fail -> the contract is enforced at
-// BUILD time (the web cannot ship reading a shape the pipeline does not produce).
+// build time (the web cannot ship reading a shape the pipeline does not produce).
 
 export interface LayerResult {
   id: string;

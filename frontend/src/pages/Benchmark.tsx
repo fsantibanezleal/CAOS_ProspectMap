@@ -34,8 +34,8 @@ export default function Benchmark() {
 
       <Callout variant="honest" title={es ? 'Sin victoria fabricada' : 'No fabricated win'}>
         {es
-          ? 'El posterior WofE de caja blanca es la autoridad interpretable. El clasificador aprendido (torch→ONNX, carril --retrain) se mide contra WofE en el MISMO holdout espacial y gana su lugar sólo si lo supera capturando interacciones no lineales. Si empata o pierde, el benchmark lo dice, y ese es el resultado honesto.'
-          : 'The white-box WofE posterior is the interpretable authority. The learned classifier (torch→ONNX, the --retrain lane) is measured against WofE on the SAME spatial holdout and earns its place only if it beats it by capturing non-linear interactions. If it ties or loses, the benchmark says so, and that is the honest result.'}
+          ? 'El posterior WofE de caja blanca es la autoridad interpretable. El clasificador aprendido (torch→ONNX, carril --retrain) se mide contra WofE en el mismo holdout espacial y gana su lugar sólo si lo supera capturando interacciones no lineales. Si empata o pierde, el benchmark lo dice, y ese es el resultado honesto.'
+          : 'The white-box WofE posterior is the interpretable authority. The learned classifier (torch→ONNX, the --retrain lane) is measured against WofE on the same spatial holdout and earns its place only if it beats it by capturing non-linear interactions. If it ties or loses, the benchmark says so, and that is the honest result.'}
       </Callout>
 
       {rows == null ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
@@ -62,15 +62,15 @@ export default function Benchmark() {
       {learned ? (
         <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? ', ')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda, separable por construcción)' : ' (synthetic out-of-band eval set, separable by construction)'}</p>
       ) : (
-        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, corre `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
+        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, ejecutar `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
       )}
 
       <h2>{es ? 'Head-to-head PU-Conformal (cubo real MVT, CV espacial contiguo)' : 'PU-Conformal head-to-head (real MVT cube, contiguous spatial CV)'}</h2>
       {!pu ? <p className="pf-note">{es ? 'cargando el carril PU-Conformal…' : 'loading the PU-Conformal lane…'}</p> : (
         <>
           <p className="pf-note">{es
-            ? `Los seis modelos sobre las MISMAS particiones espaciales contiguas (k-means, ${pu.protocol.folds} folds) del cubo real US MVT. La clásica-SOTA (random forest / gradient boosting) es el rung que hace que PU-Conformal se juzgue contra la frontera ML real. AUC con IC 95% bootstrap.`
-            : `All six models on the SAME contiguous spatial folds (k-means, ${pu.protocol.folds} folds) of the real US MVT cube. The SOTA-classical rung (random forest / gradient boosting) is what makes PU-Conformal judged against the real ML frontier. AUC with 95% bootstrap CI.`} <Cite id="roberts2017" paren /> <Cite id="rodriguezgaliano2015" paren /></p>
+            ? `Los seis modelos sobre las mismas particiones espaciales contiguas (k-means, ${pu.protocol.folds} folds) del cubo real US MVT. La clásica-SOTA (random forest / gradient boosting) es el rung que hace que PU-Conformal se juzgue contra la frontera ML real. AUC con IC 95% bootstrap.`
+            : `All six models on the same contiguous spatial folds (k-means, ${pu.protocol.folds} folds) of the real US MVT cube. The SOTA-classical rung (random forest / gradient boosting) is what makes PU-Conformal judged against the real ML frontier. AUC with 95% bootstrap CI.`} <Cite id="roberts2017" paren /> <Cite id="rodriguezgaliano2015" paren /></p>
           <table className="cmp-table">
             <thead><tr><th>{es ? 'modelo' : 'model'}</th><th>{es ? 'AUC CV-esp.' : 'block-CV AUC'}</th><th>IC 95%</th><th>AP</th><th>Brier</th><th>ECE</th></tr></thead>
             <tbody>

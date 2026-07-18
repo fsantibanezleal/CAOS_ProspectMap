@@ -63,7 +63,7 @@ function fuzzyOverlay(cube: Cube, activeIds: string[], gamma = 0.8): Float64Arra
 }
 
 // calibration / reliability: equal-count (decile) bins of the predicted score; per bin the mean predicted probability
-// vs the OBSERVED deposit frequency. A well-calibrated model sits on the diagonal. Brier score + expected calibration
+// vs the observed deposit frequency. A well-calibrated model sits on the diagonal. Brier score + expected calibration
 // error (ECE) summarize it. The C-SATURATE case flagged this readout was missing in-app; it lands here.
 function calibration(cube: Cube, field: Float64Array, bins = 10) {
   const cells = maskCells(cube);
@@ -118,7 +118,7 @@ export default function Tool() {
   useEffect(() => { loadLearnedReal().then(setLearnedReal).catch(() => setLearnedReal(null)); }, []);
   useEffect(() => { loadPuConformal().then(setPuConformal).catch(() => setPuConformal(null)); }, []);
 
-  // load the baked real cube when the Real lane is picked (arrays only; the WofE engine runs LIVE on it)
+  // load the baked real cube when the Real lane is picked (arrays only; the WofE engine runs live on it)
   useEffect(() => {
     if (!isReal) return;
     let cancel = false;
@@ -140,7 +140,7 @@ export default function Tool() {
             <button className={`chip ${isReal ? 'on' : ''}`} onClick={() => setSource('real')}>{es ? 'Muestra real' : 'Real sample'}</button>
           </div>
           <div className="pf-cap pf-muted">{isReal
-            ? (es ? 'dataset abierto real; los knobs sintéticos se desactivan, eliges el dato y todas las herramientas corren sobre él' : 'a real open dataset; the synthetic knobs disable, you pick the datum and every tool runs on it')
+            ? (es ? 'dataset abierto real; los knobs sintéticos se desactivan, se elige el dato y todas las herramientas se ejecutan sobre él' : 'a real open dataset; the synthetic knobs disable, the datum is selected and every tool runs on it')
             : (es ? 'áreas sintéticas con verdad conocida (los knobs plantan los pesos)' : 'synthetic areas with known ground truth (the knobs plant the weights)')}</div>
         </div>
 
@@ -175,7 +175,7 @@ export default function Tool() {
                 <div className="pf-prov-legend">
                   <span><b className="pf-real">REAL</b> {es ? 'geofísica medida: mag · grav · lab(tomografía) · satgrav' : 'measured geophysics: mag · grav · lab(tomography) · satgrav'}</span>
                   <span><b className="pf-derived">DERIVED</b> {es ? 'por nosotros desde vectores reales: faultprox · marginprox' : 'by us from real vectors: faultprox · marginprox'}</span>
-                  <span><b className="pf-recomp">RECOMPUTED</b> {es ? 'nuestro posterior WofE en el navegador, NO el modelo H3+gradient-boosting publicado' : 'our browser WofE posterior, NOT the published H3 + gradient-boosting model'}</span>
+                  <span><b className="pf-recomp">RECOMPUTED</b> {es ? 'nuestro posterior WofE en el navegador, no el modelo H3+gradient-boosting publicado' : 'our browser WofE posterior, not the published H3 + gradient-boosting model'}</span>
                 </div>
                 <div className="pf-cite">{realMeta.citation}</div>
                 <div className="pf-cap pf-muted">{realMeta.license}</div>
@@ -192,7 +192,7 @@ export default function Tool() {
                 <button key={id} className={`chip ${!layerOff[id] ? 'on' : ''}`} onClick={() => setLayerOff((s) => ({ ...s, [id]: !s[id] }))}>{id}</button>
               ))}
             </div>
-            <div className="pf-cap pf-muted">{es ? 'activa/desactiva capas de evidencia, el posterior se recalcula en vivo' : 'toggle evidence layers, the posterior recomputes live'}</div>
+            <div className="pf-cap pf-muted">{es ? 'las capas de evidencia se activan y desactivan, el posterior se recalcula en vivo' : 'toggle evidence layers, the posterior recomputes live'}</div>
             <div className="pf-card-t" style={{ marginTop: 12 }}>{es ? 'Método' : 'Method'}</div>
             <div className="pf-chips">
               {(['wofe', 'logistic'] as Method[]).map((m) => (
@@ -254,7 +254,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
 
   const calib = useMemo(() => calibration(cube, map.field), [cube, map]);
 
-  // the two learned models, run LIVE over the cube's cells on the lane's feature space + model file (never the
+  // the two learned models, run live over the cube's cells on the lane's feature space + model file (never the
   // synthetic model on the real cube). Graceful: absent ONNX -> null fields -> honest pending state.
   useEffect(() => {
     let cancel = false;
@@ -290,7 +290,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
     return () => { cancel = true; };
   }, [cube, activeIds, lane, learned]);
 
-  // PU-Conformal nnPU score, run LIVE over the REAL cube (the offline lane trains only the 6-feature real model).
+  // PU-Conformal nnPU score, run live over the real cube (the offline lane trains only the 6-feature real model).
   useEffect(() => {
     let cancel = false;
     setPuField(null);
@@ -377,7 +377,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
   } | undefined;
 
   const recomputeNote = isReal
-    ? (es ? 'El posterior es NUESTRA recomputación WofE en el navegador sobre una sub-región rasterizada, NO el modelo H3+gradient-boosting publicado (Lawley 2022).' : 'The posterior is OUR browser WofE recomputation over a rasterized sub-region, NOT the published Lawley 2022 H3 + gradient-boosting model.')
+    ? (es ? 'El posterior es nuestra recomputación WofE en el navegador sobre una sub-región rasterizada, no el modelo H3+gradient-boosting publicado (Lawley 2022).' : 'The posterior is our browser WofE recomputation over a rasterized sub-region, not the published Lawley 2022 H3 + gradient-boosting model.')
     : '';
 
   const tabs = [
@@ -386,7 +386,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'Mapa posterior de prospectividad P(depósito | evidencia) por celda (colormap viridis). Los depósitos conocidos como marcadores; pasa el cursor para leer el valor.'
+            ? 'Mapa posterior de prospectividad P(depósito | evidencia) por celda (colormap viridis). Los depósitos conocidos como marcadores; al pasar el cursor se lee el valor.'
             : 'Posterior prospectivity map P(deposit | evidence) per cell (viridis colormap). Known deposits as markers; hover to read the value.'}
             {isReal && <> {recomputeNote}</>}</div>
           <MapView nx={cube.nx} ny={cube.ny} field={map.field} range={map.range} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={map.label} />
@@ -478,7 +478,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
           <p className="pf-note">{ci.ciRatio < 0.85
             ? (es ? `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 implica violación: el posterior WofE está sobre-estimado. Usa el ranking relativo, o la regresión logística como alternativa sin supuesto de CI (AUC ${analysis.lr.rocAuc.toFixed(3)}).` : `CI ratio ${ci.ciRatio.toFixed(2)} < 0.85 means violation: the WofE posterior is over-estimated. Use the relative ranking, or logistic regression as the CI-free alternative (AUC ${analysis.lr.rocAuc.toFixed(3)}).`)
             : (es ? `CI ratio ${ci.ciRatio.toFixed(2)} ~ 1 implica consistencia con independencia condicional; el posterior WofE es razonable.` : `CI ratio ${ci.ciRatio.toFixed(2)} ~ 1 means consistent with conditional independence; the WofE posterior is reasonable.`)}
-            {isReal && <> {es ? 'ESPERADO en dato real: mag/grav/lab son físicamente correlacionadas, así que el test se dispara. No es una trampa plantada, es la realidad geofísica; por eso la logística es la ruta honesta.' : 'EXPECTED on real data: mag/grav/lab are physically correlated, so the test fires. This is not a planted trap, it is the geophysical reality; hence logistic regression is the honest route.'}</>}</p>
+            {isReal && <> {es ? 'Esperado en dato real: mag/grav/lab son físicamente correlacionadas, así que el test se dispara. No es una trampa plantada, es la realidad geofísica; por eso la logística es la ruta honesta.' : 'Expected on real data: mag/grav/lab are physically correlated, so the test fires. This is not a planted trap, it is the geophysical reality; hence logistic regression is the honest route.'}</>}</p>
         </div>
       ),
     },
@@ -487,8 +487,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'La pantalla más importante: el MISMO modelo bajo CV aleatorio vs CV espacial-por-bloques. El gap es la inflación por autocorrelación espacial (el AUC aleatorio miente).'
-            : 'The most important screen: the SAME model under random CV vs spatial-block CV. The gap is the inflation from spatial autocorrelation (the random AUC lies).'}</div>
+            ? 'El mismo modelo bajo CV aleatorio vs CV espacial-por-bloques. El gap es la inflación por autocorrelación espacial (el AUC aleatorio miente).'
+            : 'The same model under random CV vs spatial-block CV. The gap is the inflation from spatial autocorrelation (the random AUC lies).'}</div>
           <div className="pf-kpis">
             <Kpi label={es ? 'CV aleatorio AUC' : 'random-CV AUC'} value={analysis.cv.randomAuc.toFixed(3)} />
             <Kpi label={es ? 'CV espacial AUC' : 'spatial-CV AUC'} value={analysis.cv.spatialAuc.toFixed(3)} />
@@ -515,8 +515,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             </tbody>
           </table>
           <p className="pf-note">{es
-            ? 'Cuando se cumple la independencia condicional, la logística ~ WofE. Cuando se viola, la logística ajusta las capas EN CONJUNTO y no doble-cuenta. El overlay fuzzy es un método MPM clásico sin ajuste.'
-            : 'When conditional independence holds, logistic ~ WofE. When it is violated, logistic fits the layers JOINTLY and does not double-count. The fuzzy overlay is a classic fit-free MPM method.'}</p>
+            ? 'Cuando se cumple la independencia condicional, la logística ~ WofE. Cuando se viola, la logística ajusta las capas en conjunto y no doble-cuenta. El overlay fuzzy es un método MPM clásico sin ajuste.'
+            : 'When conditional independence holds, logistic ~ WofE. When it is violated, logistic fits the layers jointly and does not double-count. The fuzzy overlay is a classic fit-free MPM method.'}</p>
         </div>
       ),
     },
@@ -544,8 +544,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'Diagrama de fiabilidad: en deciles del score, la probabilidad media predicha vs la frecuencia de depósitos OBSERVADA. Un modelo bien calibrado se sitúa sobre la diagonal. Brier + ECE lo resumen. (El caso C-SATURATE señalaba que faltaba este readout.)'
-            : 'Reliability diagram: over deciles of the score, the mean predicted probability vs the OBSERVED deposit frequency. A well-calibrated model sits on the diagonal. Brier + ECE summarize it. (The C-SATURATE case flagged this readout was missing.)'}</div>
+            ? 'Diagrama de fiabilidad: en deciles del score, la probabilidad media predicha vs la frecuencia de depósitos observada. Un modelo bien calibrado se sitúa sobre la diagonal. Brier + ECE lo resumen. (El caso C-SATURATE señalaba que faltaba este readout.)'
+            : 'Reliability diagram: over deciles of the score, the mean predicted probability vs the observed deposit frequency. A well-calibrated model sits on the diagonal. Brier + ECE summarize it. (The C-SATURATE case flagged this readout was missing.)'}</div>
           <CurveChart
             x={calib.bins.map((b) => b.meanPred)}
             series={[{ label: es ? 'observado vs predicho' : 'observed vs predicted', y: calib.bins.map((b) => b.obsFreq) }]}
@@ -557,8 +557,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             <Kpi label={es ? 'método' : 'method'} value={method === 'logistic' ? 'LR' : 'WofE'} />
           </div>
           <p className="pf-note">{es
-            ? 'El presence-only sesga la calibración absoluta (las "ausencias" incluyen depósitos no descubiertos), así que léela como fiabilidad RELATIVA entre bins más que como probabilidades absolutas.'
-            : 'Presence-only biases the absolute calibration (the "absences" include undiscovered deposits), so read it as RELATIVE reliability across bins rather than absolute probabilities.'}</p>
+            ? 'El presence-only sesga la calibración absoluta (las "ausencias" incluyen depósitos no descubiertos), así que se lee como fiabilidad relativa entre bins más que como probabilidades absolutas.'
+            : 'Presence-only biases the absolute calibration (the "absences" include undiscovered deposits), so read it as relative reliability across bins rather than absolute probabilities.'}</p>
         </div>
       ),
     },
@@ -567,13 +567,13 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'El clasificador MLP aprendido pinta un mapa de prospectividad ALTERNATIVO; compáralo EN VIVO con el WofE de caja blanca.'
-            : 'The learned MLP classifier paints an ALTERNATIVE prospectivity map; compare it LIVE to the white-box WofE.'}
-            {isReal && <> {es ? 'Entrenado sobre el cubo REAL de 6 capas (no el modelo sintético de 4 capas).' : 'Trained on the REAL 6-layer cube (not the synthetic 4-layer model).'}</>}</div>
+            ? 'El clasificador MLP aprendido pinta un mapa de prospectividad alternativo, comparable en vivo con el WofE de caja blanca.'
+            : 'The learned MLP classifier paints an alternative prospectivity map, compared live to the white-box WofE.'}
+            {isReal && <> {es ? 'Entrenado sobre el cubo real de 6 capas (no el modelo sintético de 4 capas).' : 'Trained on the real 6-layer cube (not the synthetic 4-layer model).'}</>}</div>
           {!learnedField ? (
             <div className="pf-pending">
               <strong>{es ? 'Clasificador: pendiente de entrenamiento' : 'Classifier: pending training'}</strong>
-              <p>{es ? 'Corre el pipeline de aprendidos (torch -> ONNX). El WofE de caja blanca corre EN VIVO mientras tanto.' : 'Run the learned pipeline (torch -> ONNX). The white-box WofE runs LIVE meanwhile.'}</p>
+              <p>{es ? 'Ejecutar el pipeline de aprendidos (torch -> ONNX). El WofE de caja blanca se ejecuta en vivo mientras tanto.' : 'Run the learned pipeline (torch -> ONNX). The white-box WofE runs live meanwhile.'}</p>
             </div>
           ) : (
             <>
@@ -598,12 +598,12 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'El autoencoder pinta el mapa de anomalía por celda (error de reconstrucción): dónde la evidencia está FUERA del envolvente entrenado, "no confíes en el clasificador bajo cobertura".'
-            : 'The autoencoder paints the per-cell anomaly map (reconstruction error): where the evidence is OUTSIDE the trained envelope, "do not trust the classifier under cover".'}</div>
+            ? 'El autoencoder pinta el mapa de anomalía por celda (error de reconstrucción): dónde la evidencia está fuera del envolvente entrenado, un aviso de no confiar en el clasificador bajo cobertura.'
+            : 'The autoencoder paints the per-cell anomaly map (reconstruction error): where the evidence is outside the trained envelope, a signal not to trust the classifier under cover.'}</div>
           {!oodField ? (
             <div className="pf-pending">
               <strong>{es ? 'Autoencoder OOD: pendiente de entrenamiento' : 'OOD autoencoder: pending training'}</strong>
-              <p>{es ? 'Entrénalo con el pipeline. El WofE de caja blanca corre en vivo mientras tanto.' : 'Train it with the pipeline. The white-box WofE runs live meanwhile.'}</p>
+              <p>{es ? 'Entrenar con el pipeline. El WofE de caja blanca se ejecuta en vivo mientras tanto.' : 'Train it with the pipeline. The white-box WofE runs live meanwhile.'}</p>
             </div>
           ) : (
             <>
@@ -625,17 +625,17 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'La propuesta más allá del SOTA: un score nnPU (depósitos = positivos, TODO lo demás = NO etiquetado, no negativo) calibrado con predicción conforme espacialmente bloqueada. El mapa es el posterior corregido por sesgo; abajo, el conjunto prospectivo con cobertura garantizada y la sensibilidad al prior de clase pi.'
-            : 'The beyond-SOTA proposal: an nnPU score (deposits = positives, EVERYTHING else = UNLABELED, not negative) calibrated with spatially-blocked conformal prediction. The map is the bias-corrected posterior; below, the coverage-guaranteed prospective set and the sensitivity to the class prior pi.'}</div>
+            ? 'La propuesta más allá del SOTA: un score nnPU (depósitos = positivos, todo lo demás = no etiquetado, no negativo) calibrado con predicción conforme espacialmente bloqueada. El mapa es el posterior corregido por sesgo; abajo, el conjunto prospectivo con cobertura garantizada y la sensibilidad al prior de clase pi.'
+            : 'The beyond-SOTA proposal: an nnPU score (deposits = positives, everything else = unlabeled, not negative) calibrated with spatially-blocked conformal prediction. The map is the bias-corrected posterior; below, the coverage-guaranteed prospective set and the sensitivity to the class prior pi.'}</div>
           {!isReal ? (
             <div className="pf-pending">
-              <strong>{es ? 'Carril entrenado sobre el cubo REAL' : 'Lane trained on the REAL cube'}</strong>
-              <p>{es ? 'El modelo PU-Conformal se entrena solo sobre el cubo real de 6 capas (US Midcontinent MVT). Cambia la Fuente a "Muestra real" para verlo en vivo. El WofE de caja blanca corre en vivo en modo sintético.' : 'The PU-Conformal model is trained only on the real 6-layer cube (US Midcontinent MVT). Switch Source to "Real sample" to see it live. The white-box WofE runs live in synthetic mode.'}</p>
+              <strong>{es ? 'Carril entrenado sobre el cubo real' : 'Lane trained on the real cube'}</strong>
+              <p>{es ? 'El modelo PU-Conformal se entrena solo sobre el cubo real de 6 capas (US Midcontinent MVT). Cambiar la Fuente a "Muestra real" para verlo en vivo. El WofE de caja blanca se ejecuta en vivo en modo sintético.' : 'The PU-Conformal model is trained only on the real 6-layer cube (US Midcontinent MVT). Switch Source to "Real sample" to see it live. The white-box WofE runs live in synthetic mode.'}</p>
             </div>
           ) : !puField ? (
             <div className="pf-pending">
               <strong>{es ? 'PU-Conformal: pendiente de entrenamiento' : 'PU-Conformal: pending training'}</strong>
-              <p>{es ? 'Corre el carril offline (pmlab/pu_conformal.py -> ONNX + JSON). El WofE corre en vivo mientras tanto.' : 'Run the offline lane (pmlab/pu_conformal.py -> ONNX + JSON). The white-box WofE runs live meanwhile.'}</p>
+              <p>{es ? 'Ejecutar el carril offline (pmlab/pu_conformal.py -> ONNX + JSON). El WofE se ejecuta en vivo mientras tanto.' : 'Run the offline lane (pmlab/pu_conformal.py -> ONNX + JSON). The white-box WofE runs live meanwhile.'}</p>
             </div>
           ) : (
             <>
@@ -673,8 +673,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
                 </>
               )}
               <p className="pf-note">{es
-                ? `Resultado honesto: sobre el belt MVT agrupado, PU-Conformal (AUC CV-espacial ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) NO supera al WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) en ranking; el null de distancia-a-depósito ya alcanza ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. La cobertura conforme se cumple, pero solo marcando ~${pct(confLevel?.set_size_frac ?? 0, 0)} del belt: un conjunto casi vacío que reporta honestamente que la geofísica regional no localiza MVT bajo transferencia espacial. El avance es la incertidumbre calibrada y corregida por sesgo, no un AUC mayor.`
-                : `Honest result: over the clustered MVT belt, PU-Conformal (spatial-CV AUC ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) does NOT beat WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) in ranking; the distance-to-deposit null alone reaches ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. Conformal coverage holds, but only by flagging ~${pct(confLevel?.set_size_frac ?? 0, 0)} of the belt: a near-vacuous set that honestly reports regional geophysics cannot localize MVT under spatial transfer. The advance is calibrated, bias-corrected uncertainty, not a higher AUC.`}</p>
+                ? `Resultado honesto: sobre el belt MVT agrupado, PU-Conformal (AUC CV-espacial ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) no supera al WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) en ranking; el null de distancia-a-depósito ya alcanza ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. La cobertura conforme se cumple, pero solo marcando ~${pct(confLevel?.set_size_frac ?? 0, 0)} del belt: un conjunto casi vacío que reporta honestamente que la geofísica regional no localiza MVT bajo transferencia espacial. El avance es la incertidumbre calibrada y corregida por sesgo, no un AUC mayor.`
+                : `Honest result: over the clustered MVT belt, PU-Conformal (spatial-CV AUC ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) does not beat WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) in ranking; the distance-to-deposit null alone reaches ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. Conformal coverage holds, but only by flagging ~${pct(confLevel?.set_size_frac ?? 0, 0)} of the belt: a near-vacuous set that honestly reports regional geophysics cannot localize MVT under spatial transfer. The advance is calibrated, bias-corrected uncertainty, not a higher AUC.`}</p>
             </>
           )}
         </div>

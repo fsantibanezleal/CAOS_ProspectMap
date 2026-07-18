@@ -13,13 +13,13 @@ The science is pinned against closed forms + WofE theory + the synthetic control
   sign + ordering.
 - **The omnibus CI test** - T ~ N(D) on CI-true data; T > N(D) (z > 0) on a planted CI violation.
 - **The capture curves** - a perfect ranking captures all deposits in minimal area; a random ranking gives the diagonal.
-- **The spatial-CV inflation** - the SAME model has a higher random-CV AUC than spatial-CV AUC.
+- **The spatial-CV inflation** - the same model has a higher random-CV AUC than spatial-CV AUC.
 
 ## The two learned models
 
 The **mpm-classifier** (a presence-only MLP) and the **geology-ood** (an autoencoder) are honest, value-adding ML
-measured against the white-box WofE posterior - NOT bolted-on. The WofE posterior is the interpretable AUTHORITY. The
-classifier is validated by SPATIAL block cross-validation and benchmarked head-to-head against WofE on the IDENTICAL
+measured against the white-box WofE posterior, not bolted-on. The WofE posterior is the interpretable authority. The
+classifier is validated by spatial block cross-validation and benchmarked head-to-head against WofE on the identical
 spatial holdout; the random-CV AUC is reported beside it to surface the inflation gap. Measured (not fabricated):
 **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929** (winner: the MLP, on the multi-layer interactions WofE's CI form
 omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set - uniform
@@ -28,7 +28,7 @@ presence-only; negatives are sampled, never observed. Reported whichever way the
 
 ## The PU-Conformal head-to-head + negative controls (`data-pipeline/pmlab/pu_conformal.py`)
 
-The beyond-SOTA lane scores six models on the REAL US MVT cube under **identical contiguous spatial folds** and reads
+The beyond-SOTA lane scores six models on the real US MVT cube under **identical contiguous spatial folds** and reads
 the ranking verdict directly off bootstrap CIs.
 
 ### Spatial-block protocol
@@ -51,7 +51,7 @@ Under contiguous holdout a held-out region is spatially separated from its train
 
 ### The honest result
 
-Under strict contiguous holdout PU-Conformal (block-CV AUC 0.656) does NOT beat classical WofE (0.732). PU corrects the
+Under strict contiguous holdout PU-Conformal (block-CV AUC 0.656) does not beat classical WofE (0.732). PU corrects the
 label bias, not the regional signal; its advance is calibrated, bias-corrected, coverage-guaranteed uncertainty (see
 [frameworks/06 - uncertainty and conformal](../frameworks/06_uncertainty-and-conformal.md)) that passes the controls,
 not a higher AUC. Committed numbers: `data/derived/pu-conformal.json`. No fabricated win.

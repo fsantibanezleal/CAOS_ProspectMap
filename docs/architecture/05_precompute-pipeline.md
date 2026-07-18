@@ -3,17 +3,17 @@
 The default lane is numpy-light and reshapes the committed bake; the heavy `--retrain` lane is two-language (Node bake
 of the TS engine + torch training).
 
-## The bake (Node + tsx, the SAME engine)
+## The bake (Node + tsx, the same engine)
 
 `pmlab/science/bake_cases.mjs` imports the TS engine and runs `analyzeCase(spec, layerIds)` over each case ->
-`data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The cubes are SYNTHETIC and regenerated from
-each case's SPEC (committed in case-results), so the artifact stays compact - no raster blobs. Because the bake and the
+`data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The cubes are synthetic and regenerated from
+each case's spec (committed in case-results), so the artifact stays compact - no raster blobs. Because the bake and the
 browser run the identical engine, the live and offline numbers agree by construction.
 
 ## The light pipeline (numpy)
 
-`python -m pmlab.pipeline all` (default lane): applies CONTRACT 1 to the case descriptors, reads `case-results.json` +
-`pm-learned.json` (when present), builds the per-case `trace.json` + `manifests/*.json` (CONTRACT 2) via
+`python -m pmlab.pipeline all` (default lane): applies Contract 1 to the case descriptors, reads `case-results.json` +
+`pm-learned.json` (when present), builds the per-case `trace.json` + `manifests/*.json` (Contract 2) via
 `stages/export.build_replay`, runs the lane gate, and writes the flat `index.json`. No torch / no Node, so CI is fast
 and the artifacts regenerate deterministically (byte-identical re-run).
 
