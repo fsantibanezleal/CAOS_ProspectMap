@@ -1,11 +1,11 @@
-// ProspectMap cases by CATEGORY (the prospectivity problem-type taxonomy). The App shows ONE selected case;
-// Experiments/Benchmark show cross-case summaries. Every case is a SYNTHETIC study area (clearly labelled) generated
-// deterministically from its SPEC, the only data with KNOWN ground truth, so the controls are exact: C-RECOVER
+// ProspectMap cases by category (the prospectivity problem-type taxonomy). The App shows one selected case;
+// Experiments/Benchmark show cross-case summaries. Every case is a synthetic study area (clearly labelled) generated
+// deterministically from its spec, the only data with known ground truth, so the controls are exact: C-RECOVER
 // (WofE must recover the planted weight ordering), C-NEGATIVE (uninformative ⇒ AUC≈0.5), C-CIVIOLATE (a correlated
 // duplicate ⇒ the omnibus test fails on purpose), C-SATURATE (the analytic W⁺→∞ limit). Real open datasets
 // (Lawley-2022 USGS Zn-Pb, GA CC-BY) are a documented next step; the pipeline accepts a real cube identically.
 //
-// This file is the SOURCE OF TRUTH for the cases; the Node bake (science/bake_cases.mjs) runs the SAME engine over it,
+// This file is the source of truth for the cases; the Node bake (science/bake_cases.mjs) runs the same engine over it,
 // and data-pipeline/pmlab/cases/mpm_cases.py mirrors it (a test cross-checks the ids against the baked case-results).
 
 import type { SynthSpec } from './synth.ts';
@@ -94,7 +94,7 @@ export const CASES: MPMCase[] = [
     spec: { nx: NX, ny: NY, seed: 202, nDeposits: ND, gain: GAIN, layers: [L('mag', 0.0), L('rad', 0.0), L('geochem', 0.7), L('struct', 0.0)] },
     layerIds: ALL,
     expectedBand: 'only a weak geochem signal ⇒ little real skill (honest low AUC)',
-    validationAnchor: 'ROC AUC only modestly above 0.5; the product does NOT manufacture confidence',
+    validationAnchor: 'ROC AUC only modestly above 0.5; the product does not manufacture confidence',
     realOrSynthetic: 'synthetic',
   },
   {
@@ -128,7 +128,7 @@ export const CASES: MPMCase[] = [
     spec: { nx: NX, ny: NY, seed: 303, nDeposits: ND, gain: GAIN, layers: [L('mag', 2.4), L('rad', 0.0), L('geochem', 1.4), L('struct', 0.7)] },
     layerIds: ALL,
     expectedBand: 'well-separated planted weights mag > geochem > struct',
-    validationAnchor: 'WofE recovers the planted ORDERING: contrast(mag) > contrast(geochem) > contrast(struct) > ~contrast(noise)',
+    validationAnchor: 'WofE recovers the planted ordering: contrast(mag) > contrast(geochem) > contrast(struct) > ~contrast(noise)',
     realOrSynthetic: 'analytic control',
   },
   {

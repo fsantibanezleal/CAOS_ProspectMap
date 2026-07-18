@@ -32,12 +32,12 @@ the ensemble reduces variance without materially increasing bias. In `pu_conform
 
 ## The training contract on this data
 
-Both are trained **presence-only**: positives = deposit cells, negatives = distance-buffered SAMPLED cells (never
-observed absences). Every model in the benchmark is scored on the SAME contiguous spatial folds (see
+Both are trained **presence-only**: positives = deposit cells, negatives = distance-buffered sampled cells (never
+observed absences). Every model in the benchmark is scored on the same contiguous spatial folds (see
 [06 - uncertainty and conformal](06_uncertainty-and-conformal.md) and
 [architecture/06 - model evaluation](../architecture/06_model-evaluation.md)).
 
-## What this rung is and is NOT
+## What this rung is and is not
 
 - It **is** the non-linear tabular frontier that exposes interactions WofE's additive form omits, and the honest
   yardstick for any proposed method.

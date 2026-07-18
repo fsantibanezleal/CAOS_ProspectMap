@@ -1,7 +1,7 @@
-// Deterministic synthetic study-area generator (CLEARLY LABELLED synthetic). Smooth value-noise evidence layers + a
+// Deterministic synthetic study-area generator (clearly labelled synthetic). Smooth value-noise evidence layers + a
 // known latent prospectivity (a weighted sum of the informative layers) + deposits rejection-sampled on that latent
-// field (probability-weighted, fixed count per case). This is the only case family with KNOWN ground-truth → the exact oracles: WofE/LR
-// must recover the planted weight ORDERING (positive control), a duplicated correlated layer makes the omnibus test
+// field (probability-weighted, fixed count per case). This is the only case family with known ground-truth → the exact oracles: WofE/LR
+// must recover the planted weight ordering (positive control), a duplicated correlated layer makes the omnibus test
 // fail on purpose (the CI-trap), and an uninformative layer is the negative control. Used by the tests now and the
 // synthetic cases later. Geostatistically-grounded in spirit (smooth correlated fields), not a real deposit model.
 

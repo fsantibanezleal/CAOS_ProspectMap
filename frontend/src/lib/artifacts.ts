@@ -1,4 +1,4 @@
-// Load the committed CONTRACT-2 artifacts (overlaid into public/ by copy-data.mjs). The App runs the WofE engine LIVE
+// Load the committed Contract-2 artifacts (overlaid into public/ by copy-data.mjs). The App runs the WofE engine live
 // (src/mpm) for full reactivity; these baked outputs are the replay fallback + the cross-case data Benchmark/
 // Experiments summarise. Paths are relative to the Vite base.
 import type { CaseIndex, CaseManifest, Trace } from './contract.types.ts';

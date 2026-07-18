@@ -70,8 +70,8 @@ export default function Experiments() {
 
       <h2>{es ? 'Matriz de controles negativos (cubo real MVT)' : 'Negative-control matrix (real MVT cube)'}</h2>
       <p className="pf-note">{es
-        ? 'El carril PU-Conformal debe pasar tres controles adversariales antes de creer cualquier resultado. Todos sobre las MISMAS particiones espaciales contiguas (k-means) que el head-to-head del Benchmark.'
-        : 'The PU-Conformal lane must pass three adversarial controls before any result is believed. All on the SAME contiguous spatial folds (k-means) as the Benchmark head-to-head.'}</p>
+        ? 'El carril PU-Conformal debe pasar tres controles adversariales antes de creer cualquier resultado. Todos sobre las mismas particiones espaciales contiguas (k-means) que el head-to-head del Benchmark.'
+        : 'The PU-Conformal lane must pass three adversarial controls before any result is believed. All on the same contiguous spatial folds (k-means) as the Benchmark head-to-head.'}</p>
       {!pu ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
         <table className="cmp-table">
           <thead><tr><th>{es ? 'control' : 'control'}</th><th>{es ? 'diseño' : 'design'}</th><th>{es ? 'resultado' : 'result'}</th><th>{es ? 'veredicto' : 'verdict'}</th></tr></thead>
@@ -99,8 +99,8 @@ export default function Experiments() {
       )}
       <Callout variant="strong" title={es ? 'Protocolo de bloques espaciales' : 'Spatial-block protocol'}>
         {es
-          ? 'Particiones espaciales CONTIGUAS por k-means sobre las coordenadas de celda (k=5), más estrictas que el esquema entrelazado blockId % k del App: bajo holdout contiguo, un bloque held-out está espacialmente separado de su entrenamiento, así que la pregunta es honesta: ¿puede la geofísica regional predecir un distrito del que nunca vio un vecino? El AUC bootstrap se reporta con IC 95%.'
-          : 'CONTIGUOUS spatial folds by k-means on cell coordinates (k=5), stricter than the App\'s interleaved blockId % k: under contiguous holdout a held-out block is spatially separated from its training, so the question is honest: can regional geophysics predict a district it never saw a neighbour of? Bootstrap AUC is reported with a 95% CI.'}
+          ? 'Particiones espaciales contiguas por k-means sobre las coordenadas de celda (k=5), más estrictas que el esquema entrelazado blockId % k del App: bajo holdout contiguo, un bloque held-out está espacialmente separado de su entrenamiento, así que la pregunta es honesta: ¿puede la geofísica regional predecir un distrito del que nunca vio un vecino? El AUC bootstrap se reporta con IC 95%.'
+          : 'Contiguous spatial folds by k-means on cell coordinates (k=5), stricter than the App\'s interleaved blockId % k: under contiguous holdout a held-out block is spatially separated from its training, so the question is honest: can regional geophysics predict a district it never saw a neighbour of? Bootstrap AUC is reported with a 95% CI.'}
       </Callout>
     </article>
   );

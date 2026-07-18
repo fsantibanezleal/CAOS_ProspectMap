@@ -9,12 +9,12 @@
 
 ProspectMap answers *"where is the next deposit most likely to be?"*, it stacks open geophysical / geochemical /
 structural evidence layers over a study-area grid and computes a **posterior prospectivity map** P(deposit | evidence)
-per cell by **Weights of Evidence** (a Bayesian log-odds update), recomputed **live in your browser** on every control.
-Its reason to exist is honesty: it makes first-class the two ways a prospectivity map lies, **conditional-independence
+per cell by **Weights of Evidence** (a Bayesian log-odds update), recomputed **live in the browser** on every control.
+It makes first-class the two ways a prospectivity map lies: **conditional-independence
 violation** inflating the posterior, and **random-CV vs spatial-CV** inflating the AUC.
 
 A CAOS/Faena mining web-app instantiated on the **product-repo archetype** ([ADR-0057](docs/architecture/01_overview.md)),
-with the in-app i **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md)).
+with the in-app ⓘ **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md)).
 
 ## What it does
 
@@ -30,14 +30,14 @@ with the in-app i **Architecture modal** ([ADR-0058](docs/frameworks/02_viz.md))
 - **Honest validation**, the success (fitting) vs prediction-rate (held-out) capture curves; capture@10% under
   **spatial** cross-validation is the headline; the random-vs-spatial inflation gap is shown, not hidden.
 - **mpm-classifier (learned)**, a presence-only MLP over the evidence vector, benchmarked head-to-head against the
-  white-box WofE on the SAME spatial holdout; trained offline (torch -> ONNX), run **live** (onnxruntime-web).
+  white-box WofE on the same spatial holdout; trained offline (torch -> ONNX), run **live** (onnxruntime-web).
 - **geology-ood (learned)**, an autoencoder that flags cells whose geology is outside the labelled training envelope.
-- **Bring your own evidence**, CONTRACT 1 validates a case bundle (a co-registered evidence cube + a presence-only
+- **Bring your own evidence**, Contract 1 validates a case bundle (a co-registered evidence cube + a presence-only
   deposit pattern + a study-area mask).
 
 ## Honesty
 
-The study areas are **synthetic** (smooth value-noise fields, geostatistical in spirit, not variogram-controlled , 
+The study areas are **synthetic** (smooth value-noise fields, geostatistical in spirit, not variogram-controlled,
 with planted per-layer weights; deposits rejection-sampled on the known latent prospectivity, fixed count per case),
 clearly labelled. They are the only data with known
 ground truth, so the controls are exact: `C-NEGATIVE` (uninformative -> AUC ~ 0.5), `C-CIVIOLATE` (a correlated
@@ -45,7 +45,7 @@ duplicate -> the omnibus test fails), `C-RECOVER` (recovers the planted weight o
 limit). The white-box WofE is the interpretable authority; the learned classifier earns its place only on the spatial
 holdout: **mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929**; geology-OOD AUC 1.0 (on a synthetic out-of-band eval
 set, separable by construction, not a field-detection claim). Deposit labels are presence-only
-(negatives are sampled, never observed). Outputs are exploration **target generation**, NOT a JORC / NI 43-101 resource
+(negatives are sampled, never observed). Outputs are exploration **target generation**, not a JORC / NI 43-101 resource
 estimate. No fabricated wins. Real open datasets (Lawley et al. 2022 Zn-Pb from USGS ScienceBase, Geoscience Australia
 CC-BY) are a documented next step; the pipeline accepts a real cube identically.
 
@@ -55,7 +55,7 @@ CC-BY) are a documented next step; the pipeline accepts a real cube identically.
 # light lane (numpy only) - rebuild the replay artifacts + run the checks
 python -m venv .venv-pipeline && .venv-pipeline/Scripts/pip install -r data-pipeline/requirements.txt -r requirements-dev.txt -e .
 .venv-pipeline/Scripts/python -m pmlab.pipeline all      # 10 cases -> traces + manifests
-.venv-pipeline/Scripts/python scripts/check_artifacts.py # CONTRACT 2 OK
+.venv-pipeline/Scripts/python scripts/check_artifacts.py # Contract 2 OK
 
 # the SPA (the WofE engine + the learned models run live in the browser)
 cd frontend && npm ci && npm run dev                     # http://localhost:5173
