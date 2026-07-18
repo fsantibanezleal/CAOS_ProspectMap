@@ -1,6 +1,6 @@
 # 03 - The learned models (torch -> ONNX)
 
-Two learned models, trained OFFLINE (torch, `.venv-precompute`) and run LIVE (onnxruntime-web). Both are measured
+Two learned models, trained offline (torch, `.venv-precompute`) and run LIVE (onnxruntime-web). Both are measured
 against the white-box WofE posterior - the interpretable authority - never bolted-on.
 
 ## mpm-classifier

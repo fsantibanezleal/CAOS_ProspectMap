@@ -27,10 +27,10 @@ export default function Implementation() {
 
       <h2>{es ? 'El carril PU-Conformal (offline → ONNX + JSON)' : 'The PU-Conformal lane (offline → ONNX + JSON)'}</h2>
       <p>{es
-        ? 'El carril más allá del SOTA se entrena OFFLINE en un venv aislado (torch + scikit-learn) sobre el cubo real US MVT y exporta dos artefactos compactos que el navegador consume:'
-        : 'The beyond-SOTA lane trains OFFLINE in an isolated venv (torch + scikit-learn) on the real US MVT cube and exports two compact artifacts the browser consumes:'}</p>
+        ? 'El carril más allá del SOTA se entrena offline en un venv aislado (torch + scikit-learn) sobre el cubo real US MVT y exporta dos artefactos compactos que el navegador consume:'
+        : 'The beyond-SOTA lane trains offline in an isolated venv (torch + scikit-learn) on the real US MVT cube and exports two compact artifacts the browser consumes:'}</p>
       <ul>
-        <li><code>mpm-puconformal-real.onnx</code>, {es ? 'el score nnPU con la estandarización y la sigmoide horneadas en el grafo (entrada x[N,6] → p[N,1]); corre en vivo vía onnxruntime-web, la misma ruta que los otros dos ONNX.' : 'the nnPU score with standardization and the sigmoid baked into the graph (input x[N,6] → p[N,1]); runs live via onnxruntime-web, the same path as the other two ONNX.'}</li>
+        <li><code>mpm-puconformal-real.onnx</code>, {es ? 'el score nnPU con la estandarización y la sigmoide precalculadas en el grafo (entrada x[N,6] → p[N,1]); corre en vivo vía onnxruntime-web, la misma ruta que los otros dos ONNX.' : 'the nnPU score with standardization and the sigmoid baked into the graph (input x[N,6] → p[N,1]); runs live via onnxruntime-web, the same path as the other two ONNX.'}</li>
         <li><code>pu-conformal.json</code>, {es ? 'el head-to-head (WofE/LR/RF/GBM/MLP/PU con IC bootstrap), los controles negativos, los cuantiles conformes por α y la sensibilidad al prior de clase pi. El navegador aplica el umbral conforme EN VIVO para dibujar el conjunto prospectivo; sin cómputo pesado en página.' : 'the head-to-head (WofE/LR/RF/GBM/MLP/PU with bootstrap CI), the negative controls, the conformal quantiles per α, and the class-prior pi sensitivity. The browser applies the conformal threshold LIVE to draw the prospective set; no heavy compute in-page.'}</li>
       </ul>
       <p>{es
