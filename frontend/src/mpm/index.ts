@@ -1,7 +1,7 @@
-// The ProspectMap MPM engine barrel, dependency-free TypeScript, runs LIVE in the browser AND in the Node bake
+// The ProspectMap MPM engine barrel, dependency-free TypeScript, runs live in the browser and in the Node bake
 // (under tsx). Weights-of-Evidence + the conditional-independence machinery + logistic regression + honest
 // validation + spatial cross-validation. The white-box WofE posterior is the interpretable authority; the learned
-// classifier (commit 4b) is benchmarked against it on the SAME spatial holdout. Mirrors CutoffGrade's `lane/`.
+// classifier (commit 4b) is benchmarked against it on the same spatial holdout. Mirrors CutoffGrade's `lane/`.
 
 export * from './types.ts';
 export { mulberry32, erf, normCdf, normInv, sigmoid, mean, std } from './rng.ts';

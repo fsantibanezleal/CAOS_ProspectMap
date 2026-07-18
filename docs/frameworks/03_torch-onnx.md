@@ -1,15 +1,15 @@
 # 03 - The learned models (torch -> ONNX)
 
-Two learned models, trained offline (torch, `.venv-precompute`) and run LIVE (onnxruntime-web). Both are measured
+Two learned models, trained offline (torch, `.venv-precompute`) and run live (onnxruntime-web). Both are measured
 against the white-box WofE posterior - the interpretable authority - never bolted-on.
 
 ## mpm-classifier
 
 A small MLP (4 -> 32 -> 32 -> 1, sigmoid) over the per-cell evidence feature vector (`MPM_FEATURES` = mag, rad,
-geochem, struct) -> P(deposit). **Presence-only**: positives = known deposit cells; negatives are SAMPLED
+geochem, struct) -> P(deposit). **Presence-only**: positives = known deposit cells; negatives are sampled
 (distance-buffered, never observed), with a `pos_weight` BCE loss for the extreme imbalance. The standardization is
-folded into the ONNX export wrapper, so the graph takes RAW features. Validated by SPATIAL block K-fold CV and
-benchmarked head-to-head against WofE on the IDENTICAL spatial holdout; the random-CV AUC is computed too, to surface
+folded into the ONNX export wrapper, so the graph takes raw features. Validated by spatial block K-fold CV and
+benchmarked head-to-head against WofE on the identical spatial holdout; the random-CV AUC is computed too, to surface
 the inflation gap.
 
 ## geology-ood

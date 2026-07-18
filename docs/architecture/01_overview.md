@@ -9,19 +9,19 @@ The per-product surface is the **science engine** (Weights of Evidence), the vis
 | Lane | Where | What |
 |---|---|---|
 | **Live (client)** | `frontend/src/mpm/` + onnxruntime-web | the WofE/CI/logistic/validation engine recomputes the posterior raster on every control; the 2 ONNX run the learned probe + the OOD mask |
-| **Offline (precompute)** | `pmlab/science/*.mjs` + `train_mpm.py` | the Node bake runs the SAME TS engine over the cases -> `case-results.json`; the heavy `--retrain` lane (torch) trains the 2 models -> ONNX |
-| **Replay (light)** | `pmlab.pipeline` (numpy) | reshapes the committed bake into per-case CONTRACT-2 traces + manifests; no torch/Node, so CI is fast |
+| **Offline (precompute)** | `pmlab/science/*.mjs` + `train_mpm.py` | the Node bake runs the same TS engine over the cases -> `case-results.json`; the heavy `--retrain` lane (torch) trains the 2 models -> ONNX |
+| **Replay (light)** | `pmlab.pipeline` (numpy) | reshapes the committed bake into per-case Contract-2 traces + manifests; no torch/Node, so CI is fast |
 | **API** | `app/` | dormant (activate only on an ADR-0002 trigger) |
 
 ## The flow
 
-1. The cases are SYNTHETIC study-area SPECs (`frontend/src/mpm/cases.ts`). The Node bake (`science/bake_cases.mjs`)
+1. The cases are synthetic study-area specs (`frontend/src/mpm/cases.ts`). The Node bake (`science/bake_cases.mjs`)
    regenerates each cube deterministically and runs `analyze.ts` (the whole WofE pipeline + the CI diagnostics + the
    capture curves + the random-vs-spatial-CV inflation gap + the logistic comparison) -> `data/derived/case-results.json`.
-2. The light pipeline (`pmlab.pipeline all`) applies CONTRACT 1 to the case descriptors, reshapes `case-results.json`
-   into per-case `trace.json` + `manifests/*.json` (CONTRACT 2), and runs the lane gate.
-3. The SPA reads the manifests/traces + the shared artifacts (the 2 ONNX + `pm-learned.json`), and ALSO recomputes the
-   WofE posterior LIVE from the regenerated cube (the case SPEC is carried in the trace) so the App is fully reactive.
+2. The light pipeline (`pmlab.pipeline all`) applies Contract 1 to the case descriptors, reshapes `case-results.json`
+   into per-case `trace.json` + `manifests/*.json` (Contract 2), and runs the lane gate.
+3. The SPA reads the manifests/traces + the shared artifacts (the 2 ONNX + `pm-learned.json`), and also recomputes the
+   WofE posterior live from the regenerated cube (the case spec is carried in the trace) so the App is fully reactive.
 
 ## Frozen vs rework
 

@@ -1,6 +1,6 @@
 // The per-case analysis the Node bake (science/bake_cases.mjs → case-results.json) and the App both consume. Given a
-// case (a synthetic study-area SPEC + the evidence layers to use), it regenerates the cube deterministically and runs
-// the WHOLE WofE pipeline: per-layer weights at the maximizing-contrast threshold, the combined posterior, the CI
+// case (a synthetic study-area spec + the evidence layers to use), it regenerates the cube deterministically and runs
+// the whole WofE pipeline: per-layer weights at the maximizing-contrast threshold, the combined posterior, the CI
 // diagnostics, the success (fitting) + prediction (spatial-holdout) capture curves + ROC, the random-vs-spatial-CV
 // inflation gap, and the logistic-regression comparison. Everything is deterministic given the spec's seed.
 
@@ -45,7 +45,7 @@ export interface CaseAnalysis {
   lr: { rocAuc: number; betas: { id: string; beta: number }[] };
 }
 
-/** a WofE-posterior scoring function refit on a TRAINING deposit subset (for spatial-holdout CV). */
+/** a WofE-posterior scoring function refit on a training deposit subset (for spatial-holdout CV). */
 function wofeScoreFn(cube: Cube, pats: Binarized[]): (train: Set<number>) => Float64Array {
   return (train: Set<number>) => {
     const ws = pats.map((p) => weights(cube, p, train));
@@ -58,7 +58,7 @@ export function analyzeCase(spec: SynthSpec, layerIds: string[], k = 5, blockCel
   return analyzeCube(cube, layerIds, k, blockCells, spec);
 }
 
-/** the same full WofE/CI/validation/LR analysis, run on an ALREADY-BUILT cube (the real-data lane loads a baked
+/** the same full WofE/CI/validation/LR analysis, run on an already-built cube (the real-data lane loads a baked
  * Cube instead of regenerating a synthetic one, so live and offline numbers stay identical by construction). */
 export function analyzeCube(cube: Cube, layerIds: string[], k = 5, blockCells = 20, spec: SynthSpec | null = null): CaseAnalysis {
   const best = layerIds.map((id) => ({ id, ...bestWeights(cube, id) }));
@@ -90,7 +90,7 @@ export function analyzeCube(cube: Cube, layerIds: string[], k = 5, blockCells = 
   const predCube: Cube = { ...cube, maskIdx: predMask };
   const prediction = captureCurve(predCube, heldOut, depositSet(predCube));
 
-  // the inflation gap: the SAME WofE model under random vs spatial-block CV
+  // the inflation gap: the same WofE model under random vs spatial-block CV
   const randomAuc = crossValAuc(cube, randomFolds(cube, k, 17), k, scoreFn);
   const spatialAuc = crossValAuc(cube, spatialFolds, k, scoreFn);
 

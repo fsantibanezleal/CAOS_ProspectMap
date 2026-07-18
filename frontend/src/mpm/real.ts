@@ -1,5 +1,5 @@
 // The "Real sample" lane: load a baked real-data Cube (built offline by data-pipeline/pmlab/real_usmvt.py from the
-// openly-licensed Lawley 2022 CMMI release) and run the SAME live WofE engine on it. Unlike the synthetic cases (which
+// openly-licensed Lawley 2022 CMMI release) and run the same live WofE engine on it. Unlike the synthetic cases (which
 // regenerate their cube deterministically from a SynthSpec), a real case has no generator, so the per-cell evidence
 // arrays + the deposit cells are baked to public/data/<id>/cube.json and loaded here into a Cube. The honesty metadata
 // (REAL vs DERIVED layers, the citation, the conditional-independence caveat) rides along and is surfaced in the App.
@@ -56,7 +56,7 @@ export const REAL_CASES: RealCase[] = [
     expectedBand:
       'real geophysics + fault/margin proximity over the US Midcontinent MVT belt; a genuine, non-toy prospectivity signal',
     validationAnchor:
-      'faultprox/marginprox carry real positive contrast; the CI omnibus is EXPECTED to fire on correlated geophysics, routing to logistic regression',
+      'faultprox/marginprox carry real positive contrast; the CI omnibus is expected to fire on correlated geophysics, routing to logistic regression',
   },
 ];
 

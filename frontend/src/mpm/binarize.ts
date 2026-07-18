@@ -1,5 +1,5 @@
 // Converting a continuous evidence layer to the binary pattern WofE consumes, by a threshold. The defensible,
-// data-driven choice is the MAXIMIZING-CONTRAST threshold t* = argmax_t C(t) s.t. studC(t) ≥ floor (Bonham-Carter
+// data-driven choice is the maximizing-contrast threshold t* = argmax_t C(t) s.t. studC(t) ≥ floor (Bonham-Carter
 // 1994 ch.9; Carranza 2009). The App always binarizes at t* (a live C(t) curve + threshold control is planned).
 
 import type { Binarized, Cube, Layer, WofEWeights } from './types.ts';

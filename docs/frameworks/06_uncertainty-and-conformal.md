@@ -6,8 +6,8 @@ distribution-free, coverage-guaranteed uncertainty layer under honest spatial bl
 ## Split conformal prediction
 
 Conformal prediction turns any pre-trained score into prediction sets with finite-sample coverage, distribution-free
-(Angelopoulos & Bates 2021, [arXiv:2107.07511](https://arxiv.org/abs/2107.07511)). Split (inductive) conformal: fit the model on a TRAIN split, then on a
-held-out CALIBRATION split compute a nonconformity score per example and take an empirical quantile.
+(Angelopoulos & Bates 2021, [arXiv:2107.07511](https://arxiv.org/abs/2107.07511)). Split (inductive) conformal: fit the model on a train split, then on a
+held-out calibration split compute a nonconformity score per example and take an empirical quantile.
 
 We use a **positive-class (Mondrian) construction** suited to prospectivity: the nonconformity of a known deposit is
 `s = 1 - p_hat(x)` (a deposit with a low score is nonconforming). With `n` calibration deposits and miscoverage `alpha`:
@@ -26,7 +26,7 @@ exported threshold `1 - q_hat` live; no heavy compute in-page.
 The coverage guarantee assumes the calibration and test points are exchangeable. Spatial autocorrelation breaks that.
 Under spatial blocking the guarantee is only marginal over blocks and degrades under block-to-block distribution shift
 (Roberts et al. 2017, [doi:10.1111/ecog.02881](https://doi.org/10.1111/ecog.02881)). On strongly clustered MVT the consequence is concrete: to guarantee
-coverage the prospective set becomes **near-vacuous**, flagging almost the entire belt. That wide set IS the honest
+coverage the prospective set becomes **near-vacuous**, flagging almost the entire belt. That wide set is the honest
 finding: regional geophysics cannot localize MVT under spatial transfer. It is reported, not hidden.
 
 ## Calibration metrics (all models)
@@ -38,12 +38,12 @@ Alongside conformal coverage the benchmark reports, per model:
   over equal-count bins.
 - A **reliability diagram** (the App's Calibration tab): predicted vs observed frequency by decile.
 
-Presence-only labels bias the ABSOLUTE calibration (the "absences" include undiscovered deposits), so these read as
-RELATIVE reliability across bins, not absolute probabilities.
+Presence-only labels bias the absolute calibration (the "absences" include undiscovered deposits), so these read as
+relative reliability across bins, not absolute probabilities.
 
 ## Measured result (real US MVT cube)
 
-Positive-class split conformal, spatially-separated WEST(train)/CENTER(calib)/EAST(test) longitude bands, `pi = 0.05`:
+Positive-class split conformal, spatially-separated west(train)/center(calib)/east(test) longitude bands, `pi = 0.05`:
 
 | nominal | empirical coverage | set size (area) |
 |---|---|---|

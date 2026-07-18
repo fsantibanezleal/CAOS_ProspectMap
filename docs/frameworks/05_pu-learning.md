@@ -1,12 +1,12 @@
 # 05 - PU learning (the false-negative-bias correction)
 
 The heart of the beyond-SOTA lane. In exploration a cell with no known deposit is not a confirmed absence: it is
-UNLABELED, and may host an undiscovered deposit. Training a classifier on pseudo-negatives bakes that false-negative
+unlabeled, and may host an undiscovered deposit. Training a classifier on pseudo-negatives bakes that false-negative
 bias into the score. Positive-Unlabeled (PU) learning fixes it.
 
 ## The true-negative fallacy
 
-The App's current `mpm-classifier` (and the RF/GBM/logistic baselines) draw negatives by SAMPLING non-deposit cells.
+The App's current `mpm-classifier` (and the RF/GBM/logistic baselines) draw negatives by sampling non-deposit cells.
 Those "negatives" include future discoveries, so the learned boundary is pulled toward the exploration history, not the
 geology. The first PU algorithm for mineral prospectivity (Xiong & Zuo 2021, Computers & Geosciences 147, 104667,
 [doi:10.1016/j.cageo.2020.104667](https://doi.org/10.1016/j.cageo.2020.104667)) showed PU beats one-class SVM and pseudo-negative ANN precisely because it stops
@@ -33,9 +33,9 @@ non-negative estimator clamps it (Kiryo, Niu, du Plessis & Sugiyama 2017, NeurIP
 surrogate loss `l(+1,g)=sigmoid(-g)`, `l(-1,g)=sigmoid(g)` on the raw score `g`:
 
 ```
-R_p^+ = mean over POSITIVES of l(+1, g)
-R_p^- = mean over POSITIVES of l(-1, g)
-R_u^- = mean over UNLABELED of l(-1, g)      (unlabeled = ALL cells, SCAR)
+R_p^+ = mean over positives of l(+1, g)
+R_p^- = mean over positives of l(-1, g)
+R_u^- = mean over unlabeled of l(-1, g)      (unlabeled = all cells, SCAR)
 
 R_nnPU = pi * R_p^+ + max(0, R_u^- - pi * R_p^-)
 ```
@@ -44,11 +44,11 @@ The `max(0, .)` clamp is the correction: when the empirical negative-risk term d
 optimizer ascends it back toward zero instead of descending further. Implemented in `pu_conformal.py::train_nnpu`
 (torch, standardization + sigmoid baked into the graph, exported as `mpm-puconformal-real.onnx`).
 
-## What PU is and is NOT
+## What PU is and is not
 
 - It **is** the removal of the pseudo-negative bias: deposits are positives, everything else is unlabeled.
 - It is **not** a magic ranking booster. On the clustered real MVT belt PU-Conformal's block-CV AUC (0.656) does not
-  exceed WofE (0.732); PU corrects the LABEL model, not the underlying regional signal. Its value is bias-corrected,
+  exceed WofE (0.732); PU corrects the label model, not the underlying regional signal. Its value is bias-corrected,
   calibrated uncertainty (see [06 - uncertainty and conformal](06_uncertainty-and-conformal.md)), not a higher AUC.
 - SCAR is likely violated by exploration bias, so `pi` is a swept sensitivity parameter and the map's dependence on it
   is reported, not hidden.

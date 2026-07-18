@@ -1,4 +1,4 @@
-// Live in-browser inference of ProspectMap's two learned models (onnxruntime-web). GRACEFUL: until they are trained
+// Live in-browser inference of ProspectMap's two learned models (onnxruntime-web). Graceful: until they are trained
 // (science/train_mpm.py -> mpm-classifier.onnx + geology-ood.onnx) the files are absent; the loader resolves to null
 // and the App uses the white-box WofE engine (which runs live anyway) + shows the honest "pending training" state.
 // The classifier's value is a per-cell "what-if" probe + the cross-case benchmark vs WofE; the OOD AE is the
@@ -12,9 +12,9 @@ ort.env.wasm.numThreads = 1;
 const base = () => import.meta.env.BASE_URL || '/';
 const sessions: Record<string, Promise<ort.InferenceSession | null>> = {};
 
-// ONE global serialization chain for ALL onnxruntime-web work (session creation AND inference). The WASM EP runs
-// single-threaded and ships TWO models here (the mpm-classifier + the geology OOD autoencoder) that the App queries
-// when you switch the map method; without a global lock their concurrent create()/run() calls race the single WASM
+// One global serialization chain for all onnxruntime-web work (session creation and inference). The WASM EP runs
+// single-threaded and ships two models here (the mpm-classifier + the geology OOD autoencoder) that the App queries
+// when the map method changes; without a global lock their concurrent create()/run() calls race the single WASM
 // runtime and throw "Session already started" / "Session mismatch". Serialising every op end-to-end removes the race.
 let ortChain: Promise<unknown> = Promise.resolve();
 function serial<T>(fn: () => Promise<T>): Promise<T> {
@@ -50,10 +50,10 @@ const MODELS: Record<Lane, { clf: string; ood: string; nf: number }> = {
   real: { clf: 'mpm-classifier-real.onnx', ood: 'geology-ood-real.onnx', nf: N_REAL_FEATURES },
 };
 
-// The PU-Conformal lane exists only on the REAL 6-feature cube (nnPU trained offline; pmlab/pu_conformal.py).
+// The PU-Conformal lane exists only on the real 6-feature cube (nnPU trained offline; pmlab/pu_conformal.py).
 const PUCONFORMAL_FILE = 'mpm-puconformal-real.onnx';
 
-/** the per-cell evidence feature vector in the SOURCE-OF-TRUTH order for the lane. */
+/** the per-cell evidence feature vector in the source-of-truth order for the lane. */
 export function featureVec(values: Record<string, number>, lane: Lane = 'synthetic'): Float32Array {
   const keys = lane === 'real' ? REAL_FEATURES : MPM_FEATURES;
   return Float32Array.from(keys.map((k) => values[k] ?? 0));

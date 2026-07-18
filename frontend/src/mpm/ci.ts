@@ -1,5 +1,5 @@
 // The conditional-independence (CI) machinery, the honesty core. WofE's posterior sum is only valid if the evidence
-// patterns are conditionally independent given D; correlated favourable layers double-count and INFLATE the posterior.
+// patterns are conditionally independent given D; correlated favourable layers double-count and inflate the posterior.
 // We surface this: the pairwise χ² heatmap (CI given D), and the Agterberg-Cheng (2002) new omnibus test
 // (T = Σ posterior ≈ N(D) under CI; z = (T-N(D))/s(T)) + the CI ratio N(D)/T.
 
@@ -41,9 +41,9 @@ function stratumChi2(cube: Cube, a: Binarized, b: Binarized, dep: Set<number>, i
 }
 
 /**
- * Conditional-independence-given-D test for two binary patterns: the STRATIFIED (2x2x2) Yates-corrected chi-square,
- * summing the association of a,b WITHIN the deposit stratum (D=1) AND within the non-deposit stratum (D=0), df=2.
- * Testing ONLY the deposit stratum (the previous implementation) is degenerate at the maximizing-contrast threshold:
+ * Conditional-independence-given-D test for two binary patterns: the stratified (2x2x2) Yates-corrected chi-square,
+ * summing the association of a,b within the deposit stratum (D=1) and within the non-deposit stratum (D=0), df=2.
+ * Testing only the deposit stratum (the previous implementation) is degenerate at the maximizing-contrast threshold:
  * favourable patterns are present at nearly every deposit, so that 2x2 collapses (n11≈n, the rest≈0) and chi2 -> 0,
  * which is exactly why the pairwise table read 0.00. The non-deposit stratum, which holds the overwhelming majority
  * of the cells, carries the evidence-layer correlation that double-counts and inflates the WofE posterior. Cramer's V

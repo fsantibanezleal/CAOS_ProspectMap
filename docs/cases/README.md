@@ -1,8 +1,8 @@
 # Cases
 
-Ten SYNTHETIC study areas (clearly labelled), grouped by CATEGORY. Each is generated deterministically from a SPEC by
+Ten synthetic study areas (clearly labelled), grouped by category. Each is generated deterministically from a spec by
 `frontend/src/mpm/synth.ts` (smooth value-noise evidence layers + a planted latent prospectivity + deposits
-rejection-sampled on it, fixed count per case), so the controls have KNOWN ground truth. The App shows one case; Experiments/Benchmark
+rejection-sampled on it, fixed count per case), so the controls have known ground truth. The App shows one case; Experiments/Benchmark
 summarize across categories. The Python registry (`pmlab/cases/mpm_cases.py`) mirrors the TS cases; a test cross-checks
 the ids against the baked `case-results.json`.
 
@@ -20,7 +20,7 @@ the ids against the baked `case-results.json`.
 | Case | What it shows |
 |---|---|
 | `D-RICH` | all four layers informative -> a high-skill posterior (but watch the CI + the spatial-CV gap) |
-| `D-SPARSE` | only a weak geochem signal -> little real skill; the product does NOT manufacture confidence (AUC ~ 0.71) |
+| `D-SPARSE` | only a weak geochem signal -> little real skill; the product does not manufacture confidence (AUC ~ 0.71) |
 
 ## C - control (oracle / negative control), known ground truth
 
