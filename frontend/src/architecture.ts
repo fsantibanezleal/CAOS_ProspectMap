@@ -97,8 +97,8 @@ export const architecture: ArchitectureConfig = {
         'the inflation. The white-box WofE is always on and transparent, the authority the learned classifier is ' +
         'measured against on the same spatial holdout, never a fabricated win.',
       body_es:
-        'Weights of Evidence, paso a paso: ① binariza cada capa de evidencia en un umbral (la elección data-driven es ' +
-        'el umbral de contraste máximo t* = argmax C(t)); ② por patrón calcula W⁺ / W⁻, el contraste ' +
+        'Weights of Evidence, paso a paso: ① se binariza cada capa de evidencia en un umbral (la elección data-driven es ' +
+        'el umbral de contraste máximo t* = argmax C(t)); ② por patrón se calcula W⁺ / W⁻, el contraste ' +
         'C = W⁺ − W⁻ y el contraste estudentizado C/s(C); ③ el log-odds posterior de una celda = el logit ' +
         'previo + Σ de los pesos presente/ausente, bajo independencia condicional; ④ el test omnibus de ' +
         'Agterberg-Cheng (Σ posterior ≈ N(D) bajo CI) + el CI ratio afloran cuando capas correlacionadas ' +

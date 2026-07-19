@@ -14,7 +14,7 @@ export default function Methodology() {
           id: 'wofe', label: 'Weights of Evidence',
           content: (
             <div className="pf-doc-sec">
-              <p>{es ? 'Fija una grilla de celdas unitarias. Para un patrón de evidencia binario ' : 'Fix a grid of unit cells. For a binary evidence pattern '}<InlineMath tex="B" />{es ? ' y el conjunto de depósitos ' : ' and the deposit set '}<InlineMath tex="D" />{es ? ', los pesos son los log-likelihood ratios:' : ', the weights are the log-likelihood ratios:'}</p>
+              <p>{es ? 'Se fija una grilla de celdas unitarias. Para un patrón de evidencia binario ' : 'Fix a grid of unit cells. For a binary evidence pattern '}<InlineMath tex="B" />{es ? ' y el conjunto de depósitos ' : ' and the deposit set '}<InlineMath tex="D" />{es ? ', los pesos son los log-likelihood ratios:' : ', the weights are the log-likelihood ratios:'}</p>
               <Equation tex="W^{+}=\ln\frac{P(B\mid D)}{P(B\mid \bar D)},\qquad W^{-}=\ln\frac{P(\bar B\mid D)}{P(\bar B\mid \bar D)}" />
               <p>{es ? 'El contraste ' : 'The contrast '}<InlineMath tex="C=W^{+}-W^{-}" />{es ? ' mide la asociación espacial; el contraste estudentizado ' : ' measures the spatial association; the studentized contrast '}<InlineMath tex="C/s(C)" />{es ? ' es la guía de significancia, con ' : ' is the significance guide, with '}<InlineMath tex="s^2(W^{+})=\tfrac{1}{n_{B\cap D}}+\tfrac{1}{n_{B\cap \bar D}}" />{es ? '.' : '.'}</p>
               <p>{es ? 'El log-odds posterior de una celda = el logit previo + la suma de los pesos presente/ausente, bajo independencia condicional:' : 'The posterior log-odds of a cell = the prior logit + the sum of the present/absent weights, under conditional independence:'}</p>
