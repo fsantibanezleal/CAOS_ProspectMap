@@ -78,13 +78,13 @@ export default function Experiments() {
           <tbody>
             <tr>
               <td><b>{es ? 'permutación de etiquetas' : 'label permutation'}</b></td>
-              <td className="pf-muted">{es ? 'baraja las etiquetas de depósito; no debe quedar señal' : 'shuffle the deposit labels; no signal must remain'}</td>
+              <td className="pf-muted">{es ? 'barajar las etiquetas de depósito; no debe quedar señal' : 'shuffle the deposit labels; no signal must remain'}</td>
               <td>WofE {pu.negative_controls.label_permutation.wofe_auc.toFixed(3)} · PU {pu.negative_controls.label_permutation.pu_auc.toFixed(3)}</td>
               <td style={{ color: 'var(--color-ok, #2ea043)' }}>{es ? 'colapsa a ~0.5' : 'collapses to ~0.5'}</td>
             </tr>
             <tr>
               <td><b>{es ? 'capa no informativa' : 'uninformative layer'}</b></td>
-              <td className="pf-muted">{es ? 'añade una 7.ª capa de puro ruido; no debe dar lift' : 'add a pure-noise 7th layer; it must not lift AUC'}</td>
+              <td className="pf-muted">{es ? 'añadir una 7.ª capa de puro ruido; no debe dar lift' : 'add a pure-noise 7th layer; it must not lift AUC'}</td>
               <td>{pu.negative_controls.uninformative_layer.pu_auc_with_noise_layer.toFixed(3)} {es ? 'vs' : 'vs'} {pu.negative_controls.uninformative_layer.pu_auc_without.toFixed(3)}</td>
               <td style={{ color: 'var(--color-ok, #2ea043)' }}>{es ? 'sin lift' : 'no lift'}</td>
             </tr>
