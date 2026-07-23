@@ -1,0 +1,117 @@
+{
+ "cases": [
+  {
+   "id": "K-PORPHYRY",
+   "randomAuc": 0.9068090534246982,
+   "spatialAuc": 0.8765732253567085,
+   "gap": 0.030235828067989745
+  },
+  {
+   "id": "K-OROGENIC",
+   "randomAuc": 0.6625949986651242,
+   "spatialAuc": 0.610372875322595,
+   "gap": 0.05222212334252918
+  },
+  {
+   "id": "K-VMS",
+   "randomAuc": 0.8452048292842099,
+   "spatialAuc": 0.8449740440805672,
+   "gap": 0.00023078520364272492
+  },
+  {
+   "id": "K-IOCG",
+   "randomAuc": 0.8153208151641897,
+   "spatialAuc": 0.7755005784462045,
+   "gap": 0.03982023671798529
+  },
+  {
+   "id": "D-RICH",
+   "randomAuc": 0.9827617098276527,
+   "spatialAuc": 0.9838497819702767,
+   "gap": -0.0010880721426240747
+  },
+  {
+   "id": "D-SPARSE",
+   "randomAuc": 0.6709175046720655,
+   "spatialAuc": 0.6676105722167839,
+   "gap": 0.003306932455281575
+  },
+  {
+   "id": "C-NEGATIVE",
+   "randomAuc": 0.46064370680193406,
+   "spatialAuc": 0.3929577882590252,
+   "gap": 0.06768591854290884
+  },
+  {
+   "id": "C-CIVIOLATE",
+   "randomAuc": 0.8162682803832577,
+   "spatialAuc": 0.8141200201714573,
+   "gap": 0.002148260211800368
+  },
+  {
+   "id": "C-RECOVER",
+   "randomAuc": 0.8493595562279375,
+   "spatialAuc": 0.8289816380409956,
+   "gap": 0.0203779181869419
+  },
+  {
+   "id": "C-SATURATE",
+   "randomAuc": 0.9676176915546855,
+   "spatialAuc": 0.9590080389190472,
+   "gap": 0.008609652635638287
+  },
+  {
+   "id": "REAL-USMVT",
+   "randomAuc": 0.7234565272729938,
+   "spatialAuc": 0.6365237583076349,
+   "gap": 0.08693276896535895
+  }
+ ],
+ "real_woe": [
+  {
+   "id": "mag",
+   "contrast": 1.4247434422332017,
+   "tStar": 0.3875
+  },
+  {
+   "id": "grav",
+   "contrast": 4.100214234508297,
+   "tStar": 0.2125
+  },
+  {
+   "id": "lab",
+   "contrast": 6.233154886103878,
+   "tStar": 0.8875
+  },
+  {
+   "id": "satgrav",
+   "contrast": 4.72347691025131,
+   "tStar": 0.8125
+  },
+  {
+   "id": "faultprox",
+   "contrast": 6.012581788968887,
+   "tStar": 0.4125
+  },
+  {
+   "id": "marginprox",
+   "contrast": 5.805107832979008,
+   "tStar": 0.7625
+  }
+ ],
+ "real_name": "US Midcontinent MVT Zn-Pb belt (Lawley 2022, CMMI)",
+ "real": {
+  "spatial_cv": {
+   "mlp_roc_auc": 0.9456,
+   "wofe_roc_auc": 0.7321,
+   "winner": "mlp"
+  },
+  "random_cv": {
+   "mlp_roc_auc": 0.9817
+  },
+  "mlp_roc_auc": 0.9456,
+  "inflation_gap": 0.0361,
+  "nFolds": 5,
+  "nEval": 3432
+ }
+}

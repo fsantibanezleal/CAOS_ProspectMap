@@ -3,6 +3,13 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_ProspectMap/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions)
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_ProspectMap)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-2ea44f)](https://prospectmap.fasl-work.com)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21519007-blue)](https://doi.org/10.5281/zenodo.21519007)
+
+Technical report (CC-BY-4.0): *"ProspectMap: The Two Ways a Mineral Prospectivity Map Lies, Quantified on the Real
+US Mississippi-Valley-Type Belt"*, concept DOI [10.5281/zenodo.21519007](https://doi.org/10.5281/zenodo.21519007)
+(source in [`manuscripts/prospectivity/`](manuscripts/prospectivity/)). On the real US-MVT belt: WoE AUC falls 0.72
+-> 0.64 under honest spatial CV (biggest inflation of any case), a learned model beats WoE 0.95 vs 0.73, and the
+WoE contrasts are studentized-insignificant.
 
 [![CI](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions/workflows/ci.yml/badge.svg)](https://github.com/fsantibanezleal/CAOS_ProspectMap/actions)
 **Live:** https://prospectmap.fasl-work.com

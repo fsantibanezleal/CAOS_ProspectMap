@@ -1,0 +1,210 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{orcidlink}
+\usepackage{balance}
+
+\graphicspath{{../figures/}}
+
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.80}
+
+\begin{document}
+
+\title{ProspectMap: The Two Ways a Mineral\\ Prospectivity Map Lies, Quantified on the\\ Real US Mississippi-Valley-Type Belt}
+
+\author{Felipe~Santiba\~nez-Leal~\orcidlink{0000-0002-0150-3246}%
+\thanks{F. Santiba\~nez-Leal is with the CAOS open-research programme, Santiago, Chile
+(e-mail: fsantibanez@gmail.com; ORCID 0000-0002-0150-3246).}%
+\thanks{Technical report, 2026. Interactive tool and reproducible pipeline (MIT) at
+\url{https://github.com/fsantibanezleal/CAOS_ProspectMap}; live at \url{https://prospectmap.fasl-work.com}.}}
+
+\markboth{Technical Report, 2026}%
+{Santiba\~nez-Leal: The two ways a mineral prospectivity map lies}
+
+\maketitle
+
+\begin{abstract}
+A mineral prospectivity map stacks geophysical, geochemical and structural evidence over a study area and outputs,
+per cell, the probability that a deposit is there. The maps are routinely presented with a high area-under-curve
+(AUC) and a confident posterior, and both numbers are routinely inflated in two specific, well-understood ways.
+ProspectMap is an interactive tool that computes such a map by Weights of Evidence, a Bayesian log-odds update,
+and makes those two inflations \emph{first-class}, measuring them rather than hiding them. This report quantifies
+both on the real US Midcontinent Mississippi-Valley-type zinc-lead belt (the open Critical Minerals Mapping
+Initiative dataset of Lawley \emph{et al.}, 2022) and on ten synthetic terranes. The first inflation is
+\emph{evaluation}: reporting AUC under random cross-validation, which lets spatially adjacent cells leak between
+train and test, overstates prospective skill; on the real belt the Weights-of-Evidence AUC falls from $0.72$
+under random cross-validation to $0.64$ under spatial cross-validation (an inflation of $0.09$, the largest of any
+case), and even a strong learned classifier drops from $0.98$ to $0.95$. The honest number is the spatial one,
+and on it the learned classifier ($0.95$) substantially beats classical Weights of Evidence ($0.73$). The second
+inflation is \emph{modelling}: Weights of Evidence assumes the evidence layers are conditionally independent given
+a deposit, and it reports large contrasts that look decisive, but on the real belt those contrasts are
+statistically \emph{insignificant}, every layer's studentized contrast is below the $95\%$ threshold, so the
+confident-looking weights do not actually survive their own error bars. The value of the tool is that it puts both
+truths on screen, the spatial-CV AUC and the studentized significance, rather than the flattering versions; every
+number and figure regenerates from the committed artifacts.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Mineral prospectivity, Weights of Evidence, conditional independence, spatial cross-validation, AUC inflation,
+Mississippi-Valley-type, critical minerals, honest evaluation, reproducibility.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+\IEEEPARstart{W}{here} is the next ore deposit most likely to be? Mineral prospectivity mapping answers it by
+overlaying evidence layers, a magnetic high here, a geochemical anomaly there, proximity to a favourable
+structure, over a study-area grid and computing, per cell, a posterior probability of a deposit. The classical
+method is Weights of Evidence~\cite{bonham94,bonham89}: each binary evidence pattern gets a positive weight
+$W^+$ where it is present and $W^-$ where it is absent, their difference is the contrast $C=W^+-W^-$, and the
+posterior log-odds of a deposit in a cell is the prior log-odds plus the sum of the present-or-absent weights.
+The output is a map, and the map is usually sold with two numbers: a high area-under-curve showing it separates
+known deposits from barren ground, and confident-looking weights. Both are, in a well-documented way, prone to
+inflation.
+
+ProspectMap is a tool built to expose the inflation rather than enjoy it. It computes the Weights-of-Evidence
+posterior live, and it makes first-class the two ways the numbers lie. The first is that an AUC reported under
+\emph{random} cross-validation is optimistic, because a prospectivity grid is spatially autocorrelated and a
+random split leaves near-neighbour cells in both train and test, so the model is partly tested on what it has
+seen; \emph{spatial} cross-validation, holding out contiguous blocks, gives the honest number~\cite{roberts}. The
+second is that Weights of Evidence assumes the evidence layers are conditionally independent given a deposit, and
+when they are not the posterior is overconfident~\cite{agterberg}; and even when the contrasts look large, they
+may not be statistically significant. This report quantifies both, on the real US Mississippi-Valley-type
+zinc-lead belt from the open Critical Minerals Mapping Initiative dataset~\cite{lawley} and on ten synthetic
+terranes, and shows that a modern learned classifier, evaluated honestly, does better than the classical
+method~\cite{rodriguez}. The contribution is the measurement and the display of the two inflations, not a new
+prospectivity algorithm.
+
+\section{The First Lie: Cross-Validation Inflation}\label{sec:cv}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.99\columnwidth]{fig-inflation.pdf}
+\caption{The evaluation inflation, and the honest comparison. \textbf{(a)} Weights-of-Evidence AUC under random
+versus spatial cross-validation, per case: random cross-validation (red) is always at least as high as spatial
+(blue), because adjacent cells leak; the gap is largest on the real US-MVT belt (marked $*$), where the AUC falls
+from $0.72$ to $0.64$. Spatial cross-validation is the honest number. \textbf{(b)} On the real belt, evaluated
+under honest spatial cross-validation, a learned classifier ($0.946$) substantially outperforms classical Weights
+of Evidence ($0.732$).}
+\label{fig:inflation}
+\end{figure}
+
+The first inflation is a matter of how the map is scored, and it is quantified in Fig.~\ref{fig:inflation}a. For
+every case, the Weights-of-Evidence posterior is evaluated two ways: random five-fold cross-validation, which
+splits the grid cells at random, and spatial cross-validation, which holds out contiguous blocks of cells so that
+the test set is geographically separate from the training set. Random cross-validation is always at least as
+optimistic, because a prospectivity grid is strongly spatially autocorrelated and a random split leaves a test
+cell's near neighbours in the training set, so the model is scored partly on cells like ones it has seen. The gap
+is real and, on the \emph{real} US Mississippi-Valley-type belt, it is the largest of any case: the
+Weights-of-Evidence AUC falls from $0.723$ under random cross-validation to $0.637$ under spatial, an inflation of
+$0.087$, and a strong learned classifier falls from $0.982$ to $0.946$. The honest number is the spatial one, and
+reporting the random one, as much of the literature does, overstates how well the map would find a genuinely
+unseen deposit. On that honest spatial-CV footing (Fig.~\ref{fig:inflation}b) the comparison of methods is clear:
+a learned classifier reaches $0.946$ against classical Weights of Evidence's $0.732$, because the learned model
+captures interactions between evidence layers that the conditional-independence assumption of Weights of Evidence
+discards.
+
+\section{The Second Lie: Overconfident Weights}\label{sec:woe}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.94\columnwidth]{fig-woe.pdf}
+\caption{The modelling inflation. Weights-of-Evidence contrasts $C=W^+-W^-$ (bars) and their studentized
+significance $C/s(C)$ (line) for the six evidence layers of the real US-MVT belt. The raw contrasts are large
+(up to $6$), which looks decisive, but every layer's studentized contrast is below the $95\%$ significance
+threshold of $1.645$: on real, sparse deposit data the weights carry large standard errors and are not
+statistically significant, so the confident-looking map rests on evidence that does not survive its own error
+bars.}
+\label{fig:woe}
+\end{figure}
+
+The second inflation is in the weights themselves (Fig.~\ref{fig:woe}). Weights of Evidence assumes the evidence
+layers are conditionally independent given a deposit; when correlated layers are stacked, their weights
+double-count the same signal and the posterior becomes overconfident, which is why a conditional-independence
+test~\cite{agterberg} belongs in any honest workflow, and ProspectMap runs one. But there is a simpler and equally
+important check that is often skipped: whether a contrast is statistically significant at all. On the real US-MVT
+belt the six evidence layers have large raw contrasts, up to about $6$, which a practitioner reading only the
+contrast would take as strong evidence. Their studentized contrasts $C/s(C)$, however, are all between $0.2$ and
+$0.9$, well below the $1.645$ threshold for $95\%$ significance: with sparse deposits and noisy layers the
+standard error of each weight is large, and none of the contrasts actually clears its own error bar. The map
+built from them may still be useful for ranking, but presenting its weights as decisive evidence is the second
+way the map lies, and showing the studentized contrast beside the raw one is the correction.
+
+\section{Discussion and Scope}\label{sec:discuss}
+
+The two inflations are independent and both matter. A map can have honest, significant weights and still report
+an inflated AUC because it was scored with random cross-validation; or it can have an honestly-scored AUC and
+still oversell weights that are not significant. ProspectMap's contribution is to compute the Weights-of-Evidence
+map and then put the deflating diagnostics next to it, the spatial-CV AUC beside the random one, the studentized
+contrast beside the raw one, and a conditional-independence test, so a user sees the honest picture rather than
+the flattering one, and the comparison with a learned classifier shows what honest evaluation is worth (the
+learned model's advantage over Weights of Evidence, $0.946$ against $0.732$, is real precisely because it is
+measured under spatial cross-validation). The scope is stated plainly. The ten terrane cases are synthetic, used
+to exercise the diagnostics under known ground truth; the one real case is the open Critical Minerals Mapping
+Initiative US-MVT dataset~\cite{lawley}, a genuine belt, and its honest numbers are the sobering ones a real
+prospectivity study should expect. The tool is a decision-support and teaching instrument, not an exploration
+recommendation for any specific ground; it says where the evidence points and, more importantly, how much to
+trust it. None of this is hidden; the interface shows the same diagnostics on every map.
+
+\section{Conclusion}
+
+A mineral prospectivity map lies in two well-understood ways: it reports an AUC inflated by random
+cross-validation, and it presents Weights-of-Evidence contrasts that look decisive but may violate conditional
+independence or fail their own significance test. ProspectMap measures both. On the real US Mississippi-Valley-type
+belt the Weights-of-Evidence AUC falls from $0.72$ to $0.64$ when scored honestly by spatial cross-validation (the
+largest inflation of any case), a learned classifier evaluated the same honest way reaches $0.95$ against Weights
+of Evidence's $0.73$, and every evidence layer's contrast is statistically insignificant despite looking large.
+Putting the honest numbers on screen next to the flattering ones, spatial-CV AUC and studentized significance, is
+the report's discipline, and the reproducible tool that does it is its contribution.
+
+\appendices
+\section{Reproduction}\label{app:repro}
+
+The committed artifacts under \texttt{data/derived/} carry each case's Weights-of-Evidence layers (contrasts and
+studentized contrasts), posterior summary, pairwise conditional-independence tests, and both random- and
+spatial-cross-validation AUC (\texttt{case-results.json}), together with the learned-classifier comparison on the
+real belt (\texttt{pm-learned-real.json}) and the real US-MVT trace (\texttt{REAL-USMVT}, with the Lawley
+\emph{et al.} provenance). The figure scripts under \texttt{manuscripts/prospectivity/figures/} read those
+artifacts; the pipeline is seeded, so re-running reproduces Fig.~\ref{fig:inflation} and Fig.~\ref{fig:woe}.
+
+\balance
+
+\begin{thebibliography}{00}
+
+\bibitem{bonham89} G.~F. Bonham-Carter, F.~P. Agterberg, and D.~F. Wright, ``Weights of evidence modelling: A new
+approach to mapping mineral potential,'' in \emph{Statistical Applications in the Earth Sciences}, Geological
+Survey of Canada Paper 89-9, 1989, pp.~171--183.
+
+\bibitem{bonham94} G.~F. Bonham-Carter, \emph{Geographic Information Systems for Geoscientists: Modelling with
+GIS}. Oxford: Pergamon, 1994.
+
+\bibitem{agterberg} F.~P. Agterberg and Q.~Cheng, ``Conditional independence test for weights-of-evidence
+modeling,'' \emph{Natural Resources Research}, vol.~11, no.~4, pp.~249--255, 2002.
+doi:10.1023/A:1021193827501.
+
+\bibitem{lawley} C.~J.~M. Lawley \emph{et al.}, ``Data-driven prospectivity modelling of sediment-hosted Zn-Pb
+mineral systems and their critical raw materials,'' \emph{Ore Geology Reviews}, vol.~141, art.~104635, 2022.
+doi:10.1016/j.oregeorev.2021.104635.
+
+\bibitem{roberts} D.~R. Roberts \emph{et al.}, ``Cross-validation strategies for data with temporal, spatial,
+hierarchical, or phylogenetic structure,'' \emph{Ecography}, vol.~40, no.~8, pp.~913--929, 2017.
+doi:10.1111/ecog.02881.
+
+\bibitem{rodriguez} V.~Rodriguez-Galiano, M.~Sanchez-Castillo, M.~Chica-Olmo, and M.~Chica-Rivas, ``Machine
+learning predictive models for mineral prospectivity: An evaluation of neural networks, random forest, regression
+trees and support vector machines,'' \emph{Ore Geology Reviews}, vol.~71, pp.~804--818, 2015.
+doi:10.1016/j.oregeorev.2015.01.001.
+
+\end{thebibliography}
+
+\end{document}
