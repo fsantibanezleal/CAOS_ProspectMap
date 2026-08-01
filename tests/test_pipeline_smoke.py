@@ -3,7 +3,7 @@ case set matches the committed bake (no drift between the Python registry and th
 run_all writes the flat index."""
 import json
 
-from pmlab import pipeline, registry
+from pipeline import pipeline, registry
 
 
 def test_case_deterministic_same_seed():

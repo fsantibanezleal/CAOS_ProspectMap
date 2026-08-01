@@ -1,6 +1,6 @@
 # 08 - The two data contracts
 
-## Contract 1 - ingestion (`pmlab/io/contract.py`)
+## Contract 1 - ingestion (`pipeline/io/contract.py`)
 
 The *bring-your-own-evidence* gate. Validates a **case bundle descriptor**: a co-registered evidence cube (grid +
 layers) + a presence-only deposit point pattern + a study-area mask. Required: `case_id, nx, ny, cell_km, n_layers,
@@ -10,7 +10,7 @@ n_layers < 1, n_deposits < 1); honesty-relevant records are flagged (accepted; t
 mask), **single-layer** (no fusion, no CI to test), **synthetic** study area. A tiny `data/examples/cases.csv` passes
 it.
 
-## Contract 2 - artifact (`pmlab/core/{trace,manifest}.py`)
+## Contract 2 - artifact (`pipeline/core/{trace,manifest}.py`)
 
 The pipeline -> web artifact contract, mirrored exactly by `frontend/src/lib/contract.types.ts` (a drift fails `tsc`).
 The **trace** (`prospectmap.trace/v1`) carries the case spec (so the browser regenerates the cube + recomputes WofE

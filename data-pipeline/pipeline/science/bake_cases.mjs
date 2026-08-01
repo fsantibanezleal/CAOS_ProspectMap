@@ -3,7 +3,7 @@
 // into per-case replay traces + manifests (CONTRACT 2). No Python re-port of the WofE engine. The cubes are SYNTHETIC
 // and regenerated from each case's SPEC (committed in case-results), so the artifact stays compact (no raster blobs);
 // the learned-model metrics are added by --retrain once trained. Run (from frontend/ so tsx resolves):
-//   node --import tsx ../data-pipeline/pmlab/science/bake_cases.mjs
+//   node --import tsx ../data-pipeline/pipeline/science/bake_cases.mjs
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -62,7 +62,7 @@ export default function Benchmark() {
       {learned ? (
         <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? ', ')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda, separable por construcción)' : ' (synthetic out-of-band eval set, separable by construction)'}</p>
       ) : (
-        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, ejecutar `python -m pmlab.pipeline all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python -m pmlab.pipeline all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
+        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, ejecutar `python data-pipeline/run.py all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python data-pipeline/run.py all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
       )}
 
       <h2>{es ? 'Head-to-head PU-Conformal (cubo real MVT, CV espacial contiguo)' : 'PU-Conformal head-to-head (real MVT cube, contiguous spatial CV)'}</h2>

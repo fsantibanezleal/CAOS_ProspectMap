@@ -13,7 +13,7 @@ What-if (MLP) and Anomaly (AE) tabs are honest learned tools on real data, not t
 
 I/O mirrors the synthetic models exactly so ort.ts can load either: classifier in 'x'[N,6] out 'p'[N,1];
 OOD in 'x'[N,6] out 'xr'[N,1]. Run (isolated venv):
-    .venv-precompute/Scripts/python.exe -m pmlab.real_learned
+    .venv-precompute/Scripts/python.exe -m pipeline.real_learned
 """
 from __future__ import annotations
 

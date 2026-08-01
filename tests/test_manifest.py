@@ -1,6 +1,6 @@
 """CONTRACT 2 (artifact) tests: the manifest points to a real artifact with the recorded byte size, and the lane
 verdict is consistent with the gate."""
-from pmlab import pipeline
+from pipeline import pipeline
 
 
 def test_manifest_matches_artifact_and_gate():

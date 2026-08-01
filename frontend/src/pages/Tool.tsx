@@ -657,7 +657,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
           ) : !puField ? (
             <div className="pf-pending">
               <strong>{es ? 'PU-Conformal: pendiente de entrenamiento' : 'PU-Conformal: pending training'}</strong>
-              <p>{es ? 'Ejecutar el carril offline (pmlab/pu_conformal.py -> ONNX + JSON). El WofE se ejecuta en vivo mientras tanto.' : 'Run the offline lane (pmlab/pu_conformal.py -> ONNX + JSON). The white-box WofE runs live meanwhile.'}</p>
+              <p>{es ? 'Ejecutar el carril offline (pipeline/pu_conformal.py -> ONNX + JSON). El WofE se ejecuta en vivo mientras tanto.' : 'Run the offline lane (pipeline/pu_conformal.py -> ONNX + JSON). The white-box WofE runs live meanwhile.'}</p>
             </div>
           ) : (
             <>
