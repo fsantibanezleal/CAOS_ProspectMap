@@ -2,4 +2,4 @@
 tsx), regenerate the synthetic cube and compute the per-layer WofE weights, the combined posterior, the CI
 diagnostics, the success + prediction-rate capture curves, the random-vs-spatial-CV inflation gap and the logistic-
 regression comparison, and bake the deterministic per-case outputs to data/derived/case-results.json. Delegates to
-pmlab/science/bake_cases.mjs."""
+pipeline/science/bake_cases.mjs."""

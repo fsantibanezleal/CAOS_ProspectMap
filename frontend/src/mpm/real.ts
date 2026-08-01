@@ -1,4 +1,4 @@
-// The "Real sample" lane: load a baked real-data Cube (built offline by data-pipeline/pmlab/real_usmvt.py from the
+// The "Real sample" lane: load a baked real-data Cube (built offline by data-pipeline/pipeline/real_usmvt.py from the
 // openly-licensed Lawley 2022 CMMI release) and run the same live WofE engine on it. Unlike the synthetic cases (which
 // regenerate their cube deterministically from a SynthSpec), a real case has no generator, so the per-cell evidence
 // arrays + the deposit cells are baked to public/data/<id>/cube.json and loaded here into a Cube. The honesty metadata

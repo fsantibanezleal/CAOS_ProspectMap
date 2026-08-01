@@ -1,7 +1,7 @@
 # Guide, bring your own evidence stack
 
 The product is **applicable to new data**, not just the synthetic cases, that is what makes it a tool. The door is
-**Contract 1** (`data-pipeline/pmlab/io/contract.py`).
+**Contract 1** (`data-pipeline/pipeline/io/contract.py`).
 
 1. Reduce your study area offline to a co-registered evidence **cube** (a common CRS/grid/extent, one band per
    evidence layer) + a presence-only **deposit** point pattern + a study-area **mask**, and describe it as a

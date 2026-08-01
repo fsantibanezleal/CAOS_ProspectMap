@@ -39,8 +39,8 @@ export default function Implementation() {
 
       <h2>{es ? 'Verificación' : 'Verification'}</h2>
       <p>{es
-        ? 'node:test (11 oráculos del motor: WofE de forma cerrada, equivalencia WofE↔LR, el omnibus ≈1 vs T>N(D) en la trampa CI, las curvas de captura, el gap de inflación), ruff, pytest (los 2 contratos), python -m pmlab.pipeline all (10 casos), check_artifacts (Contrato 2), re-run byte-idéntico, npm run build.'
-        : 'node:test (11 engine oracles: closed-form WofE, the WofE↔LR equivalence, the omnibus ≈1 vs T>N(D) on the CI trap, the capture curves, the inflation gap), ruff, pytest (the 2 contracts), python -m pmlab.pipeline all (10 cases), check_artifacts (Contract 2), byte-identical re-run, npm run build.'}</p>
+        ? 'node:test (11 oráculos del motor: WofE de forma cerrada, equivalencia WofE↔LR, el omnibus ≈1 vs T>N(D) en la trampa CI, las curvas de captura, el gap de inflación), ruff, pytest (los 2 contratos), python data-pipeline/run.py all (10 casos), check_artifacts (Contrato 2), re-run byte-idéntico, npm run build.'
+        : 'node:test (11 engine oracles: closed-form WofE, the WofE↔LR equivalence, the omnibus ≈1 vs T>N(D) on the CI trap, the capture curves, the inflation gap), ruff, pytest (the 2 contracts), python data-pipeline/run.py all (10 cases), check_artifacts (Contract 2), byte-identical re-run, npm run build.'}</p>
     </article>
   );
 }

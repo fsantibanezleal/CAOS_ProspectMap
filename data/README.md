@@ -15,7 +15,7 @@ case-bundle descriptor in, a baked trace + manifest out.
 
 ## CONTRACT 1, ingestion (raw → pipeline), the *bring-your-own-evidence* gate
 
-Defined in `data-pipeline/pmlab/io/contract.py`. A case-bundle descriptor row is **accepted** iff it satisfies
+Defined in `data-pipeline/pipeline/io/contract.py`. A case-bundle descriptor row is **accepted** iff it satisfies
 the schema; **rejected** with a reason otherwise (never silently coerced); plausible-but-honesty-relevant rows
 are **flagged** (accepted; the flag travels into the manifest).
 

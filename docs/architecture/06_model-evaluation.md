@@ -26,7 +26,7 @@ omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthe
 features pushed outside the training band, separable by construction; not a field-detection claim). Deposit labels are
 presence-only; negatives are sampled, never observed. Reported whichever way the numbers land. No fabricated win.
 
-## The PU-Conformal head-to-head + negative controls (`data-pipeline/pmlab/pu_conformal.py`)
+## The PU-Conformal head-to-head + negative controls (`data-pipeline/pipeline/pu_conformal.py`)
 
 The beyond-SOTA lane scores six models on the real US MVT cube under **identical contiguous spatial folds** and reads
 the ranking verdict directly off bootstrap CIs.

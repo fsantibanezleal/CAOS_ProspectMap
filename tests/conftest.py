@@ -1,4 +1,4 @@
-"""Make pmlab importable whether or not `pip install -e .` has run (belt-and-suspenders for CI/local)."""
+"""Make pipeline importable whether or not `pip install -e .` has run (belt-and-suspenders for CI/local)."""
 import pathlib
 import sys
 

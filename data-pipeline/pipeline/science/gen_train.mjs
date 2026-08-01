@@ -1,7 +1,7 @@
 // Generate the learned-model training data by running the SAME TypeScript engine the browser runs, so the classifier
 // trains on EXACTLY the cubes the App shows, and is benchmarked against the SAME white-box WofE posterior on the SAME
 // spatial holdout. Writes to data/raw/ (git-ignored, regenerable). Invoked by pipeline.retrain before train_mpm.py.
-// Run (from frontend/ so tsx resolves):  node --import tsx ../data-pipeline/pmlab/science/gen_train.mjs
+// Run (from frontend/ so tsx resolves):  node --import tsx ../data-pipeline/pipeline/science/gen_train.mjs
 //
 // For each training case (the terrane + evidence-rich synthetic areas) we regenerate the cube, assign SPATIAL-BLOCK
 // folds + RANDOM folds (so train can show the inflation gap), sample presence cells + distance-buffered informed

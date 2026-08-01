@@ -1,6 +1,6 @@
 # The live-vs-precompute gate
 
-`data-pipeline/pmlab/core/gate.py :: classify_lane()`. A case runs **live** in the browser iff, by measurement,
+`data-pipeline/pipeline/core/gate.py :: classify_lane()`. A case runs **live** in the browser iff, by measurement,
 never by hand-wave:
 
 - it is **client-side** (no server needed), and

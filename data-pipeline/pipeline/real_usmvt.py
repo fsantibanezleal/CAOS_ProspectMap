@@ -23,7 +23,7 @@ layers are physically correlated, so the conditional-independence omnibus test i
 here (route to logistic regression). Both facts are surfaced in the app.
 
 Run (isolated venv, never global):
-    .venv-precompute/Scripts/python.exe -m pmlab.real_usmvt
+    .venv-precompute/Scripts/python.exe -m pipeline.real_usmvt
 Dependencies (installed into .venv-precompute only): numpy, rasterio, pyshp, pyproj, scipy.
 """
 from __future__ import annotations

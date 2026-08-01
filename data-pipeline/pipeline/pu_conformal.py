@@ -23,7 +23,7 @@ NOT beat classical WofE in spatial-transfer ranking; its genuine advance is the 
 coverage-guaranteed uncertainty layer that passes the negative controls. No fabricated "beats SOTA" number.
 
 Run (isolated venv, never global):
-    .venv-precompute/Scripts/python.exe -m pmlab.pu_conformal
+    .venv-precompute/Scripts/python.exe -m pipeline.pu_conformal
 Deps beyond the numpy-light lane: torch, onnx, scikit-learn (data-pipeline/requirements-precompute.txt). NOT imported
 by the default pipeline or CI.
 """

@@ -3,7 +3,7 @@
 Ten synthetic study areas (clearly labelled), grouped by category. Each is generated deterministically from a spec by
 `frontend/src/mpm/synth.ts` (smooth value-noise evidence layers + a planted latent prospectivity + deposits
 rejection-sampled on it, fixed count per case), so the controls have known ground truth. The App shows one case; Experiments/Benchmark
-summarize across categories. The Python registry (`pmlab/cases/mpm_cases.py`) mirrors the TS cases; a test cross-checks
+summarize across categories. The Python registry (`pipeline/cases/mpm_cases.py`) mirrors the TS cases; a test cross-checks
 the ids against the baked `case-results.json`.
 
 ## K - deposit-type terrane (the geological setting)
