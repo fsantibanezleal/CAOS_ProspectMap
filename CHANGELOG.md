@@ -2,6 +2,46 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.10.000] · 2026-08-01
+
+### Fixed - up to 54% of the map was deleted, and nothing could scroll to it
+
+`MapView` sized its canvas from container WIDTH alone (`scale = clientWidth / nx`), never reading the height
+of the box it was in. Measured live at 1600x900: the synthetic lane drew 1238x1238, **106.4% of the
+viewport**; the real Lawley US-MVT lane (a taller 144x176 cube) drew 1238x1513, **130.1%**, with 816px past
+the clipped shell bottom. Twelve wheel ticks and the End key left every ancestor at `scrollTop` 0. For a
+product whose single output IS the map, between 42% and 54% of the instrument was unreachable.
+
+- The canvas now contain-fits: `scale = min(availW / nx, availH / ny)`, centred.
+- The height constraint is propagated down `.pf-main / .pf-tabs / .pf-tabpanel`, because sizing the layout
+  root alone never reached the canvas: every descendant in between grew to content.
+- The rail scrolls itself. The method chips (WofE / logistic) sat at y 881-913 against a 900px shell, so
+  the control that switches the whole analysis method was 13px out of reach.
+- Prose routes get their own scroll (floor v2).
+
+**A bug the fix itself introduced, caught before shipping:** `onMove` derived the hovered cell from the
+WRAPPER rect. That was correct only while the canvas filled the wrapper edge to edge; once it is
+contain-fitted and centred the two differ by the letterbox margin and every readout would report the wrong
+cell. The readout is the only way to interrogate a value on this map, so a silent offset is worse than no
+readout. Rebased on the canvas rect.
+
+### Changed - tabs regularized per ADR-0071
+
+Twelve flat tabs are now FIVE groups on one 45px row (Map, Evidence, Skill, Compare, Learned), sub-views
+revealed on hover from the same tab.
+
+### Added - ADR-0070 focus mode, with the honest negative as the headline
+
+A full-viewport view of the selected area, recomputing WofE LIVE over the active evidence layers. The state
+NAMED on the stage is the spatially-blocked CV verdict, and the inflation gap is a first-class HUD value
+beside the spatial and random AUC.
+
+This is deliberate. The finding this product exists to report is that regional geophysics alone has little
+spatial-transfer skill on a clustered MVT belt: random CV looks good because it splits neighbouring cells
+across train and test. A focus view showing a confident-looking posterior map WITHOUT that number beside it
+would be the most misleading screen in the line. The rail also states that the posterior is our own
+recomputation, not the published model.
+
 ## [0.09.000] · 2026-07-30
 
 ### Fixed

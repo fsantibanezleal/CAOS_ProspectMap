@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Tabs, useShellLang } from '@fasl-work/caos-app-shell';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useShellLang } from '@fasl-work/caos-app-shell';
 import {
   analyzeCube, bestWeights, CASES, caseById, ciCheck, cubeFromFile, depositSet, fitLR, getLayer, layerRange,
   makeSyntheticArea, maskCells, posterior, predictLR, REAL_CASES, realCaseById, rocAuc,
@@ -86,6 +87,19 @@ function calibration(cube: Cube, field: Float64Array, bins = 10) {
   return { bins: out, brier, ece };
 }
 
+
+/** ADR-0071 rules 4+5. Twelve flat sibling tabs is a list, not an architecture: the user reads every label
+ *  to find one view, and the row cannot fit a narrow window, so the rightmost tabs become unreachable
+ *  under the shell's `overflow: hidden`. Grouped by the question being asked; the sub-views are revealed
+ *  from the same tab. */
+const TAB_GROUPS: { id: string; en: string; es: string; members: string[] }[] = [
+  { id: 'map',      en: 'Map',        es: 'Mapa',        members: ['map', 'weights'] },
+  { id: 'evidence', en: 'Evidence',   es: 'Evidencia',   members: ['rates', 'ci'] },
+  { id: 'skill',    en: 'Skill',      es: 'Desempeno',   members: ['roc', 'cv', 'calib'] },
+  { id: 'compare',  en: 'Compare',    es: 'Comparar',    members: ['method', 'overlay'] },
+  { id: 'learned',  en: 'Learned',    es: 'Aprendido',   members: ['whatif', 'anomaly', 'puconformal'] },
+];
+
 export default function Tool() {
   const es = useShellLang() === 'es';
   const [source, setSource] = useState<Source>('synthetic');
@@ -133,6 +147,14 @@ export default function Tool() {
   return (
     <div className="page-body pf-layout">
       <aside className="pf-side">
+        {/* ADR-0070 entry: without a visible control the focus route is an orphan that ships and nobody
+            reaches. It carries the SELECTED scenario on whichever lane is active. */}
+        <Link className="pf-focus-enter" to={`/focus/${isReal ? realCaseId : caseId}`}>
+          <span className="pf-focus-enter-t">{es ? 'Modo enfoque' : 'Focus mode'}</span>
+          <span className="pf-focus-enter-d">
+            {es ? 'Abrir este area a pantalla completa' : 'Open this area full screen'}
+          </span>
+        </Link>
         <div className="pf-card">
           <div className="pf-card-t">{es ? 'Fuente' : 'Source'}</div>
           <div className="pf-chips">
@@ -682,5 +704,56 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
     },
   ];
 
-  return <Tabs tabs={tabs.map((t) => ({ ...t, content: <PanelBoundary key={t.id} lang={es ? 'es' : 'en'}>{t.content}</PanelBoundary> }))} ariaLabel={es ? 'vistas de prospectividad' : 'prospectivity views'} />;
+  return <GroupedTabs tabs={tabs} es={es} />;
+}
+
+/** ONE row of tabs with hover sub-menus (ADR-0071 rules 4+5). */
+function GroupedTabs({ tabs, es }: { tabs: { id: string; label: string; content: React.ReactNode }[]; es: boolean }) {
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? 'map');
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (tabs.length && !tabs.some((x) => x.id === activeTab)) setActiveTab(tabs[0].id);
+  }, [tabs.length, activeTab]);
+  const cur = tabs.find((x) => x.id === activeTab) ?? tabs[0];
+  return (
+    <div className="pf-tabs">
+      <div className="pf-tabrow" role="tablist" aria-label={es ? 'vistas de prospectividad' : 'prospectivity views'}>
+        {TAB_GROUPS.filter((g) => tabs.some((x) => g.members.includes(x.id))).map((g) => {
+          const mine = tabs.filter((x) => g.members.includes(x.id));
+          const activeHere = mine.some((x) => x.id === activeTab);
+          const shown = activeHere ? mine.find((x) => x.id === activeTab)! : mine[0];
+          const multi = mine.length > 1;
+          return (
+            <div key={g.id} className="pf-tabwrap"
+                 onPointerEnter={() => { if (multi) { if (closeTimer.current) clearTimeout(closeTimer.current); setOpenMenu(g.id); } }}
+                 onPointerLeave={() => {
+                   if (closeTimer.current) clearTimeout(closeTimer.current);
+                   closeTimer.current = setTimeout(() => setOpenMenu((m) => (m === g.id ? null : m)), 240);
+                 }}>
+              <button role="tab" aria-selected={activeHere} className={`pf-tab ${activeHere ? 'on' : ''}`}
+                      onClick={() => {
+                        if (!multi) { setActiveTab(mine[0].id); setOpenMenu(null); return; }
+                        setOpenMenu(openMenu === g.id ? null : g.id);
+                        if (!activeHere) setActiveTab(shown.id);
+                      }}>
+                {activeHere ? shown.label : (es ? g.es : g.en)}{multi ? <span className="pf-caret">v</span> : null}
+              </button>
+              {multi && openMenu === g.id && (
+                <div className="pf-tabmenu" role="menu">
+                  {mine.map((x) => (
+                    <button key={x.id} role="menuitem" className={x.id === activeTab ? 'on' : ''}
+                            onClick={() => { setActiveTab(x.id); setOpenMenu(null); }}>{x.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="pf-tabpanel">
+        {cur ? <PanelBoundary key={cur.id} lang={es ? 'es' : 'en'}>{cur.content}</PanelBoundary> : null}
+      </div>
+    </div>
+  );
 }
