@@ -26,14 +26,31 @@ export function MapView({ nx, ny, field, range, deposits, ood, oodThreshold, hei
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
+  // The focus stage lays out AFTER mount, so a canvas sized on the first frame keeps the wrong size.
+  // Bumping a tick re-runs the paint effect with the container's real box.
+  const [sizeTick, setSizeTick] = useState(0);
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const ro = new ResizeObserver(() => setSizeTick((n) => n + 1));
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     const wrap = wrapRef.current;
     const canvas = canvasRef.current;
     if (!wrap || !canvas) return;
-    const dispW = wrap.clientWidth || 640;
-    const scale = dispW / nx;
-    const dispH = Math.round(ny * scale);
+    // FIT THE BOX, not just the width. Sizing from width x aspect alone ignores the container: a 144x176
+    // grid in a 1278px-wide stage computes 1562px of canvas, which is why the instrument measured 106% of
+    // its container and overflowed it. When the wrapper has a bounded height, the scale is whichever of the
+    // two constraints binds. When it does not (the old flow layout), width still drives it, so nothing
+    // that worked before changes.
+    const availW = wrap.clientWidth || 640;
+    const availH = height > 0 ? height : (wrap.clientHeight || 0);
+    const scale = availH > 0 ? Math.min(availW / nx, availH / ny) : availW / nx;
+    const dispW = Math.max(1, Math.round(nx * scale));
+    const dispH = Math.max(1, Math.round(ny * scale));
     const dpr = window.devicePixelRatio || 1;
     canvas.width = dispW * dpr;
     canvas.height = dispH * dpr;
@@ -83,12 +100,16 @@ export function MapView({ nx, ny, field, range, deposits, ood, oodThreshold, hei
       ctx.fill();
       ctx.stroke();
     }
-  }, [nx, ny, field, range, deposits, ood, oodThreshold, height]);
+  }, [nx, ny, field, range, deposits, ood, oodThreshold, height, sizeTick]);
 
   const onMove = (e: React.MouseEvent) => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    const rect = wrap.getBoundingClientRect();
+    // Map the pointer through the CANVAS rect, not the wrapper's. They were identical while the canvas
+    // filled the wrapper edge to edge; once it is contain-fitted and centred inside a larger stage they
+    // differ by the letterbox margin, and every hover readout would report the wrong cell. The readout is
+    // the only way to interrogate a value on this map, so a silent offset here is worse than no readout.
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
     const scale = rect.width / nx;
     const ix = Math.floor((e.clientX - rect.left) / scale);
     const iy = Math.floor((e.clientY - rect.top) / scale);
@@ -102,8 +123,9 @@ export function MapView({ nx, ny, field, range, deposits, ood, oodThreshold, hei
   };
 
   return (
-    <div className="fq-scene" ref={wrapRef} style={{ position: 'relative' }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
-      <canvas ref={canvasRef} style={{ display: 'block', borderRadius: 8, width: '100%' }} />
+    <div className="fq-scene" ref={wrapRef}
+      style={height > 0 ? { position: 'relative' } : { position: 'relative', flex: '1 1 auto', minHeight: 0 }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+      <canvas ref={canvasRef} style={{ display: 'block', borderRadius: 8, margin: '0 auto' }} />
       {hover && <div className="heatmap-readout" style={{ left: Math.min(hover.x + 10, 9999), top: hover.y + 10 }}>{hover.text}</div>}
     </div>
   );
