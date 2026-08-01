@@ -3,8 +3,8 @@ a tiny presence-only set / a single-layer model / a synthetic study area is flag
 example passes."""
 from pathlib import Path
 
-from pmlab.io.contract import validate_case, validate_records
-from pmlab.io.formats import read_csv_rows
+from pipeline.io.contract import validate_case, validate_records
+from pipeline.io.formats import read_csv_rows
 
 
 def _row(**over):

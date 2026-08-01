@@ -4,7 +4,7 @@
 // are computed by train_mpm.py and carried in data/raw/learned-partial.json; here we load mpm-classifier.onnx via
 // onnxruntime-web, run it over the in-distribution feature rows to verify the graph produces valid probabilities, and
 // merge everything into the final artifact the SPA reads.
-//   node --import tsx ../data-pipeline/pmlab/science/eval_mpm.mjs   (run from frontend/ so onnxruntime-web resolves)
+//   node --import tsx ../data-pipeline/pipeline/science/eval_mpm.mjs   (run from frontend/ so onnxruntime-web resolves)
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

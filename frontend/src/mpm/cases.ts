@@ -6,7 +6,7 @@
 // (Lawley-2022 USGS Zn-Pb, GA CC-BY) are a documented next step; the pipeline accepts a real cube identically.
 //
 // This file is the source of truth for the cases; the Node bake (science/bake_cases.mjs) runs the same engine over it,
-// and data-pipeline/pmlab/cases/mpm_cases.py mirrors it (a test cross-checks the ids against the baked case-results).
+// and data-pipeline/pipeline/cases/mpm_cases.py mirrors it (a test cross-checks the ids against the baked case-results).
 
 import type { SynthSpec } from './synth.ts';
 

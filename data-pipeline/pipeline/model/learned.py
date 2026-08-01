@@ -1,5 +1,5 @@
 """Feature contracts for ProspectMap's two learned models (the SINGLE SOURCE OF TRUTH shared by the offline trainer
-pmlab/science/train_mpm.py and the in-browser inference). Trained OFFLINE (torch -> ONNX), run LIVE (onnxruntime-web).
+pipeline/science/train_mpm.py and the in-browser inference). Trained OFFLINE (torch -> ONNX), run LIVE (onnxruntime-web).
 The white-box Weights-of-Evidence posterior is the interpretable AUTHORITY; the learned classifier is benchmarked
 against it on the SAME spatial holdout and earns its place only on fused non-linear gains. (Stub until commit 4b.)
 

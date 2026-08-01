@@ -18,6 +18,6 @@ independence), the conditional-independence machinery (pairwise chi-square + the
 ratio), logistic regression (the CI-free generalization), and honest validation (success/prediction-rate capture
 curves under spatial cross-validation). It runs *live in the browser* (the App recomputes the posterior raster on every
 layer toggle or method switch) **and** in the offline Node bake (no Python re-port). The Python package
-[`pmlab`](../data-pipeline/pmlab/) is the two data contracts + the staged pipeline + the lane gate; its default lane is
+[`pipeline`](../data-pipeline/pipeline/) is the two data contracts + the staged pipeline + the lane gate; its default lane is
 numpy-light, and a `--retrain` lane re-bakes the cases and trains the **mpm-classifier** + the **geology-ood** AE
 (torch -> ONNX). The `.onnx` run live via onnxruntime-web.

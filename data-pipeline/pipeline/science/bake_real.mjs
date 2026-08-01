@@ -1,9 +1,9 @@
 // Bake the REAL-data case (the "Real sample" lane) through the SAME TypeScript WofE engine the browser runs, so the
 // live and offline numbers stay identical by construction (as for the synthetic cases in bake_cases.mjs). Unlike the
 // synthetic bake, there is no SynthSpec: the real Cube is loaded from data/derived/<id>/cube.json (built offline by
-// pmlab/real_usmvt.py), analysed with analyzeCube, and written back as <id>/trace.json. It is ALSO merged into
+// pipeline/real_usmvt.py), analysed with analyzeCube, and written back as <id>/trace.json. It is ALSO merged into
 // case-results.json so Experiments/Benchmark include it. Run (from frontend/ so tsx resolves the engine):
-//   node --import tsx ../data-pipeline/pmlab/science/bake_real.mjs
+//   node --import tsx ../data-pipeline/pipeline/science/bake_real.mjs
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +21,7 @@ const caseResults = existsSync(CR_PATH)
 for (const rc of REAL_CASES) {
   const cubePath = resolve(DERIVED, rc.id, 'cube.json');
   if (!existsSync(cubePath)) {
-    console.warn(`[bake_real] missing ${cubePath}; run pmlab.real_usmvt first`);
+    console.warn(`[bake_real] missing ${cubePath}; run pipeline.real_usmvt first`);
     continue;
   }
   const f = JSON.parse(readFileSync(cubePath, 'utf-8'));

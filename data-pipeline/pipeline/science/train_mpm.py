@@ -1,7 +1,7 @@
 """HEAVY lane (local-only), train ProspectMap's two learned models and export them to ONNX. Run inside the
 .venv-precompute (torch) AFTER gen_train.mjs has written data/raw/{mpm-train,mpm-eval}.json:
 
-    python data-pipeline/pmlab/science/train_mpm.py
+    python data-pipeline/pipeline/science/train_mpm.py
 
 1. mpm-classifier, a small MLP over the per-cell evidence feature vector -> P(deposit). Presence-only labels
    (positives = known deposit cells; negatives are SAMPLED, distance-buffered, NEVER observed). It is benchmarked

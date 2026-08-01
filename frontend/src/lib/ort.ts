@@ -42,7 +42,7 @@ async function runSerial(_file: string, s: ort.InferenceSession, feeds: Record<s
 }
 
 // The two lanes ship distinct model files + feature spaces: the synthetic 4-feature models and the real 6-feature
-// models (pmlab/real_learned.py). The App selects the lane, so the classifier/AE are always applied on the feature
+// models (pipeline/real_learned.py). The App selects the lane, so the classifier/AE are always applied on the feature
 // space they were trained on (never the synthetic model on the real cube).
 export type Lane = 'synthetic' | 'real';
 const MODELS: Record<Lane, { clf: string; ood: string; nf: number }> = {
@@ -50,7 +50,7 @@ const MODELS: Record<Lane, { clf: string; ood: string; nf: number }> = {
   real: { clf: 'mpm-classifier-real.onnx', ood: 'geology-ood-real.onnx', nf: N_REAL_FEATURES },
 };
 
-// The PU-Conformal lane exists only on the real 6-feature cube (nnPU trained offline; pmlab/pu_conformal.py).
+// The PU-Conformal lane exists only on the real 6-feature cube (nnPU trained offline; pipeline/pu_conformal.py).
 const PUCONFORMAL_FILE = 'mpm-puconformal-real.onnx';
 
 /** the per-cell evidence feature vector in the source-of-truth order for the lane. */

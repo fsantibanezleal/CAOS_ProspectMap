@@ -5,21 +5,21 @@ of the TS engine + torch training).
 
 ## The bake (Node + tsx, the same engine)
 
-`pmlab/science/bake_cases.mjs` imports the TS engine and runs `analyzeCase(spec, layerIds)` over each case ->
+`pipeline/science/bake_cases.mjs` imports the TS engine and runs `analyzeCase(spec, layerIds)` over each case ->
 `data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The cubes are synthetic and regenerated from
 each case's spec (committed in case-results), so the artifact stays compact - no raster blobs. Because the bake and the
 browser run the identical engine, the live and offline numbers agree by construction.
 
 ## The light pipeline (numpy)
 
-`python -m pmlab.pipeline all` (default lane): applies Contract 1 to the case descriptors, reads `case-results.json` +
+`python data-pipeline/run.py all` (default lane): applies Contract 1 to the case descriptors, reads `case-results.json` +
 `pm-learned.json` (when present), builds the per-case `trace.json` + `manifests/*.json` (Contract 2) via
 `stages/export.build_replay`, runs the lane gate, and writes the flat `index.json`. No torch / no Node, so CI is fast
 and the artifacts regenerate deterministically (byte-identical re-run).
 
 ## The heavy lane (--retrain, two-language)
 
-`python -m pmlab.pipeline all --retrain`:
+`python data-pipeline/run.py all --retrain`:
 1. `science/bake_cases.mjs` (Node) re-bakes `case-results.json`.
 2. `science/gen_train.mjs` (Node) samples presence cells + distance-buffered informed negatives over the terrane/rich
    cubes, with spatial-block + random folds, and the held-out WofE posterior per fold -> `data/raw/mpm-train.json` +
