@@ -2,6 +2,57 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.11.000] · 2026-09-18
+
+### Changed - the Weights-of-Evidence cross-validation is fully out of fold (#44)
+
+- Each fold's model is fitted on the training folds' cells only: every layer's maximizing-contrast threshold, its
+  weights and the prior. Before, the thresholds were chosen on all deposits, so a held-out fold's labels moved the
+  thresholds that scored it; and the refit counted the whole held-out fold as non-deposit cells (label-free, but it
+  lowered the result).
+- Every case's `cv` block and prediction capture curve change. REAL-USMVT: spatial-block CV 0.637 to 0.648, random CV
+  0.723 to 0.739. The largest random-minus-spatial gap is now K-IOCG (0.110, REAL-USMVT 0.091); spatial exceeds
+  random in K-OROGENIC and D-SPARSE. The fitting AUCs, the weights and the omnibus test are unchanged.
+- Learned lanes, same folds: on the synthetic labelled rows the MLP stays at 0.971 and WofE moves from 0.929 to 0.868
+  (its AUC now averages tied ranks, as the engine does); on all REAL-USMVT cells the MLP stays at 0.908 against WofE
+  0.648. The real lane adds the engine's out-of-fold logistic regression under the same folds (0.644 spatial, 0.744
+  random) as a reference beside the distance-to-known-deposit baseline (0.899, 0.960). All ONNX models are unchanged.
+- The committed bake was stale against the pairwise conditional-independence test fixed in 0.08.000 (the table read 0
+  for most pairs, and for all 15 REAL-USMVT pairs); the re-bake carries the fixed values. The omnibus test is computed
+  on the full-data fit and is unchanged.
+- Engine tests for the out-of-fold protocol (a held-out fold's labels cannot move its scores; the fit counts the
+  training cells only), and a CI job that runs the engine tests and the typecheck, which did not run in CI before.
+- `--retrain` now also bakes the real case and runs the real learned lane; it used to drop REAL-USMVT from
+  `case-results.json`.
+
+### Changed - scope statements and wording (#44)
+
+- Manifests carry a case-specific `scope` statement instead of one global text that described every case, the real
+  one included, as synthetic (schema `prospectmap.manifest/v3`). The learned-metrics files (`prospectmap.learned/v3`)
+  and `pu-conformal.json` (`prospectmap.puconformal/v2`) rename their descriptive field to `scope`.
+- `pu-conformal.json` states the k-means regions its folds use; it said "blockId % k, identical to the live TS
+  engine". Its numbers are unchanged (the lane reproduces its committed output exactly).
+- Self-assessment wording is removed from the App pages, the Architecture modal and its diagrams, and the docs; the
+  facts they carried stay.
+- The CV tab and the Focus view describe a random-minus-spatial gap as inflation only when it is positive; under the
+  new cross-validation D-SPARSE has a negative gap. The Implementation page lists the current engine tests (17) and
+  cases (11).
+- README, ATTRIBUTION, `data/README.md` and the cases docs describe the real REAL-USMVT data and its licence; they
+  described all data as synthetic or the real data as a next step (#31). The README headline quotes the current
+  values with their protocols, and the contiguous-region MLP (0.783) beside the distance baseline (0.783).
+- The real-data cube builder's dependencies are pinned in `data-pipeline/requirements-precompute.txt` (rasterio
+  1.5.0, pyshp 3.1.4, scipy 1.18.0, numpy 2.4.6); with them the build reproduced the committed `cube.json` byte for
+  byte from the CMMI files (checked on Windows with Python 3.12) (#31).
+
+### Added - data for the technical report (#44)
+
+- `manuscripts/prospectivity/data/build_pm.py` builds `pm.json` from the artifacts, with a key per protocol: per
+  layer the studentized contrast with its 2x2 counts, s(C), a second small-count correction and exact statistics
+  (Fisher's exact test and the exact interval for C, which need no correction); the like-for-like pairs, the
+  logistic regression and the distance baseline. A test keeps `pm.json` equal to a fresh build.
+- `figures/make_figs.py` labels every AUC with its protocol and plots the studentized contrast with the 1.645 and 1.96
+  levels. Version 1.1 of the report plotted the binarization threshold tStar under that label.
+
 ## [0.10.001] · 2026-09-18
 
 ### Fixed - the real lane set a cross-validated MLP AUC against a WofE AUC fitted without cross-validation (#41)

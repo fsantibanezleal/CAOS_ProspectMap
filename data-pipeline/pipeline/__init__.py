@@ -8,4 +8,4 @@ by the SAME TS engine the browser runs) into per-case CONTRACT-2 traces + manife
 (torch -> ONNX) in pipeline/science/.
 """
 
-__version__ = "0.10.001"  # display X.XX.XXX; mirrors the root VERSION file (the source of truth)
+__version__ = "0.11.000"  # display X.XX.XXX; mirrors the root VERSION file (the source of truth)

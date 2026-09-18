@@ -1,7 +1,7 @@
 {
  "schema": "prospectmap.manuscript-data/v2",
  "source": {
-  "version": "0.10.001",
+  "version": "0.11.000",
   "case_results": "data/derived/case-results.json",
   "learned_real": "data/derived/pm-learned-real.json",
   "builder": "manuscripts/prospectivity/data/build_pm.py"
