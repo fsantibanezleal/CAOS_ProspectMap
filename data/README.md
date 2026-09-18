@@ -43,7 +43,9 @@ no conditional independence to test) · grid > 4,000,000 cells → *very large* 
 Each pipeline run writes a compact trace (`derived/<case>/trace.json`, schema `prospectmap.trace/v1`) and a
 manifest (`derived/manifests/<case>.json`, schema `prospectmap.manifest/v2`; flat inventory `index.json`,
 schema `prospectmap.index/v1`) recording the case identity + anchors, the engine + version, the seed, the
-shared learned artifacts (`mpm-classifier.onnx`, `geology-ood.onnx`, `pm-learned.json`, `case-results.json`),
+shared learned artifacts of the case's lane (`mpm-classifier.onnx`, `geology-ood.onnx`, `pm-learned.json` for the
+synthetic cases; `mpm-classifier-real.onnx`, `geology-ood-real.onnx`, `pm-learned-real.json` for the real cube) and
+`case-results.json`,
 the trace pointer + byte size, the measured **lane/gate** verdict, the Contract-1 flags, the case metrics and
 the honesty statement. `frontend/src/lib/contract.types.ts` mirrors these schemas so any drift fails the web
 build. The cross-case pages (Experiments / Benchmark / the learned metrics) load ONLY these committed
