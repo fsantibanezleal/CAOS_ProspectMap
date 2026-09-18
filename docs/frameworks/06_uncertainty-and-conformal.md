@@ -1,7 +1,7 @@
 # 06 - Uncertainty and conformal prediction
 
 Most mineral-prospectivity maps ship a single probability per cell with no calibrated band. The beyond-SOTA lane adds a
-distribution-free, coverage-guaranteed uncertainty layer under honest spatial blocking, and reports its limits.
+distribution-free, coverage-guaranteed uncertainty layer under spatial blocking, and reports its limits.
 
 ## Split conformal prediction
 
@@ -21,13 +21,13 @@ Guarantee: Pr( a held-out deposit in C_alpha ) >= 1 - alpha      (under exchange
 `set size` = the fraction of the belt inside `C_alpha` (the exploration cost of the guarantee). The browser applies the
 exported threshold `1 - q_hat` live; no heavy compute in-page.
 
-## Spatial blocking breaks exchangeability (the honest caveat)
+## Spatial blocking breaks exchangeability (the caveat)
 
 The coverage guarantee assumes the calibration and test points are exchangeable. Spatial autocorrelation breaks that.
 Under spatial blocking the guarantee is only marginal over blocks and degrades under block-to-block distribution shift
 (Roberts et al. 2017, [doi:10.1111/ecog.02881](https://doi.org/10.1111/ecog.02881)). On strongly clustered MVT the consequence is concrete: to guarantee
-coverage the prospective set becomes **near-vacuous**, flagging almost the entire belt. That wide set is the honest
-finding: regional geophysics cannot localize MVT under spatial transfer. It is reported, not hidden.
+coverage the prospective set becomes **near-vacuous**, flagging almost the entire belt. That wide set is the
+finding: regional geophysics does not localize MVT under spatial transfer, and the app reports it.
 
 ## Calibration metrics (all models)
 
@@ -51,7 +51,7 @@ Positive-class split conformal, spatially-separated west(train)/center(calib)/ea
 | 80% | ~97% | ~78% |
 
 Coverage meets (over-satisfies) the guarantee, but only by flagging most of the belt: the near-vacuous set that
-honestly reports the localization limit. See `data/derived/pu-conformal.json` for the committed numbers and the
+reports the localization limit. See `data/derived/pu-conformal.json` for the committed numbers and the
 class-prior `pi` sensitivity sweep.
 
 ## Precedents

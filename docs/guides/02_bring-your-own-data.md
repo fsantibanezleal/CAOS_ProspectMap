@@ -9,12 +9,12 @@ The product is **applicable to new data**, not just the synthetic cases, that is
    [`data/examples/cases.csv`](../../data/examples/cases.csv)). The raw national grids stay out of the repo
    (`data/raw/`, git-ignored); only the compact reduced cube is committed.
 2. Run Contract 1 over the descriptor (the pipeline does this for the built-in cases). A record is **rejected** with a
-   reason if it violates the schema (non-positive grid/cell, `n_layers < 1`, `n_deposits < 1`); **flagged** if
-   honesty-relevant, `presence-only-tiny` (< 10 known deposits => a black-box overfits; trust WofE + the OOD mask),
+   reason if it violates the schema (non-positive grid/cell, `n_layers < 1`, `n_deposits < 1`); **flagged** if it
+   limits what a result can support, `presence-only-tiny` (< 10 known deposits => a black-box overfits; trust WofE + the OOD mask),
    `single-layer` (no fusion, no conditional-independence to test), or `synthetic`. Nothing is silently coerced.
 3. The bake (`science/bake_cases.mjs`) runs the same WofE engine over the cube and the pipeline produces a compact
    trace + manifest to replay in the SPA, exactly like the built-in cases.
-4. **Honesty stays mandatory:** report capture@10% under spatial cross-validation (never the fitting curve, never the
+4. **Reporting rules stay mandatory:** report capture@10% under spatial cross-validation (never the fitting curve, never the
    random-CV AUC), keep `N(D)` next to every metric, and present outputs as exploration target generation, not a
    resource estimate.
 

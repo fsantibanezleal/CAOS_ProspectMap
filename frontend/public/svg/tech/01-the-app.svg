@@ -63,6 +63,6 @@
   <text class="mu" x="36" y="328">• an offline pipeline with two validated data contracts, so you can run it on YOUR data, not just the built-in cases;</text>
   <text class="mu" x="36" y="350">• a learned model trained from real / sourced data and exported to ONNX, running client-side next to a classical baseline;</text>
   <text class="mu" x="36" y="372">• six documented pages (App · Introduction · Methodology · Implementation · Experiments · Benchmark);</text>
-  <text class="mu" x="36" y="394">• an honest record: every number is sourced or labelled synthetic, every limitation stated.</text>
+  <text class="mu" x="36" y="394">• a sourced record: every number is sourced or labelled synthetic, every limitation stated.</text>
   <text class="cd mono" x="36" y="420">replace the four boxes above with the concrete nouns of THIS product (e.g. muckpile image → watershed → PSD → P80).</text>
 </svg>

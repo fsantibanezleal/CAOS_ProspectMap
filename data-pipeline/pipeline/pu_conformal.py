@@ -7,8 +7,9 @@ spatial blocking with negative controls, a combination no single mineral-prospec
      other cells as UNLABELED (not negatives), with the non-negative PU risk estimator (nnPU, Kiryo et al. 2017,
      arXiv:1703.00593) so a flexible model does not overfit the ~10^2-10^3 positives. The class prior pi is a
      parameter (Elkan & Noto 2008, KDD, doi:10.1145/1401890.1401920, name the SCAR assumption we sweep).
-  2. Spatially-blocked evaluation. Every model is scored under the SAME contiguous spatial-block folds the App uses
-     (Roberts et al. 2017, Ecography, doi:10.1111/ecog.02881); random-CV is shown only to expose its inflation.
+  2. Spatially-blocked evaluation. Every model is scored under the same contiguous spatial folds: five k-means regions
+     on the cell coordinates (block_folds), stricter than the App's interleaved blockId % k folds (Roberts et al.
+     2017, Ecography, doi:10.1111/ecog.02881); random-CV is shown only to expose its inflation.
   3. Distribution-free calibrated uncertainty. A spatially-blocked calibration split gives a split-conformal band
      with finite-sample coverage (Angelopoulos & Bates 2021, arXiv:2107.07511). The browser applies the exported
      quantile live; no heavy compute in-page.
@@ -18,9 +19,9 @@ tabular rung, Rodriguez-Galiano et al. 2015, Ore Geol. Rev., doi:10.1016/j.orege
 pseudo-negative MLP, and PU-Conformal. Mandatory negative controls: label permutation (must collapse to chance),
 an uninformative noise layer (must earn ~0 lift), and a distance-to-deposit spatial null (any model must beat it).
 
-HONEST expected result, given the App's measured spatial-CV AUC ~0.52 on strongly clustered MVT: PU-Conformal does
-NOT beat classical WofE in spatial-transfer ranking; its genuine advance is the calibrated, bias-corrected,
-coverage-guaranteed uncertainty layer that passes the negative controls. No fabricated "beats SOTA" number.
+Expected result on strongly clustered MVT: PU-Conformal does not beat classical WofE in spatial-transfer ranking;
+its advance is the calibrated, bias-corrected, coverage-guaranteed uncertainty layer that passes the negative
+controls. The ranking verdict is read off the bootstrap CIs.
 
 Run (isolated venv, never global):
     .venv-precompute/Scripts/python.exe -m pipeline.pu_conformal
@@ -45,7 +46,7 @@ DERIVED = ROOT / "data" / "derived"
 CUBE = DERIVED / "REAL-USMVT" / "cube.json"
 FEATURES = ["mag", "grav", "lab", "satgrav", "faultprox", "marginprox"]
 SEED = 17
-BLOCK = 20  # spatial block side in cells (mirrors the TS engine's spatialBlockFolds default)
+BLOCK = 20  # kept for block_folds' signature; the k-means regions ignore it (the engine's block side is 20 cells)
 K = 5
 PI_GRID = [0.034, 0.05, 0.07, 0.10]  # class-prior sweep; 0.034 = the labelled base rate (858 / 25344)
 PI_DEFAULT = 0.05
@@ -466,30 +467,33 @@ def main() -> None:
         verdict = "PU-Conformal significantly beats WofE in spatial-transfer ranking."
     else:
         verdict = (
-            "Honest null on ranking: PU-Conformal (block-CV AUC "
+            "No ranking win: PU-Conformal (block-CV AUC "
             f"{pu_row['auc']:.3f}, CI {pu_row['auc_ci95']}) does NOT beat classical WofE ({wofe_auc:.3f}) in "
             "spatial-transfer ranking for this strongly clustered MVT belt, the expected outcome under strict "
             "contiguous spatial holdout. Notably the trivial distance-to-known-deposit null already reaches "
             f"AUC {dist_auc:.3f}, so most apparent skill is spatial proximity, not learned geology. PU-Conformal's "
-            "genuine advance is elsewhere: the negative controls collapse as they must (label permutation to chance, "
+            "advance is elsewhere: the negative controls collapse as they must (label permutation to chance, "
             "no lift from a noise layer), and the conformal band delivers its coverage guarantee "
             f"(empirical {conformal['levels'][0]['empirical_coverage']:.2f} >= nominal "
             f"{conformal['levels'][0]['nominal']:.2f})")
         if near_vacuous:
             verdict += (
                 " but only by flagging "
-                f"{conformal['levels'][0]['set_size_frac'] * 100:.0f}% of the belt: an HONEST near-vacuous set that "
-                "correctly reports regional geophysics cannot localize MVT under spatial transfer, rather than a "
-                "false-confidence point map.")
+                f"{conformal['levels'][0]['set_size_frac'] * 100:.0f}% of the belt: a near-vacuous set, which reports "
+                "that regional geophysics does not localize MVT under spatial transfer rather than drawing a "
+                "confident point map.")
         else:
             verdict += "."
 
     out = {
-        "schema": "prospectmap.puconformal/v1",
+        "schema": "prospectmap.puconformal/v2",  # v2: the protocol states the k-means regions; `honesty` -> `scope`
         "case_id": "REAL-USMVT",
         "features": FEATURES,
-        "protocol": {"folds": K, "block_cells": BLOCK, "scheme": "contiguous spatial blocks (blockId % k), "
-                     "identical to the live TS engine", "pi_default": PI_DEFAULT},
+        "protocol": {"folds": K, "regions": "k-means",
+                     "scheme": f"contiguous spatial regions: k-means (k = {K}, random_state {SEED}, n_init 10) on the "
+                               "cell (row, col) coordinates, the same folds for every model; stricter than the live "
+                               "engine's interleaved 20x20-cell blocks (fold = blockId % k)",
+                     "pi_default": PI_DEFAULT},
         "benchmark": benchmark,
         "inflation": inflation,
         "conformal": {"pi": PI_DEFAULT, **conformal},
@@ -509,16 +513,17 @@ def main() -> None:
             "tabular_rung": "Rodriguez-Galiano et al. 2015, Ore Geol. Rev., doi:10.1016/j.oregeorev.2015.01.001",
             "pu_mpm": "Xiong & Zuo 2021, Comput. Geosci., doi:10.1016/j.cageo.2020.104667",
         },
-        "honesty": (
-            "Trained OFFLINE on the real US Midcontinent MVT cube. PU treats deposit cells as positives and ALL other "
-            "cells as UNLABELED (nnPU risk), fixing the false-negative bias of pseudo-negative training. Every model "
-            "is scored on IDENTICAL spatial-block folds; the random-CV number is shown only to expose its inflation. "
-            "Conformal coverage is a distribution-free split-conformal guarantee under spatial blocking (marginal over "
-            "blocks). SCAR is assumed and likely violated by exploration bias, hence pi is swept, not fixed. No "
-            "fabricated win: the ranking verdict is read directly off the bootstrap CIs and the negative controls."
+        "scope": (
+            "Trained offline on the real US Midcontinent MVT cube. PU treats deposit cells as positives and all other "
+            "cells as unlabeled (nnPU risk), removing the false-negative bias of pseudo-negative training. Every model "
+            "is scored on the same contiguous k-means regions; the random-CV number is shown only to expose its "
+            "inflation. Conformal coverage is a distribution-free split-conformal guarantee under spatial blocking "
+            "(marginal over blocks). SCAR is assumed and likely violated by exploration bias, hence pi is swept, not "
+            "fixed. The ranking verdict is read directly off the bootstrap CIs and the negative controls."
         ),
     }
-    (DERIVED / "pu-conformal.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+    # LF on every platform, so a re-run is byte-identical on Windows and Linux
+    (DERIVED / "pu-conformal.json").write_text(json.dumps(out, indent=1), encoding="utf-8", newline="\n")
     print("\n" + verdict)
     print("wrote mpm-puconformal-real.onnx + pu-conformal.json")
 

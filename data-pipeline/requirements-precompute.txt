@@ -1,7 +1,13 @@
 # PRECOMPUTE / heavy lane (local-only, NEVER deployed), the .venv-precompute that trains the two learned models.
 # Pinned to the verified CPU install. The default lane (data-pipeline/requirements.txt) stays numpy-only so CI + the
 # replay pipeline never need torch.
-numpy>=1.26
+numpy==2.4.6
 torch==2.6.0
 onnx==1.17.0
 scikit-learn==1.7.2  # the SOTA-tabular rung (RF/GBM) + spatial k-means folds for the PU-Conformal lane
+# the real-data cube builder (pipeline/real_usmvt.py). With these versions and the CMMI files listed in
+# data/derived/REAL-USMVT/provenance.json, the build reproduced the committed cube.json byte for byte (checked
+# 2026-09-18 on Windows, Python 3.12, rasterio's bundled GDAL/PROJ; another platform may differ in the last digits).
+rasterio==1.5.0
+pyshp==3.1.4
+scipy==1.18.0

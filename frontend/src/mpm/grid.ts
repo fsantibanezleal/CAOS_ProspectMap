@@ -26,6 +26,14 @@ export function depositSet(cube: Cube): Set<number> {
   return s;
 }
 
+/** a per-cell deposit indicator (1 = a deposit cell), the typed-array form of the deposit set for hot loops. Callers
+ * iterate the mask cells only, so marking every deposit index is equivalent to depositSet(cube). */
+export function depositIndicator(cube: Cube): Uint8Array {
+  const isDep = new Uint8Array(cube.nx * cube.ny);
+  for (const d of cube.depositIdx) isDep[d] = 1;
+  return isDep;
+}
+
 /** N(D), number of occupied (deposit) cells in the mask. */
 export function nDeposits(cube: Cube): number {
   return depositSet(cube).size;

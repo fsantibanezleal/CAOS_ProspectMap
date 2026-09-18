@@ -9,15 +9,18 @@
 //     sign + ordering (the WofE↔LR equivalence);
 //   · the Agterberg-Cheng omnibus test gives ciRatio ≈ 1 when CI holds and T > N(D) (z > 0) on a planted CI-violation;
 //   · a perfect ranking captures all deposits in minimal area, a random ranking gives the diagonal;
-//   · the SAME spatial-autocorrelation model has a HIGHER random-CV AUC than spatial-CV AUC (the inflation gap).
+//   · the SAME spatial-autocorrelation model has a HIGHER random-CV AUC than spatial-CV AUC (the inflation gap);
+//   · the WofE cross-validation is fully out of fold: a held-out fold's labels cannot move its own scores, the fit
+//     counts the training folds' cells only (a held-out deposit is never a non-deposit), and analyzeCube reports
+//     exactly that protocol.
 // Everything is deterministic (seeded).
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  bestWeights, captureCurve, ciCheck, contingency2x2, crossValAuc, makeSyntheticArea, nearestDepositScore,
-  normCdf, omnibus, pairwiseChi2, posterior, randomFolds, rocAuc, spatialBlockFolds, weightsFromCounts, fitLR,
-  binarize, getLayer,
+  analyzeCube, bestWeights, captureCurve, ciCheck, contingency2x2, crossValAuc, crossValScores, makeSyntheticArea,
+  maskCells, nearestDepositScore, normCdf, omnibus, pairwiseChi2, posterior, randomFolds, rocAuc, spatialBlockFolds,
+  thresholdSweep, weightsFromCounts, fitLR, binarize, getLayer, lrFoldScoreFn, wofeFoldModel, wofeFoldScoreFn,
 } from '../src/mpm/index.ts';
 import type { Cube } from '../src/mpm/index.ts';
 
@@ -228,4 +231,104 @@ test('contingency counts are conserved', () => {
   const c = contingency2x2(cube, pat);
   assert.equal(c.nBD + c.nBDbar + c.nBbarD + c.nBbarDbar, cube.nx * cube.ny, 'all cells accounted for');
   assert.equal(c.nBD + c.nBbarD, cube.depositIdx.length, 'deposit counts conserved');
+});
+
+// ---- the WofE cross-validation is fully out of fold (issue #44) ----------------------------------------------------
+
+const OOF_SPEC = {
+  nx: 80, ny: 80, seed: 41, nDeposits: 60, gain: 7,
+  layers: [
+    { id: 'a', weight: 2.0, favHigh: true, coarse: 10 },
+    { id: 'b', weight: 1.2, favHigh: false, coarse: 14 },
+  ],
+};
+
+test('WofE CV is out of fold: a held-out fold cannot move its own scores through its deposit labels', () => {
+  const { cube } = makeSyntheticArea(OOF_SPEC);
+  const ids = ['a', 'b'];
+  const folds = spatialBlockFolds(cube, 5, 16);
+  const f = 3; // its 26 deposits move layer a's whole-area threshold from 0.952 to 0.486
+  // the same area with fold f's deposits removed: only the held-out fold's labels differ
+  const cube2: Cube = { ...cube, depositIdx: cube.depositIdx.filter((d) => folds[d] !== f) };
+  // guard: fold f's labels do move a whole-area threshold, so a threshold fitted on all deposits would leak them
+  const tAll = ids.map((id) => bestWeights(cube, id).tStar);
+  const tAll2 = ids.map((id) => bestWeights(cube2, id).tStar);
+  assert.notDeepEqual(tAll, tAll2, 'the guard needs a fold whose deposits move a whole-area threshold');
+  const h1 = crossValScores(cube, folds, 5, wofeFoldScoreFn(cube, ids));
+  const h2 = crossValScores(cube2, folds, 5, wofeFoldScoreFn(cube2, ids));
+  let checked = 0;
+  for (const i of maskCells(cube)) {
+    if (folds[i] !== f) continue;
+    assert.equal(h1[i], h2[i], `held-out cell ${i} moved with its own fold's labels`);
+    checked++;
+  }
+  assert.ok(checked > 100, `checked ${checked} held-out cells`);
+});
+
+test('WofE CV fits on the training folds only: a held-out deposit is never counted as a non-deposit', () => {
+  // 10x10 grid; a binary layer present in the left half; every deposit in the left half, two of them in rows 0-1
+  const nx = 10;
+  const ny = 10;
+  const vals = new Float64Array(nx * ny);
+  for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) vals[r * nx + c] = c < 5 ? 1 : 0;
+  const depositIdx = [2 * nx + 1, 4 * nx + 2, 6 * nx + 3, 8 * nx + 1, 0 * nx + 2, 1 * nx + 3];
+  const cube: Cube = { nx, ny, cellKm: 1, layers: [{ id: 'L', name: 'L', kind: 'binary', values: vals }], depositIdx };
+  // fold 0 = rows 0-1 (held out); rows 2-9 spread over folds 1-4
+  const folds = new Int32Array(nx * ny);
+  for (let i = 0; i < nx * ny; i++) {
+    const row = Math.floor(i / nx);
+    folds[i] = row < 2 ? 0 : 1 + (row % 4);
+  }
+  const trainCells = maskCells(cube).filter((i) => folds[i] !== 0);
+  const w = wofeFoldModel(cube, ['L'], trainCells).weights[0];
+  assert.equal(w.nBD + w.nBDbar + w.nBbarD + w.nBbarDbar, trainCells.length, 'the fit counts the training cells only');
+  assert.equal(w.nBD + w.nBbarD, 4, 'the training deposits only');
+  // 40 training cells in the pattern, 4 of them deposits; counting over the whole area (the old refit) gives 46, with
+  // the two held-out deposits among the non-deposits
+  assert.equal(w.nBDbar, 36, 'held-out cells, deposits included, are not in the non-deposit count');
+  // the CV driver hands fold 0 exactly those training cells and deposits
+  const seen: { deposits: number[]; cells: number[] }[] = [];
+  crossValScores(cube, folds, 5, (deposits, cells) => {
+    seen.push({ deposits: [...deposits].sort((x, y) => x - y), cells });
+    return new Float64Array(nx * ny);
+  });
+  assert.deepEqual(seen[0].cells, trainCells);
+  assert.deepEqual(seen[0].deposits, [2 * nx + 1, 4 * nx + 2, 6 * nx + 3, 8 * nx + 1]);
+});
+
+test('analyzeCube reports the out-of-fold WofE cross-validation', () => {
+  const { cube } = makeSyntheticArea(OOF_SPEC);
+  const ids = ['a', 'b'];
+  const a = analyzeCube(cube, ids, 5, 16);
+  const scoreFn = wofeFoldScoreFn(cube, ids);
+  assert.equal(a.cv.spatialAuc, crossValAuc(cube, spatialBlockFolds(cube, 5, 16), 5, scoreFn));
+  assert.equal(a.cv.randomAuc, crossValAuc(cube, randomFolds(cube, 5, 17), 5, scoreFn));
+  assert.equal(a.cv.inflationGap, a.cv.randomAuc - a.cv.spatialAuc);
+});
+
+test('the single-pass threshold sweep equals binarize + contingency2x2 at every step', () => {
+  const { cube } = makeSyntheticArea(OOF_SPEC);
+  for (const id of ['a', 'b']) {
+    const layer = getLayer(cube, id);
+    for (const p of thresholdSweep(cube, id)) {
+      const w = weightsFromCounts(id, p.t, contingency2x2(cube, binarize(layer, p.t)));
+      assert.equal(p.contrast, w.contrast);
+      assert.equal(p.studC, w.studC);
+      assert.equal(p.wPlus, w.wPlus);
+      assert.equal(p.wMinus, w.wMinus);
+    }
+  }
+});
+
+test("the out-of-fold logistic regression cannot see a held-out fold's labels either", () => {
+  const { cube } = makeSyntheticArea(OOF_SPEC);
+  const ids = ['a', 'b'];
+  const folds = spatialBlockFolds(cube, 5, 16);
+  const f = 3;
+  const cube2: Cube = { ...cube, depositIdx: cube.depositIdx.filter((d) => folds[d] !== f) };
+  const h1 = crossValScores(cube, folds, 5, lrFoldScoreFn(cube, ids));
+  const h2 = crossValScores(cube2, folds, 5, lrFoldScoreFn(cube2, ids));
+  for (const i of maskCells(cube)) if (folds[i] === f) assert.equal(h1[i], h2[i], `held-out cell ${i}`);
+  const auc = crossValAuc(cube, folds, 5, lrFoldScoreFn(cube, ids));
+  assert.ok(auc > 0 && auc < 1, `a proper AUC (${auc})`);
 });

@@ -6,8 +6,8 @@ export default function Introduction() {
     <article className="page-body prose">
       <h1>{es ? 'Introducción' : 'Introduction'}</h1>
       <p className="lede">{es
-        ? 'ProspectMap responde "¿dónde es más probable el próximo depósito?", fusiona capas de evidencia geocientífica abierta en un mapa posterior de prospectividad, y expone honestamente cuándo no confiar en él.'
-        : 'ProspectMap answers "where is the next deposit most likely to be?", it fuses open geoscience evidence layers into a posterior prospectivity map, and honestly exposes when not to trust it.'}</p>
+        ? 'ProspectMap responde "¿dónde es más probable el próximo depósito?", fusiona capas de evidencia geocientífica abierta en un mapa posterior de prospectividad, y muestra cuándo no confiar en él.'
+        : 'ProspectMap answers "where is the next deposit most likely to be?", it fuses open geoscience evidence layers into a posterior prospectivity map, and shows when not to trust it.'}</p>
 
       <h2>{es ? 'El problema' : 'The problem'}</h2>
       <p>{es
@@ -34,10 +34,10 @@ export default function Introduction() {
         : 'A first-level Source selector offers two lanes. Synthetic: areas with planted per-layer weights + deposits rejection-sampled on a known latent prospectivity, the only data with exact ground truth, so they are the controls. Real sample: the open Lawley et al. 2022 Zn-Pb cube (USGS ScienceBase '}
         <Cite id="lawley2022" paren />{es ? ', dominio público de EE. UU.), 6 capas reales sobre el belt MVT del Midcontinente de EE. UU. con 858 celdas de ocurrencia; todas las herramientas se ejecutan en vivo sobre él.' : ', US public domain), 6 real layers over the US Midcontinent MVT belt with 858 occurrence cells; every tool runs live on it.'}</p>
 
-      <Callout variant="honest" title={es ? 'Alcance honesto: la transferencia espacial es difícil' : 'Honest scope: spatial transfer is hard'}>
+      <Callout variant="honest" title={es ? 'Alcance: la transferencia espacial es difícil' : 'Scope: spatial transfer is hard'}>
         {es
-          ? 'Para depósitos agrupados (los MVT se concentran en distritos como Tri-State), la geofísica regional interpola dentro de un distrito conocido pero apenas extrapola a uno nuevo. Bajo holdout espacial estricto, incluso el null trivial de distancia-al-depósito rivaliza con los modelos aprendidos, así que la mayor parte del "skill" aparente es proximidad, no geología. El marco de sistemas minerales (fuente, transporte, trampa) explica por qué una sola capa raramente localiza; ProspectMap reporta esa dificultad en vez de ocultarla '
-          : 'For clustered deposits (MVT concentrate in districts like Tri-State), regional geophysics interpolates within a known district but barely extrapolates to a new one. Under strict spatial holdout even the trivial distance-to-deposit null rivals the learned models, so most apparent "skill" is proximity, not geology. The mineral-systems framing (source, transport, trap) explains why a single layer rarely localizes; ProspectMap reports that difficulty rather than hiding it '}
+          ? 'Para depósitos agrupados (los MVT se concentran en distritos como Tri-State), la geofísica regional interpola dentro de un distrito conocido pero apenas extrapola a uno nuevo. Bajo holdout espacial estricto, incluso el null trivial de distancia-al-depósito rivaliza con los modelos aprendidos, así que la mayor parte del "skill" aparente es proximidad, no geología. El marco de sistemas minerales (fuente, transporte, trampa) explica por qué una sola capa raramente localiza; ProspectMap reporta esa dificultad '
+          : 'For clustered deposits (MVT concentrate in districts like Tri-State), regional geophysics interpolates within a known district but barely extrapolates to a new one. Under strict spatial holdout even the trivial distance-to-deposit null rivals the learned models, so most apparent "skill" is proximity, not geology. The mineral-systems framing (source, transport, trap) explains why a single layer rarely localizes; ProspectMap reports that difficulty '}
         <Cite id="roberts2017" paren />{es ? '.' : '.'}
       </Callout>
 

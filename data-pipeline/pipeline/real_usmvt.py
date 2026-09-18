@@ -24,7 +24,9 @@ here (route to logistic regression). Both facts are surfaced in the app.
 
 Run (isolated venv, never global):
     .venv-precompute/Scripts/python.exe -m pipeline.real_usmvt
-Dependencies (installed into .venv-precompute only): numpy, rasterio, pyshp, pyproj, scipy.
+Dependencies (installed into .venv-precompute only, pinned in data-pipeline/requirements-precompute.txt): numpy,
+rasterio, pyshp, scipy. With those versions the build reproduced the committed cube.json byte for byte (Windows,
+Python 3.12; see the note in that file).
 """
 from __future__ import annotations
 

@@ -6,14 +6,14 @@
 // For each training case (the terrane + evidence-rich synthetic areas) we regenerate the cube, assign SPATIAL-BLOCK
 // folds + RANDOM folds (so train can show the inflation gap), sample presence cells + distance-buffered informed
 // negatives, and record each cell's evidence feature vector + label + folds + the held-out WofE posterior (the
-// white-box authority, refit per spatial fold by the EXACT engine). Plus the in-envelope vs out-of-envelope feature
+// white-box authority, fitted fully out of fold per spatial fold by the EXACT engine). Plus the in-envelope vs out-of-envelope feature
 // rows for the geology OOD autoencoder.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  bestWeights, CASES, colRow, crossValScores, depositSet, getLayer, makeSyntheticArea, maskCells, posterior,
-  randomFolds, spatialBlockFolds, weights,
+  CASES, colRow, crossValScores, depositSet, getLayer, makeSyntheticArea, maskCells, randomFolds, spatialBlockFolds,
+  wofeFoldScoreFn,
 } from '../../../frontend/src/mpm/index.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -46,16 +46,6 @@ function featRow(cube, i) {
   });
 }
 
-// a WofE-posterior scoring function refit on a TRAINING deposit subset (the spatial-holdout authority)
-function wofeScoreFn(cube, ids) {
-  const best = ids.map((id) => bestWeights(cube, id));
-  const pats = best.map((b) => b.pattern);
-  return (train) => {
-    const ws = pats.map((p) => weights(cube, p, train));
-    return posterior(cube, pats, ws, undefined, train).prob;
-  };
-}
-
 const rows = [];     // {feat, y, sFold, rFold, pWofe, case}
 const inEnv = [];    // in-envelope feature rows (for the OOD-AE training + the in-distribution eval)
 
@@ -65,7 +55,9 @@ for (const cid of TRAIN_CASES) {
   const ids = c.layerIds;
   const sFolds = spatialBlockFolds(cube, K, BLOCK);
   const rFolds = randomFolds(cube, K, 17 + cid.length);
-  const wofeOOF = crossValScores(cube, sFolds, K, wofeScoreFn(cube, ids)); // held-out WofE posterior per cell
+  // held-out WofE posterior per cell: the engine's fully out-of-fold fit (thresholds, weights and prior from the
+  // training folds only), the same protocol as the bake's cv block
+  const wofeOOF = crossValScores(cube, sFolds, K, wofeFoldScoreFn(cube, ids));
 
   const cells = maskCells(cube);
   const dep = depositSet(cube);

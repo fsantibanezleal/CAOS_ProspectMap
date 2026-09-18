@@ -99,8 +99,8 @@ export default function Experiments() {
       )}
       <Callout variant="strong" title={es ? 'Protocolo de bloques espaciales' : 'Spatial-block protocol'}>
         {es
-          ? 'Particiones espaciales contiguas por k-means sobre las coordenadas de celda (k=5), más estrictas que el esquema entrelazado blockId % k del App: bajo holdout contiguo, un bloque held-out está espacialmente separado de su entrenamiento, así que la pregunta es honesta: ¿puede la geofísica regional predecir un distrito del que nunca vio un vecino? El AUC bootstrap se reporta con IC 95%.'
-          : 'Contiguous spatial folds by k-means on cell coordinates (k=5), stricter than the App\'s interleaved blockId % k: under contiguous holdout a held-out block is spatially separated from its training, so the question is honest: can regional geophysics predict a district it never saw a neighbour of? Bootstrap AUC is reported with a 95% CI.'}
+          ? 'Particiones espaciales contiguas por k-means sobre las coordenadas de celda (k=5), más estrictas que el esquema entrelazado blockId % k del App: bajo holdout contiguo, un bloque held-out está espacialmente separado de su entrenamiento, así que la pregunta es estricta: ¿puede la geofísica regional predecir un distrito del que nunca vio un vecino? El AUC bootstrap se reporta con IC 95%.'
+          : 'Contiguous spatial folds by k-means on cell coordinates (k=5), stricter than the App\'s interleaved blockId % k: under contiguous holdout a held-out block is spatially separated from its training, so the question is strict: can regional geophysics predict a district it never saw a neighbour of? Bootstrap AUC is reported with a 95% CI.'}
       </Callout>
     </article>
   );

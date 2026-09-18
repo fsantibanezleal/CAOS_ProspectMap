@@ -10,16 +10,17 @@ What-if (MLP) and Anomaly (AE) tabs are honest learned tools on real data, not t
      anomaly score. Feature standardization is baked into the graph so the browser feeds raw cube
      values (the SAME [0,1] arrays it renders).
 
-Evaluation, recorded in data/derived/pm-learned-real.json (schema prospectmap.learned/v2):
+Evaluation, recorded in data/derived/pm-learned-real.json (schema prospectmap.learned/v3):
 
   - classifier.spatial_cv / random_cv: the MLP and the white-box WofE under ONE protocol, the one behind the WofE
-    cross-validation AUCs of the committed bake (case-results.json): the engine's folds, each model refitted on the
-    training folds only, every map cell scored once while held out, the held-out scores pooled into one rank ROC AUC
+    cross-validation AUCs of the committed bake (case-results.json): the engine's folds, each model fitted on the
+    training folds' cells only (for WofE: thresholds, weights and prior), every map cell scored once while held out,
+    the held-out scores pooled into one rank ROC AUC
     (pipeline/model/head_to_head.py). The engine's held-out WofE posterior and folds come from
     science/real_wofe_oof.mjs; the run stops if the AUCs re-derived from that export differ from the bake. `winner`
-    compares only these two like-for-like values. Beside them, `distance_null_roc_auc` is the engine's
-    distance-to-known-deposit baseline under the same folds: the ranking skill proximity alone reaches (the spatial
-    folds interleave blocks), a reference and never a contestant.
+    compares only these two like-for-like values. Beside them, `lr_roc_auc` is the engine's out-of-fold logistic
+    regression and `distance_null_roc_auc` the engine's distance-to-known-deposit baseline under the same folds (the
+    ranking skill proximity alone reaches; the spatial folds interleave blocks): references, never contestants.
   - classifier.nocv: the WofE AUC without cross-validation (weights fitted on every deposit, scored on the same
     cells). A fitting AUC, kept apart from every cross-validated value (GitHub issue #41).
   - classifier.labelled_sample_cv: the MLP-only CV on its labelled sample (mean of per-fold AUCs, shuffled blocks);
@@ -45,6 +46,7 @@ from .model.head_to_head import (
     check_oof_matches_bake,
     distance_null_aucs,
     load_wofe_oof,
+    reference_aucs,
     rank_auc,
     sample_negatives_in_pool,
 )
@@ -270,6 +272,7 @@ def main():
         raise SystemExit("the engine export and cube.json disagree on the deposit cells")
     wofe_cv = check_oof_matches_bake(oof, case_result)
     null_cv = distance_null_aucs(oof)  # the proximity-only reference under the same folds
+    lr_cv = reference_aucs(oof, "lr")  # the engine's out-of-fold logistic regression, the CI-free reference
     cells = oof["cells"]
     labels = y[cells]
     mlp_cv = {}
@@ -281,28 +284,27 @@ def main():
         case_result=case_result, wofe_cv=wofe_cv, mlp_cv=mlp_cv,
         labelled={"spatial": ls_spatial, "random": ls_random, "n_pos": len(pos), "n_neg": len(neg)},
         k=oof["k"], block_cells=oof["block_cells"], random_seed=oof["random_seed"],
-        null_cv=null_cv, null_scale_cells=oof["null_scale_cells"],
+        null_cv=null_cv, null_scale_cells=oof["null_scale_cells"], lr_cv=lr_cv,
     )
     out = {
         "schema": LEARNED_REAL_SCHEMA,
         "case_id": CASE_ID,
         "classifier": classifier,
         "ood": {"auc": None, "nEval": int(finite.sum()), "threshold": round(threshold, 4)},
-        "honesty": (
-            "Trained on the REAL US Midcontinent MVT cube (6 real evidence features), NOT the synthetic "
-            "4-feature models. Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), "
-            "never observed. The MLP and the white-box WofE are compared under ONE protocol: the engine's "
-            "spatial-block folds, each model refitted on the training folds, every map cell scored once while "
-            "held out, the held-out scores pooled into one ROC AUC; the engine's random folds give the random-CV "
-            "values and the inflation gap. The WofE AUC without cross-validation is kept apart (nocv) and is never "
-            "compared with a cross-validated value. The labelled-sample CV is an MLP-only measurement on a "
-            "different cell set, with no WofE counterpart. MVT occurrences are strongly clustered and the engine's "
-            "spatial folds interleave blocks, so every held-out block borders training blocks: the distance-to-"
-            "known-deposit baseline scored under the same folds (distance_null_roc_auc) is the ranking skill "
-            "proximity alone reaches, and a model must beat it to claim it learned geology. The "
+        "scope": (
+            "Trained on the real US Midcontinent MVT cube (6 real evidence features), not the synthetic "
+            "4-feature models. Deposit labels are presence-only; negatives are sampled (distance-buffered), not "
+            "observed. The MLP and the white-box WofE are compared under one protocol: the engine's spatial-block "
+            "folds, each model fitted on the training folds' cells only (for WofE: thresholds, weights and prior), "
+            "every map cell scored once while held out, the held-out scores pooled into one ROC AUC; the engine's "
+            "random folds give the random-CV values and the inflation gap. The WofE AUC without cross-validation "
+            "(nocv) is a fitting number and is not compared with a cross-validated value. The labelled-sample CV is "
+            "an MLP-only measurement on a different cell set, with no WofE counterpart. MVT occurrences are strongly "
+            "clustered and the engine's spatial folds interleave blocks, so every held-out block borders training "
+            "blocks: the distance-to-known-deposit baseline scored under the same folds (distance_null_roc_auc) is "
+            "the ranking skill proximity alone reaches, and a model must beat it to claim it learned geology. The "
             "contiguous-fold head-to-head in pu-conformal.json is the stricter transfer test. The random-CV values "
-            "are inflated and shown only to expose that. The OOD AE flags cells outside the labelled geology "
-            "envelope. Reported whichever way the numbers land."
+            "are inflated by spatial autocorrelation. The OOD AE flags cells outside the labelled geology envelope."
         ),
     }
     # LF on every platform, so a re-run is byte-identical on Windows and Linux
@@ -310,7 +312,8 @@ def main():
     s = classifier["spatial_cv"]
     r = classifier["random_cv"]
     print(f"head-to-head (all {classifier['nEval']} map cells, engine folds, pooled): spatial-CV AUC "
-          f"MLP {s['mlp_roc_auc']:.4f} vs WofE {s['wofe_roc_auc']:.4f} ({s['winner']}), distance null "
+          f"MLP {s['mlp_roc_auc']:.4f} vs WofE {s['wofe_roc_auc']:.4f} ({s['winner']}), LR {s['lr_roc_auc']:.4f}, "
+          f"distance null "
           f"{s['distance_null_roc_auc']:.4f}; random-CV MLP {r['mlp_roc_auc']:.4f} vs WofE {r['wofe_roc_auc']:.4f}, "
           f"distance null {r['distance_null_roc_auc']:.4f}; WofE without CV {classifier['nocv']['wofe_roc_auc']:.4f}")
     print(f"labelled-sample CV (MLP only): spatial {ls_spatial:.4f} random {ls_random:.4f}; "
