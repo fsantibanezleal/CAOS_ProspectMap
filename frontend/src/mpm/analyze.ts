@@ -45,8 +45,9 @@ export interface CaseAnalysis {
   lr: { rocAuc: number; betas: { id: string; beta: number }[] };
 }
 
-/** a WofE-posterior scoring function refit on a training deposit subset (for spatial-holdout CV). */
-function wofeScoreFn(cube: Cube, pats: Binarized[]): (train: Set<number>) => Float64Array {
+/** a WofE-posterior scoring function refit on a training deposit subset (for spatial-holdout CV). Exported so the
+ * offline real-lane export (science/real_wofe_oof.mjs) runs the SAME refit the bake's cv block uses. */
+export function wofeScoreFn(cube: Cube, pats: Binarized[]): (train: Set<number>) => Float64Array {
   return (train: Set<number>) => {
     const ws = pats.map((p) => weights(cube, p, train));
     return posterior(cube, pats, ws, undefined, train).prob;
