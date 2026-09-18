@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Callout, Cite, ReferenceList, useShellLang } from '@fasl-work/caos-app-shell';
-import { loadCaseResults, loadLearned, loadPuConformal, type LearnedFile, type PuConformalFile } from '../lib/artifacts.ts';
+import { loadCaseResults, loadLearned, loadLearnedReal, loadPuConformal, type LearnedFile, type PuConformalFile } from '../lib/artifacts.ts';
+import { headToHeadContext, headToHeadDeclared, headToHeadProtocol, headToHeadVerdict } from '../lib/learned.ts';
 
 interface Row { id: string; wofe: number; lr: number; ciRatio: number; inflation: number; }
+
+const f3 = (v: number | null | undefined) => (typeof v === 'number' ? v.toFixed(3) : 'n/a');
 
 export default function Benchmark() {
   const es = useShellLang() === 'es';
   const [rows, setRows] = useState<Row[] | null>(null);
   const [learned, setLearned] = useState<LearnedFile | null>(null);
+  const [learnedReal, setLearnedReal] = useState<LearnedFile | null>(null);
   const [pu, setPu] = useState<PuConformalFile | null>(null);
 
   useEffect(() => {
@@ -22,6 +26,7 @@ export default function Benchmark() {
       }));
     }).catch(() => setRows([]));
     loadLearned().then(setLearned).catch(() => setLearned(null));
+    loadLearnedReal().then(setLearnedReal).catch(() => setLearnedReal(null));
     loadPuConformal().then(setPu).catch(() => setPu(null));
   }, []);
 
@@ -40,7 +45,7 @@ export default function Benchmark() {
 
       {rows == null ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
         <table className="cmp-table">
-          <thead><tr><th>{es ? 'caso' : 'case'}</th><th>WofE AUC</th><th>LR AUC</th><th>CI ratio</th><th>{es ? 'inflación CV' : 'CV inflation'}</th></tr></thead>
+          <thead><tr><th>{es ? 'caso' : 'case'}</th><th>{es ? 'AUC WofE (ajuste)' : 'WofE AUC (fit)'}</th><th>{es ? 'AUC LR (ajuste)' : 'LR AUC (fit)'}</th><th>CI ratio</th><th>{es ? 'inflación CV' : 'CV inflation'}</th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
@@ -59,10 +64,18 @@ export default function Benchmark() {
         : 'Metric provenance: the WofE AUC and LR AUC columns are in-sample (fitting) numbers; the CV-inflation column comes from cross-validation. Spatially held-out capture lives in the App\'s Capture-rates tab.'}</p>
 
       <h2>{es ? 'Clasificador aprendido vs WofE' : 'Learned classifier vs WofE'}</h2>
+      <p className="pf-note">{es
+        ? 'Cada carril compara el MLP con WofE bajo un único protocolo, descrito junto a sus valores. Los dos carriles usan datos y protocolos distintos, así que sus valores no se comparan entre sí.'
+        : 'Each lane compares the MLP with WofE under one protocol, stated beside its values. The two lanes use different data and protocols, so their values are not compared with each other.'}</p>
       {learned ? (
-        <p className="pf-note">{es ? 'clasificador MPM AUC (spatial holdout): ' : 'mpm-classifier AUC (spatial holdout): '}<b>{String((learned.classifier?.spatial_cv as Record<string, number>)?.mlp_roc_auc ?? ', ')}</b> · OOD AUC <b>{learned.ood.auc.toFixed(3)}</b>{es ? ' (eval OOD sintético fuera de banda, separable por construcción)' : ' (synthetic out-of-band eval set, separable by construction)'}</p>
+        <p className="pf-note"><b>{es ? 'Carril sintético' : 'Synthetic lane'}</b> (<code>pm-learned.json</code>): {es ? 'AUC con CV espacial' : 'spatial-CV AUC'} MLP <b>{f3(learned.classifier.spatial_cv?.mlp_roc_auc)}</b> · WofE <b>{f3(learned.classifier.spatial_cv?.wofe_roc_auc)}</b>; {es ? 'CV aleatorio del MLP' : 'MLP random CV'} {f3(learned.classifier.random_cv?.mlp_roc_auc)} ({es ? 'inflación' : 'inflation'} {f3(learned.classifier.inflation_gap)}). {headToHeadProtocol('synthetic', learned, es)} {headToHeadVerdict('synthetic', learned, es)} {headToHeadContext('synthetic', learned, es)} OOD AUC {f3(learned.ood.auc)}{es ? ' (eval OOD sintético fuera de banda, separable por construcción).' : ' (synthetic out-of-band eval set, separable by construction).'}</p>
       ) : (
-        <p className="pf-note">{es ? 'Modelos aprendidos pendientes, ejecutar `python data-pipeline/run.py all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Learned models pending, run `python data-pipeline/run.py all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
+        <p className="pf-note">{es ? 'Modelos aprendidos sintéticos pendientes, ejecutar `python data-pipeline/run.py all --retrain`. El App usa el WofE exacto en vivo mientras tanto.' : 'Synthetic learned models pending, run `python data-pipeline/run.py all --retrain`. The App uses the exact WofE live meanwhile.'}</p>
+      )}
+      {learnedReal && headToHeadDeclared('real', learnedReal) && (
+        <p className="pf-note"><b>{es ? 'Carril real, US MVT' : 'Real lane, US MVT'}</b> (<code>pm-learned-real.json</code>): {es ? 'AUC con CV espacial' : 'spatial-CV AUC'} MLP <b>{f3(learnedReal.classifier.spatial_cv?.mlp_roc_auc)}</b> · WofE <b>{f3(learnedReal.classifier.spatial_cv?.wofe_roc_auc)}</b>; {es ? 'CV aleatorio' : 'random CV'} MLP {f3(learnedReal.classifier.random_cv?.mlp_roc_auc)} · WofE {f3(learnedReal.classifier.random_cv?.wofe_roc_auc)}. {headToHeadProtocol('real', learnedReal, es)} {headToHeadVerdict('real', learnedReal, es)} {headToHeadContext('real', learnedReal, es)} {es
+          ? `El AUC de WofE sin CV (${f3(learnedReal.classifier.nocv?.wofe_roc_auc)}, ajustado y evaluado en las mismas celdas) es un número de ajuste y no entra en la comparación.`
+          : `The WofE AUC without CV (${f3(learnedReal.classifier.nocv?.wofe_roc_auc)}, fitted and scored on the same cells) is a fitting number and takes no part in the comparison.`}</p>
       )}
 
       <h2>{es ? 'Head-to-head PU-Conformal (cubo real MVT, CV espacial contiguo)' : 'PU-Conformal head-to-head (real MVT cube, contiguous spatial CV)'}</h2>

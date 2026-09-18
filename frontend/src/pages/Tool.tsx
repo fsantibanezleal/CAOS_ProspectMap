@@ -7,6 +7,7 @@ import {
   type Cube, type MPMCase, type RealCase, type RealCubeFile,
 } from '../mpm/index.ts';
 import { loadLearned, loadLearnedReal, loadPuConformal, loadRealCube, type LearnedFile, type PuConformalFile } from '../lib/artifacts.ts';
+import { headToHeadContext, headToHeadDeclared, headToHeadProtocol, headToHeadVerdict } from '../lib/learned.ts';
 import { runClassifier, runOod, runPuConformal, type Lane } from '../lib/ort.ts';
 import { MapView } from '../viz/MapView.tsx';
 import { PanelBoundary } from '../viz/PanelBoundary.tsx';
@@ -95,7 +96,7 @@ function calibration(cube: Cube, field: Float64Array, bins = 10) {
 const TAB_GROUPS: { id: string; en: string; es: string; members: string[] }[] = [
   { id: 'map',      en: 'Map',        es: 'Mapa',        members: ['map', 'weights'] },
   { id: 'evidence', en: 'Evidence',   es: 'Evidencia',   members: ['rates', 'ci'] },
-  { id: 'skill',    en: 'Skill',      es: 'Desempeno',   members: ['roc', 'cv', 'calib'] },
+  { id: 'skill',    en: 'Skill',      es: 'Desempeño',   members: ['roc', 'cv', 'calib'] },
   { id: 'compare',  en: 'Compare',    es: 'Comparar',    members: ['method', 'overlay'] },
   { id: 'learned',  en: 'Learned',    es: 'Aprendido',   members: ['whatif', 'anomaly', 'puconformal'] },
 ];
@@ -394,9 +395,14 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
     return { tpr, fpr };
   }, [cube, map]);
 
-  const clf = learned?.classifier as {
-    spatial_cv?: Record<string, number>; random_cv?: Record<string, number>; inflation_gap?: number;
-  } | undefined;
+  const clf = learned?.classifier;
+  // the WofE value of the head-to-head is shown only when the file declares the pair's protocol
+  const h2hDeclared = headToHeadDeclared(lane, learned);
+  const h2hVerdict = headToHeadVerdict(lane, learned, es);
+
+  // every AUC below states its protocol; values computed under different protocols are never set up as a contest
+  const FIT = es ? 'ajuste, sin CV' : 'fit, no CV';
+  const fitAuc = (model: string) => (es ? `AUC ${model} (${FIT})` : `${model} AUC (${FIT})`);
 
   const recomputeNote = isReal
     ? (es ? 'El posterior es nuestra recomputación WofE en el navegador sobre una sub-región rasterizada, no el modelo H3+gradient-boosting publicado (Lawley 2022).' : 'The posterior is our browser WofE recomputation over a rasterized sub-region, not the published Lawley 2022 H3 + gradient-boosting model.')
@@ -413,7 +419,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             {isReal && <> {recomputeNote}</>}</div>
           <MapView nx={cube.nx} ny={cube.ny} field={map.field} range={map.range} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={map.label} />
           <div className="pf-kpis">
-            <Kpi label="ROC AUC" value={analysis.rocAuc.toFixed(3)} />
+            <Kpi label={fitAuc('WofE')} value={analysis.rocAuc.toFixed(3)} />
             <Kpi label="capture@10%" value={pct(analysis.capture.prediction.captureAt10)} />
             <Kpi label="CI ratio" value={ci.ciRatio.toFixed(2)} />
             <Kpi label={es ? 'depósitos' : 'deposits'} value={`${cube.depositIdx.length}`} />
@@ -470,8 +476,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
           <div className="pf-plot-t">{es ? 'Curva ROC del posterior vs las etiquetas de depósito. Con datos presence-only el AUC es secundario (las "ausencias" pueden tener depósitos no descubiertos).' : 'ROC of the posterior vs the deposit labels. With presence-only data AUC is secondary (the "absences" may host undiscovered deposits).'}</div>
           <CurveChart x={roc.fpr} series={[{ label: method === 'logistic' ? 'logistic' : 'WofE', y: roc.tpr }]} xLabel="FPR" yLabel="TPR" diagonal />
           <div className="pf-kpis">
-            <Kpi label="WofE AUC" value={analysis.rocAuc.toFixed(3)} />
-            <Kpi label="LR AUC" value={analysis.lr.rocAuc.toFixed(3)} />
+            <Kpi label={fitAuc('WofE')} value={analysis.rocAuc.toFixed(3)} />
+            <Kpi label={fitAuc('LR')} value={analysis.lr.rocAuc.toFixed(3)} />
           </div>
         </div>
       ),
@@ -509,11 +515,11 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <div className="pf-plot-t">{es
-            ? 'El mismo modelo bajo CV aleatorio vs CV espacial-por-bloques. El gap es la inflación por autocorrelación espacial (el AUC aleatorio miente).'
-            : 'The same model under random CV vs spatial-block CV. The gap is the inflation from spatial autocorrelation (the random AUC lies).'}</div>
+            ? `El mismo modelo (WofE) bajo CV aleatorio vs CV espacial-por-bloques: ${analysis.cv.k} folds, bloques de ${analysis.cv.blockCells}x${analysis.cv.blockCells} celdas, pesos reajustados con los folds de entrenamiento, cada celda del mapa puntuada una vez mientras está retenida, un único AUC sobre los scores agrupados. El gap es la inflación por autocorrelación espacial (el AUC aleatorio miente).`
+            : `The same model (WofE) under random CV vs spatial-block CV: ${analysis.cv.k} folds, ${analysis.cv.blockCells}x${analysis.cv.blockCells}-cell blocks, weights refitted on the training folds, every map cell scored once while held out, one AUC over the pooled scores. The gap is the inflation from spatial autocorrelation (the random AUC lies).`}</div>
           <div className="pf-kpis">
-            <Kpi label={es ? 'CV aleatorio AUC' : 'random-CV AUC'} value={analysis.cv.randomAuc.toFixed(3)} />
-            <Kpi label={es ? 'CV espacial AUC' : 'spatial-CV AUC'} value={analysis.cv.spatialAuc.toFixed(3)} />
+            <Kpi label={es ? 'AUC WofE, CV aleatorio' : 'WofE AUC, random CV'} value={analysis.cv.randomAuc.toFixed(3)} />
+            <Kpi label={es ? 'AUC WofE, CV espacial' : 'WofE AUC, spatial CV'} value={analysis.cv.spatialAuc.toFixed(3)} />
             <Kpi label={es ? 'gap de inflación' : 'inflation gap'} value={analysis.cv.inflationGap.toFixed(3)} />
           </div>
           <p className="pf-note">{es
@@ -528,17 +534,19 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
       content: (
         <div className="pf-vizstack">
           <table className="cmp-table">
-            <thead><tr><th>{es ? 'método' : 'method'}</th><th>ROC AUC</th><th>{es ? 'nota' : 'note'}</th></tr></thead>
+            <thead><tr><th>{es ? 'método' : 'method'}</th><th>ROC AUC</th><th>{es ? 'protocolo' : 'protocol'}</th><th>{es ? 'nota' : 'note'}</th></tr></thead>
             <tbody>
-              <tr><td><b>WofE</b></td><td>{analysis.rocAuc.toFixed(3)}</td><td>{es ? 'caja blanca, la autoridad' : 'white-box, the authority'}</td></tr>
-              <tr><td>{es ? 'logística' : 'logistic'}</td><td>{analysis.lr.rocAuc.toFixed(3)}</td><td>{es ? 'sin supuesto de independencia condicional' : 'no conditional-independence assumption'}</td></tr>
-              <tr><td>{es ? 'fuzzy / index-overlay' : 'fuzzy / index-overlay'}</td><td>{fuzzyAuc.toFixed(3)}</td><td>{es ? 'operador gamma, sin ajuste ni supuesto de CI' : 'gamma operator, no fitting, no CI assumption'}</td></tr>
-              <tr><td>{es ? 'aprendido (MLP)' : 'learned (MLP)'}</td><td>{num(clf?.spatial_cv?.mlp_roc_auc)}</td><td>{es ? 'CV espacial sobre el set etiquetado' : 'spatial CV on the labelled set'}</td></tr>
+              <tr><td><b>WofE</b></td><td>{analysis.rocAuc.toFixed(3)}</td><td>{es ? 'ajustado y evaluado en las mismas celdas, sin CV' : 'fitted and scored on the same cells, no CV'}</td><td>{es ? 'caja blanca, la autoridad' : 'white-box, the authority'}</td></tr>
+              <tr><td>{es ? 'logística' : 'logistic'}</td><td>{analysis.lr.rocAuc.toFixed(3)}</td><td>{es ? 'ajustado y evaluado en las mismas celdas, sin CV' : 'fitted and scored on the same cells, no CV'}</td><td>{es ? 'sin supuesto de independencia condicional' : 'no conditional-independence assumption'}</td></tr>
+              <tr><td>{es ? 'fuzzy / index-overlay' : 'fuzzy / index-overlay'}</td><td>{fuzzyAuc.toFixed(3)}</td><td>{es ? 'sin ajuste (no usa las etiquetas), evaluado en las mismas celdas' : 'no fitting (labels unused), scored on the same cells'}</td><td>{es ? 'operador gamma, sin supuesto de CI' : 'gamma operator, no CI assumption'}</td></tr>
             </tbody>
           </table>
           <p className="pf-note">{es
             ? 'Cuando se cumple la independencia condicional, la logística ~ WofE. Cuando se viola, la logística ajusta las capas en conjunto y no doble-cuenta. El overlay fuzzy es un método MPM clásico sin ajuste.'
             : 'When conditional independence holds, logistic ~ WofE. When it is violated, logistic fits the layers jointly and does not double-count. The fuzzy overlay is a classic fit-free MPM method.'}</p>
+          <p className="pf-note">{es
+            ? 'Las tres filas comparten protocolo: todas las celdas del mapa con las capas activas, sin datos retenidos, así que WofE y la logística son optimistas. La habilidad con datos retenidos está en Desempeño > Validación CV. El MLP aprendido tiene otro protocolo (validación cruzada), por eso no está en esta tabla: se compara con WofE bajo un único protocolo compartido en Aprendido > What-if.'
+            : 'The three rows share one protocol: every map cell of the active layers, nothing held out, so WofE and logistic are optimistic. Held-out skill is in Skill > CV inflation. The learned MLP is measured under another protocol (cross-validation), so it is not in this table: it is compared with WofE under one shared protocol in Learned > What-if.'}</p>
         </div>
       ),
     },
@@ -551,8 +559,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             : 'Fuzzy-logic / index-overlay combiner (Bonham-Carter 1994; Carranza 2009): each layer maps to a favourable fuzzy membership in [0,1]; the gamma operator blends the fuzzy-AND (product) and the fuzzy-OR. No data fitting, no conditional-independence assumption, a distinct MPM method from WofE/LR.'}</div>
           <MapView nx={cube.nx} ny={cube.ny} field={fuzzyField} range={[0, 1]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel={es ? 'favorabilidad' : 'favourability'} />
           <div className="pf-kpis">
-            <Kpi label={es ? 'fuzzy ROC AUC' : 'fuzzy ROC AUC'} value={fuzzyAuc.toFixed(3)} />
-            <Kpi label="WofE AUC" value={analysis.rocAuc.toFixed(3)} />
+            <Kpi label={es ? 'AUC fuzzy (sin ajuste)' : 'fuzzy AUC (no fitting)'} value={fuzzyAuc.toFixed(3)} />
+            <Kpi label={fitAuc('WofE')} value={analysis.rocAuc.toFixed(3)} />
             <Kpi label="gamma" value="0.80" />
           </div>
           <p className="pf-note">{es
@@ -601,15 +609,23 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
             <>
               <MapView nx={cube.nx} ny={cube.ny} field={learnedField} range={[0, 1]} deposits={cube.depositIdx} lang={es ? 'es' : 'en'} valueLabel="P(MLP)" />
               <div className="pf-kpis">
-                <Kpi label={es ? 'MLP spatial-CV AUC' : 'MLP spatial-CV AUC'} value={num(clf?.spatial_cv?.mlp_roc_auc)} />
-                <Kpi label="WofE AUC" value={num(clf?.spatial_cv?.wofe_roc_auc)} />
-                <Kpi label={es ? 'CV aleatorio (inflado)' : 'random-CV (inflated)'} value={num(clf?.random_cv?.mlp_roc_auc)} />
-                <Kpi label={es ? 'gap de inflación' : 'inflation gap'} value={num(clf?.inflation_gap)} />
+                <Kpi label={es ? 'AUC MLP, CV espacial' : 'MLP AUC, spatial CV'} value={num(clf?.spatial_cv?.mlp_roc_auc)} />
+                <Kpi label={es ? 'AUC WofE, CV espacial' : 'WofE AUC, spatial CV'} value={h2hDeclared ? num(clf?.spatial_cv?.wofe_roc_auc) : 'n/a'} />
+                <Kpi label={es ? 'AUC MLP, CV aleatorio (inflado)' : 'MLP AUC, random CV (inflated)'} value={num(clf?.random_cv?.mlp_roc_auc)} />
+                <Kpi label={es ? 'gap de inflación del MLP' : 'MLP inflation gap'} value={num(clf?.inflation_gap)} />
+                {h2hDeclared && typeof clf?.spatial_cv?.distance_null_roc_auc === 'number' && (
+                  <Kpi label={es ? 'AUC línea base de distancia, CV espacial' : 'distance baseline AUC, spatial CV'} value={num(clf.spatial_cv.distance_null_roc_auc)} />
+                )}
               </div>
+              <p className="pf-note">{headToHeadProtocol(lane, learned, es)}{h2hVerdict && <> {h2hVerdict}</>} {headToHeadContext(lane, learned, es)} {isReal
+                ? (es ? 'Son valores offline con las seis capas; activar o desactivar capas no los cambia.' : 'These are offline values over all six layers; toggling layers does not change them.')
+                : (es ? 'Son valores offline agrupados sobre los casos de entrenamiento; ni el caso elegido ni las capas activas los cambian.' : 'These are offline values pooled over the training cases; neither the selected case nor the active layers change them.')}</p>
               <p className="pf-note">{es
-                ? 'El WofE de caja blanca es la autoridad interpretable; el MLP se valida por CV espacial y se reporta junto al CV aleatorio (el gap de inflación). No hay victoria fabricada.'
-                : 'The white-box WofE is the interpretable authority; the MLP is validated by spatial CV and reported beside random CV (the inflation gap). No fabricated win.'}
-                {isReal && <> {es ? 'Aviso honesto: el AUC del MLP se mide sobre el set etiquetado con negativos muestreados (buffer), no idéntico al eval de rejilla completa del WofE.' : 'Honest caveat: the MLP AUC is measured on the labelled set with buffered sampled negatives, not identical to the WofE full-grid eval.'}</>}</p>
+                ? 'El WofE de caja blanca es la autoridad interpretable. El CV aleatorio se muestra solo para exponer la inflación (aleatorio menos espacial). No hay victoria fabricada: solo se comparan valores medidos con el mismo protocolo.'
+                : 'The white-box WofE is the interpretable authority. Random CV is shown only to expose the inflation (random minus spatial). No fabricated win: only values measured under the same protocol are compared.'}
+                {isReal && clf?.nocv && <> {es
+                  ? `El AUC de WofE sin CV (ajustado y evaluado en las mismas celdas, ${num(clf.nocv.wofe_roc_auc)}) es un número de ajuste y no se compara con estos.`
+                  : `The WofE AUC without CV (fitted and scored on the same cells, ${num(clf.nocv.wofe_roc_auc)}) is a fitting number and is not compared with these.`}</>}</p>
             </>
           )}
         </div>
@@ -681,7 +697,7 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
                 </div>
               </div>
               <div className="pf-kpis">
-                <Kpi label={es ? 'AUC CV-espacial (pi)' : 'spatial-CV AUC (pi)'} value={num(piRow?.block_cv_auc)} />
+                <Kpi label={es ? 'AUC CV bloques contiguos (pi)' : 'contiguous-fold CV AUC (pi)'} value={num(piRow?.block_cv_auc)} />
                 <Kpi label={es ? 'cobertura empírica' : 'empirical coverage'} value={confLevel ? pct(confLevel.empirical_coverage, 0) : 'n/a'} />
                 <Kpi label={es ? 'nominal' : 'nominal'} value={confLevel ? pct(confLevel.nominal, 0) : 'n/a'} />
                 <Kpi label={es ? 'tamaño del conjunto (área)' : 'set size (area)'} value={confLevel ? pct(confLevel.set_size_frac, 0) : 'n/a'} />
@@ -695,8 +711,8 @@ function CubeViews({ cube, activeIds, method, lane, learned, isReal, es, puConfo
                 </>
               )}
               <p className="pf-note">{es
-                ? `Resultado honesto: sobre el belt MVT agrupado, PU-Conformal (AUC CV-espacial ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) no supera al WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) en ranking; el null de distancia-a-depósito ya alcanza ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. La cobertura conforme se cumple, pero solo marcando ~${pct(confLevel?.set_size_frac ?? 0, 0)} del belt: un conjunto casi vacío que reporta honestamente que la geofísica regional no localiza MVT bajo transferencia espacial. El avance es la incertidumbre calibrada y corregida por sesgo, no un AUC mayor.`
-                : `Honest result: over the clustered MVT belt, PU-Conformal (spatial-CV AUC ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) does not beat WofE (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) in ranking; the distance-to-deposit null alone reaches ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. Conformal coverage holds, but only by flagging ~${pct(confLevel?.set_size_frac ?? 0, 0)} of the belt: a near-vacuous set that honestly reports regional geophysics cannot localize MVT under spatial transfer. The advance is calibrated, bias-corrected uncertainty, not a higher AUC.`}</p>
+                ? `Resultado honesto: sobre el belt MVT agrupado, PU-Conformal (AUC CV bloques contiguos ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) no supera al WofE en las mismas particiones (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) en ranking; el null de distancia-a-depósito ya alcanza ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. La cobertura conforme se cumple, pero solo marcando ~${pct(confLevel?.set_size_frac ?? 0, 0)} del belt: un conjunto casi vacío que reporta honestamente que la geofísica regional no localiza MVT bajo transferencia espacial. El avance es la incertidumbre calibrada y corregida por sesgo, no un AUC mayor.`
+                : `Honest result: over the clustered MVT belt, PU-Conformal (contiguous-fold CV AUC ${num(puConformal?.benchmark?.find((b) => b.model === 'pu_conformal')?.auc)}) does not beat WofE on the same folds (${num(puConformal?.benchmark?.find((b) => b.model === 'wofe')?.auc)}) in ranking; the distance-to-deposit null alone reaches ${num(puConformal?.negative_controls?.distance_to_deposit_null?.distance_to_deposit_auc)}. Conformal coverage holds, but only by flagging ~${pct(confLevel?.set_size_frac ?? 0, 0)} of the belt: a near-vacuous set that honestly reports regional geophysics cannot localize MVT under spatial transfer. The advance is calibrated, bias-corrected uncertainty, not a higher AUC.`}</p>
             </>
           )}
         </div>
