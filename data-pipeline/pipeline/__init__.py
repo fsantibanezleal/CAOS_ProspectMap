@@ -8,4 +8,4 @@ by the SAME TS engine the browser runs) into per-case CONTRACT-2 traces + manife
 (torch -> ONNX) in pipeline/science/.
 """
 
-__version__ = "0.08.000"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.8.0)
+__version__ = "0.10.001"  # display X.XX.XXX; mirrors the root VERSION file (the source of truth)
