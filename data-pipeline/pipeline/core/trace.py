@@ -1,7 +1,7 @@
 """The compact per-case TRACE = the web-replay artifact. Part of CONTRACT 2: its shape is mirrored by
 frontend/src/lib/contract.types.ts, so a drift fails the web build. Built deterministically from the committed bake
-(case-results.json, produced by the SAME TS engine the browser runs) + the learned-model metrics (pm-learned.json,
-when present). Carries the case SPEC so the browser can REGENERATE the synthetic cube + recompute WofE LIVE, the
+(case-results.json, produced by the SAME TS engine the browser runs) + the learned-model metrics of the case's own
+lane (pm-learned.json for the synthetic cases, pm-learned-real.json for a real case, when present). Carries the case SPEC so the browser can REGENERATE the synthetic cube + recompute WofE LIVE, the
 per-layer weights, the combined-posterior summary, the conditional-independence diagnostics, the success +
 prediction-rate capture curves, the random-vs-spatial-CV inflation gap, the logistic-regression comparison, and the
 learned-model metrics."""

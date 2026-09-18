@@ -18,16 +18,50 @@ export interface CaseResultsFile {
   cases: Record<string, unknown>;
 }
 
+/** One cross-validation scheme of the learned-vs-WofE head-to-head: both values come from ONE protocol. */
+export interface LearnedPair {
+  mlp_roc_auc?: number;
+  wofe_roc_auc?: number;
+  winner?: 'mlp' | 'wofe' | 'tie';
+  /** the engine's distance-to-known-deposit baseline under the same protocol: a reference, never a contestant */
+  distance_null_roc_auc?: number;
+}
+
+/** The shared head-to-head protocol, declared by the real lane (prospectmap.learned/v2). The synthetic lane's file
+ * (v1) does not carry it; its protocol is fixed by science/gen_train.mjs + train_mpm.py (see lib/learned.ts). */
+export interface LearnedProtocol {
+  cell_set: string;
+  n_cells: number;
+  n_deposit_cells: number;
+  k: number;
+  block_cells: number;
+  random_seed: number;
+  folds?: string;
+  refit?: string;
+  aggregation?: string;
+  baseline?: string;
+}
+
 export interface LearnedFile {
   schema: string;
+  case_id?: string;
   classifier: {
-    spatial_cv?: Record<string, number | string>;
-    random_cv?: Record<string, number>;
+    protocol?: LearnedProtocol;
+    spatial_cv?: LearnedPair;
+    random_cv?: LearnedPair;
     inflation_gap?: number;
+    /** the WofE AUC WITHOUT cross-validation (fitted and scored on the same cells); never a CV value */
+    nocv?: { wofe_roc_auc: number; protocol: string };
+    /** the MLP-only CV on its labelled sample (a different cell set, no WofE counterpart) */
+    labelled_sample_cv?: {
+      protocol: string; n_pos: number; n_neg: number;
+      spatial_mlp_roc_auc: number; random_mlp_roc_auc: number; inflation_gap: number;
+    };
+    mlp_roc_auc?: number;
     nFolds?: number;
     nEval?: number;
   };
-  ood: { auc: number; nEval: number; threshold: number };
+  ood: { auc: number | null; nEval: number; threshold: number };
   honesty: string;
 }
 

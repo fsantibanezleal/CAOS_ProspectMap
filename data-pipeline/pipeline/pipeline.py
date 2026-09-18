@@ -1,6 +1,7 @@
 """The offline pipeline orchestrator + CLI (ADR-0057). Per case it applies CONTRACT 1, builds the compact per-case
-trace from the committed bake (case-results.json) + the learned-model metrics (pm-learned.json, when present), runs
-the lane gate, and writes the manifest + a flat index (CONTRACT 2). The committed case-results.json IS the TS engine's
+trace from the committed bake (case-results.json) + the learned-model metrics of the case's own lane (pm-learned.json
+for the synthetic cases, pm-learned-real.json for a real case, when present), runs the lane gate, and writes the
+manifest + a flat index (CONTRACT 2). The committed case-results.json IS the TS engine's
 real output (baked by the SAME engine the browser runs), so the DEFAULT path is light (numpy/stdlib, no torch/node)
 and deterministic. `--retrain` regenerates the artifacts (re-bake the cases + train the learned models torch -> ONNX)
 - see pipeline/science/.
@@ -17,7 +18,7 @@ from pathlib import Path
 
 from . import registry
 from .cases.mpm_cases import descriptor_row
-from .core.manifest import build_index
+from .core.manifest import LEARNED_METRICS_FILE, build_index
 from .io.contract import validate_records
 from .io.formats import read_json, write_json
 from .stages import export
@@ -28,15 +29,18 @@ MANIFESTS = DERIVED / "manifests"
 SCIENCE = Path(__file__).resolve().parent / "science"
 
 
-def _load_artifacts() -> tuple[dict, dict | None]:
+def _load_artifacts() -> tuple[dict, dict[str, dict | None]]:
+    """(case-results, {source: learned metrics or None}). Each source's learned file is optional until trained."""
     cr = DERIVED / "case-results.json"
     if not cr.exists():
         raise SystemExit(
             f"missing committed artifact {cr}. case-results.json is baked by the TS engine "
             f"(science/bake_cases.mjs) - run `python data-pipeline/run.py all --retrain` (or `npm run bake` in frontend/)."
         )
-    learned_path = DERIVED / "pm-learned.json"
-    learned = read_json(learned_path) if learned_path.exists() else None  # learned models optional until trained
+    learned: dict[str, dict | None] = {}
+    for source, name in LEARNED_METRICS_FILE.items():
+        path = DERIVED / name
+        learned[source] = read_json(path) if path.exists() else None
     return read_json(cr), learned
 
 
@@ -46,12 +50,12 @@ def _contract_flags() -> list[dict]:
 
 
 def precompute(case_id: str, seed: int = 42,
-               artifacts: tuple[dict, dict | None] | None = None, flags: list[dict] | None = None) -> dict:
+               artifacts: tuple[dict, dict[str, dict | None]] | None = None, flags: list[dict] | None = None) -> dict:
     case = registry.get_case(case_id)
     case_results, learned = artifacts if artifacts is not None else _load_artifacts()
     return export.build_replay(
         case, derived_dir=str(DERIVED), manifests_dir=str(MANIFESTS),
-        case_results=case_results, learned=learned,
+        case_results=case_results, learned=learned.get(export.learned_source(case)),
         contract_flags=(flags if flags is not None else _contract_flags()), seed=seed,
     )
 

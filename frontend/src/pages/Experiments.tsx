@@ -35,15 +35,15 @@ export default function Experiments() {
     <article className="page-body prose">
       <h1>{es ? 'Experimentos' : 'Experiments'}</h1>
       <p className="lede">{es
-        ? 'Los 10 casos sintéticos, precalculados por el motor WofE. Cada fila lleva su ROC AUC, capture@10% (spatial CV), el CI ratio (+ z del omnibus), el gap de inflación random−spatial y el AUC de la regresión logística.'
-        : 'The 10 synthetic cases, baked by the WofE engine. Each row carries its ROC AUC, capture@10% (spatial CV), the CI ratio (+ omnibus z), the random−spatial inflation gap and the logistic-regression AUC.'}</p>
+        ? 'Los 10 casos sintéticos, precalculados por el motor WofE. Cada fila lleva su ROC AUC de WofE (ajustado y evaluado en las mismas celdas, sin CV), capture@10% (spatial CV), el CI ratio (+ z del omnibus), el gap de inflación random−spatial y el AUC de la regresión logística (también de ajuste, sin CV).'
+        : 'The 10 synthetic cases, baked by the WofE engine. Each row carries its WofE ROC AUC (fitted and scored on the same cells, no CV), capture@10% (spatial CV), the CI ratio (+ omnibus z), the random−spatial inflation gap and the logistic-regression AUC (also a fitting number, no CV).'}</p>
 
       {rows == null ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
         <table className="cmp-table">
           <thead>
             <tr>
               <th>{es ? 'caso' : 'case'}</th><th>{es ? 'categoría' : 'category'}</th><th>{es ? 'datos' : 'data'}</th>
-              <th>N(D)</th><th>ROC AUC</th><th>cap@10%</th><th>CI ratio</th><th>z</th><th>{es ? 'inflación' : 'inflation'}</th><th>LR AUC</th>
+              <th>N(D)</th><th>{es ? 'AUC WofE (ajuste)' : 'WofE AUC (fit)'}</th><th>cap@10%</th><th>CI ratio</th><th>z</th><th>{es ? 'inflación' : 'inflation'}</th><th>{es ? 'AUC LR (ajuste)' : 'LR AUC (fit)'}</th>
             </tr>
           </thead>
           <tbody>

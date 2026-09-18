@@ -20,8 +20,9 @@ The per-product surface is the **science engine** (Weights of Evidence), the vis
    capture curves + the random-vs-spatial-CV inflation gap + the logistic comparison) -> `data/derived/case-results.json`.
 2. The light pipeline (`pipeline.pipeline all`) applies Contract 1 to the case descriptors, reshapes `case-results.json`
    into per-case `trace.json` + `manifests/*.json` (Contract 2), and runs the lane gate.
-3. The SPA reads the manifests/traces + the shared artifacts (the 2 ONNX + `pm-learned.json`), and also recomputes the
-   WofE posterior live from the regenerated cube (the case spec is carried in the trace) so the App is fully reactive.
+3. The SPA reads the manifests/traces + the shared artifacts (each lane's 2 ONNX + its learned metrics:
+   `pm-learned.json` for the synthetic cases, `pm-learned-real.json` for the real cube), and also recomputes the WofE
+   posterior live from the regenerated cube (the case spec is carried in the trace) so the App is fully reactive.
 
 ## Frozen vs rework
 
