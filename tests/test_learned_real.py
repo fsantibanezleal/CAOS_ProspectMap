@@ -12,8 +12,9 @@ import json
 import numpy as np
 import pytest
 
-from pipeline import pipeline
+from pipeline import pipeline, registry
 from pipeline.model import head_to_head as h2h
+from pipeline.stages.export import learned_source
 
 REAL = "REAL-USMVT"
 
@@ -70,6 +71,31 @@ def test_winner_only_compares_the_like_for_like_pair(real):
     labelled = clf["labelled_sample_cv"]
     assert not any(k.startswith("wofe") for k in labelled), "the labelled-sample CV has no WofE counterpart"
     assert labelled["n_pos"] == real["classifier"]["protocol"]["n_deposit_cells"]
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# the replay records of the real case (built by pipeline.run_all on every deploy)
+# ---------------------------------------------------------------------------------------------------------------------
+def test_learned_source_routes_each_case_to_its_own_lane():
+    assert learned_source(registry.get_case(REAL)) == "real"
+    assert all(learned_source(c) == "synthetic" for c in registry.list_cases() if c.id != REAL)
+
+
+def test_real_case_trace_and_manifest_carry_the_real_lane(real):
+    trace = _read(f"{REAL}/trace.json")
+    assert trace["learned"]["classifier"] == real["classifier"]
+    manifest = _read(f"manifests/{REAL}.json")
+    assert manifest["shared"]["learned_metrics"] == "pm-learned-real.json"
+    assert {m["file"] for m in manifest["shared"]["models"]} == {"mpm-classifier-real.onnx", "geology-ood-real.onnx"}
+    assert manifest["metrics"]["clf_spatial_cv_auc"] == real["classifier"]["mlp_roc_auc"]
+    assert "ood_auc" not in manifest["metrics"], "the real lane has no OOD evaluation set"
+
+
+def test_synthetic_cases_keep_the_synthetic_lane():
+    synthetic = _read("pm-learned.json")
+    trace = _read("K-PORPHYRY/trace.json")
+    assert trace["learned"]["classifier"] == synthetic["classifier"]
+    assert _read("manifests/K-PORPHYRY.json")["shared"]["learned_metrics"] == "pm-learned.json"
 
 
 # ---------------------------------------------------------------------------------------------------------------------
