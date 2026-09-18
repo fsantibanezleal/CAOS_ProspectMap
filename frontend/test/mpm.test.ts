@@ -20,7 +20,7 @@ import { test } from 'node:test';
 import {
   analyzeCube, bestWeights, captureCurve, ciCheck, contingency2x2, crossValAuc, crossValScores, makeSyntheticArea,
   maskCells, nearestDepositScore, normCdf, omnibus, pairwiseChi2, posterior, randomFolds, rocAuc, spatialBlockFolds,
-  thresholdSweep, weightsFromCounts, fitLR, binarize, getLayer, wofeFoldModel, wofeFoldScoreFn,
+  thresholdSweep, weightsFromCounts, fitLR, binarize, getLayer, lrFoldScoreFn, wofeFoldModel, wofeFoldScoreFn,
 } from '../src/mpm/index.ts';
 import type { Cube } from '../src/mpm/index.ts';
 
@@ -318,4 +318,17 @@ test('the single-pass threshold sweep equals binarize + contingency2x2 at every 
       assert.equal(p.wMinus, w.wMinus);
     }
   }
+});
+
+test("the out-of-fold logistic regression cannot see a held-out fold's labels either", () => {
+  const { cube } = makeSyntheticArea(OOF_SPEC);
+  const ids = ['a', 'b'];
+  const folds = spatialBlockFolds(cube, 5, 16);
+  const f = 3;
+  const cube2: Cube = { ...cube, depositIdx: cube.depositIdx.filter((d) => folds[d] !== f) };
+  const h1 = crossValScores(cube, folds, 5, lrFoldScoreFn(cube, ids));
+  const h2 = crossValScores(cube2, folds, 5, lrFoldScoreFn(cube2, ids));
+  for (const i of maskCells(cube)) if (folds[i] === f) assert.equal(h1[i], h2[i], `held-out cell ${i}`);
+  const auc = crossValAuc(cube, folds, 5, lrFoldScoreFn(cube, ids));
+  assert.ok(auc > 0 && auc < 1, `a proper AUC (${auc})`);
 });

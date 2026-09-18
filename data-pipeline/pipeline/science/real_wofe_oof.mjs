@@ -9,8 +9,8 @@
 // they differ from the committed bake.
 //
 // The same folds also score the engine's distance-to-known-deposit baseline (nearestDepositScore: exp(-d / 4), d the
-// cell distance to the nearest TRAINING-fold deposit). It learns no geology, so it measures how much of a held-out AUC
-// is proximity to known deposits; a model must beat it to claim more.
+// cell distance to the nearest TRAINING-fold deposit), which learns no geology, and the out-of-fold logistic
+// regression (lrFoldScoreFn: the ridge LR on the training folds' binary patterns), the CI-free comparison model.
 //
 // Writes data/raw/<case>-wofe-oof.json (git-ignored, regenerable). Run from frontend/ so tsx resolves the engine:
 //   node --import tsx ../data-pipeline/pipeline/science/real_wofe_oof.mjs
@@ -18,7 +18,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  crossValAuc, crossValScores, cubeFromFile, depositSet, maskCells, nearestDepositScore, randomFolds,
+  crossValAuc, crossValScores, cubeFromFile, depositSet, lrFoldScoreFn, maskCells, nearestDepositScore, randomFolds,
   spatialBlockFolds, wofeFoldScoreFn, REAL_CASES,
 } from '../../../frontend/src/mpm/index.ts';
 
@@ -44,6 +44,7 @@ for (const rc of REAL_CASES) {
   // the same fold model analyzeCube cross-validates (each fold: thresholds, weights and prior from the training folds)
   const scoreFn = wofeFoldScoreFn(cube, rc.layerIds);
   const nullFn = nearestDepositScore(cube, NULL_SCALE_CELLS);
+  const lrFn = lrFoldScoreFn(cube, rc.layerIds);
   const cells = maskCells(cube);
 
   const scheme = (name, folds) => {
@@ -51,19 +52,26 @@ for (const rc of REAL_CASES) {
     const auc = crossValAuc(cube, folds, K, scoreFn);
     const nullHeld = crossValScores(cube, folds, K, nullFn);
     const nullAuc = crossValAuc(cube, folds, K, nullFn);
+    const lrHeld = crossValScores(cube, folds, K, lrFn);
+    const lrAuc = crossValAuc(cube, folds, K, lrFn);
     const foldOf = new Array(cells.length);
     const wofe = new Array(cells.length);
     const distanceNull = new Array(cells.length);
+    const lr = new Array(cells.length);
     for (let r = 0; r < cells.length; r++) {
       const i = cells[r];
-      if (folds[i] < 0 || Number.isNaN(heldOut[i]) || Number.isNaN(nullHeld[i])) {
+      if (folds[i] < 0 || Number.isNaN(heldOut[i]) || Number.isNaN(nullHeld[i]) || Number.isNaN(lrHeld[i])) {
         throw new Error(`[real_wofe_oof] ${rc.id} ${name}: cell ${i} has no held-out score`);
       }
       foldOf[r] = folds[i];
       wofe[r] = heldOut[i];
       distanceNull[r] = nullHeld[i];
+      lr[r] = lrHeld[i];
     }
-    return { folds: foldOf, wofe, engine_auc: auc, distance_null: distanceNull, distance_null_engine_auc: nullAuc };
+    return {
+      folds: foldOf, wofe, engine_auc: auc, distance_null: distanceNull, distance_null_engine_auc: nullAuc,
+      lr, lr_engine_auc: lrAuc,
+    };
   };
 
   const out = {
@@ -85,7 +93,8 @@ for (const rc of REAL_CASES) {
   writeFileSync(path, JSON.stringify(out));
   console.log(
     `[real_wofe_oof] ${rc.id}: ${cells.length} cells, ${out.deposit_cells.length} deposit cells; pooled AUC ` +
-      `spatial WofE ${out.spatial.engine_auc.toFixed(4)} / distance null ${out.spatial.distance_null_engine_auc.toFixed(4)}, ` +
-      `random WofE ${out.random.engine_auc.toFixed(4)} / distance null ${out.random.distance_null_engine_auc.toFixed(4)} -> ${path}`,
+      `spatial WofE ${out.spatial.engine_auc.toFixed(4)} / LR ${out.spatial.lr_engine_auc.toFixed(4)} / distance null ` +
+      `${out.spatial.distance_null_engine_auc.toFixed(4)}, random WofE ${out.random.engine_auc.toFixed(4)} / LR ` +
+      `${out.random.lr_engine_auc.toFixed(4)} / distance null ${out.random.distance_null_engine_auc.toFixed(4)} -> ${path}`,
   );
 }

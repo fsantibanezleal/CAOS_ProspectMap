@@ -6,8 +6,9 @@ labels and the same aggregation. The protocol here is the one behind the WofE cr
 bake (case-results.json, produced by the TypeScript engine's analyzeCube):
 
 - folds: the engine's spatialBlockFolds (20x20-cell blocks, fold = blockId % k) and randomFolds (seed 17);
-- refit: each model is refitted on the training folds only (WofE: weights from the training-fold deposits; the MLP:
-  the training-fold deposits plus distance-buffered negatives sampled from the training folds);
+- fit: each model is fitted on the training folds' cells only (WofE: each layer's threshold, its weights and the
+  prior, from the training folds' cells and deposits; the MLP: the training-fold deposits plus distance-buffered
+  negatives sampled from the training folds);
 - scoring: every map cell is scored exactly once, while its fold is held out;
 - aggregation: the held-out scores are pooled over the folds into one rank (Mann-Whitney) ROC AUC over all cells.
 
@@ -32,7 +33,7 @@ from pathlib import Path
 
 import numpy as np
 
-LEARNED_REAL_SCHEMA = "prospectmap.learned/v2"
+LEARNED_REAL_SCHEMA = "prospectmap.learned/v3"  # v3: the descriptive `honesty` text became `scope`
 WINNER_MARGIN = 0.005  # the tie band of the synthetic lane's head-to-head (science/train_mpm.py)
 CELL_SET = "all_map_cells"
 # AUCs are written at 6 decimals: the App shows 3, and a 4-decimal value such as 0.6365 would display as 0.636
@@ -117,6 +118,8 @@ def load_wofe_oof(path: str | Path) -> dict:
             "engine_auc": float(s["engine_auc"]),
             "distance_null": floats(s["distance_null"]),
             "distance_null_engine_auc": float(s["distance_null_engine_auc"]),
+            "lr": floats(s["lr"]),
+            "lr_engine_auc": float(s["lr_engine_auc"]),
         }
     return out
 
@@ -145,27 +148,35 @@ def check_oof_matches_bake(oof: dict, case_result: dict, tol: float = 1e-12) -> 
     return aucs
 
 
-def distance_null_aucs(oof: dict, tol: float = 1e-12) -> dict:
-    """Pooled AUCs of the engine's distance-to-known-deposit baseline under the export's folds, re-derived with
-    rank_auc and required to equal the engine's own values. Returns {'spatial': auc, 'random': auc}."""
+def reference_aucs(oof: dict, key: str, tol: float = 1e-12) -> dict:
+    """Pooled AUCs of a reference score in the export (`distance_null`: the engine's distance-to-known-deposit
+    baseline; `lr`: the engine's out-of-fold logistic regression) under the export's folds, re-derived with rank_auc
+    and required to equal the engine's own values. Returns {'spatial': auc, 'random': auc}."""
     labels = np.isin(oof["cells"], oof["deposit_cells"])
     aucs = {}
     for scheme in ("spatial", "random"):
-        auc = rank_auc(oof[scheme]["distance_null"], labels)
-        ref = oof[scheme]["distance_null_engine_auc"]
+        auc = rank_auc(oof[scheme][key], labels)
+        ref = oof[scheme][f"{key}_engine_auc"]
         if abs(auc - ref) > tol:
-            raise ValueError(f"distance-null {scheme}-CV AUC {auc!r} re-derived from the export != the engine ({ref!r})")
+            raise ValueError(f"{key} {scheme}-CV AUC {auc!r} re-derived from the export != the engine ({ref!r})")
         aucs[scheme] = auc
     return aucs
 
 
+def distance_null_aucs(oof: dict, tol: float = 1e-12) -> dict:
+    """reference_aucs for the distance-to-known-deposit baseline."""
+    return reference_aucs(oof, "distance_null", tol)
+
+
 def build_classifier_block(*, case_result: dict, wofe_cv: dict, mlp_cv: dict, labelled: dict,
                            k: int, block_cells: int, random_seed: int,
-                           null_cv: dict | None = None, null_scale_cells: float = 4.0) -> dict:
+                           null_cv: dict | None = None, null_scale_cells: float = 4.0,
+                           lr_cv: dict | None = None) -> dict:
     """Assemble the `classifier` block of pm-learned-real.json.
 
     wofe_cv / mlp_cv: pooled held-out AUCs under the shared protocol, {'spatial': float, 'random': float}.
     null_cv: the distance-to-known-deposit baseline under the same protocol (same keys), a reference beside the pair.
+    lr_cv: the engine's out-of-fold logistic regression under the same protocol (same keys), a second reference.
     labelled: the MLP-only labelled-sample CV, {'spatial', 'random', 'n_pos', 'n_neg'}; it has no WofE counterpart,
     so it carries no WofE value and no winner.
     """
@@ -182,16 +193,21 @@ def build_classifier_block(*, case_result: dict, wofe_cv: dict, mlp_cv: dict, la
         "winner": winner(mlp_spatial, wofe_spatial),  # from the written values, so the file can be re-checked
     }
     random_cv = {"mlp_roc_auc": rd(mlp_cv["random"]), "wofe_roc_auc": rd(wofe_cv["random"])}
-    baseline = {}
+    baseline: dict = {}
+    if lr_cv is not None:  # the CI-free comparison model under the same protocol, never in the verdict either
+        spatial_cv["lr_roc_auc"] = rd(lr_cv["spatial"])
+        random_cv["lr_roc_auc"] = rd(lr_cv["random"])
+        baseline["lr"] = ("lr: the engine's logistic regression (ridge 1e-3) on the binary patterns at the training "
+                          "folds' thresholds, fitted on the training folds' cells only, scored under the same folds")
     if null_cv is not None:  # a reference under the same protocol, never a contestant for `winner`
         spatial_cv["distance_null_roc_auc"] = rd(null_cv["spatial"])
         random_cv["distance_null_roc_auc"] = rd(null_cv["random"])
-        baseline = {"baseline": (
+        baseline["baseline"] = (
             f"distance_null: the engine's distance-to-known-deposit score exp(-d / {null_scale_cells:g}), d the cell "
             "distance to the nearest training-fold deposit, scored under the same folds; it learns no geology, so "
             "its AUC is the ranking skill that proximity to known deposits alone reaches, and a model must beat it "
             "to claim it learned geology. The spatial folds interleave blocks, so every held-out block borders "
-            "training blocks")}
+            "training blocks")
     return {
         "protocol": {
             "cell_set": CELL_SET,
@@ -202,9 +218,9 @@ def build_classifier_block(*, case_result: dict, wofe_cv: dict, mlp_cv: dict, la
             "random_seed": int(random_seed),
             "folds": (f"the TS engine's folds: spatial = spatialBlockFolds ({block_cells}x{block_cells}-cell blocks, "
                       f"fold = blockId % {k}); random = randomFolds (seed {random_seed})"),
-            "refit": ("each model refitted on the training folds only: WofE weights on the training-fold deposits; "
-                      "the MLP on the training-fold deposits plus distance-buffered negatives sampled from the "
-                      "training folds"),
+            "refit": ("each model fitted on the training folds' cells only: WofE thresholds, weights and prior from "
+                      "the training folds' cells and deposits; the MLP on the training-fold deposits plus "
+                      "distance-buffered negatives sampled from the training folds; the held-out fold is only scored"),
             "aggregation": (f"held-out scores pooled over the {k} folds into one rank (Mann-Whitney) ROC AUC over "
                             f"all {n_cells} map cells ({n_dep} deposit cells)"),
             **baseline,
@@ -214,8 +230,9 @@ def build_classifier_block(*, case_result: dict, wofe_cv: dict, mlp_cv: dict, la
         "inflation_gap": rd(mlp_cv["random"] - mlp_cv["spatial"]),
         "nocv": {
             "wofe_roc_auc": rd(case_result["rocAuc"]),
-            "protocol": (f"WofE weights fitted on all {n_dep} deposit cells and scored on the same {n_cells} cells, "
-                         "no hold-out: a fitting AUC, not comparable with the cross-validated values"),
+            "lr_roc_auc": rd(case_result["lr"]["rocAuc"]),
+            "protocol": (f"WofE (and the logistic regression) fitted on all {n_dep} deposit cells and scored on the same "
+                         f"{n_cells} cells, no hold-out: fitting AUCs, not comparable with the cross-validated values"),
         },
         "labelled_sample_cv": {
             "protocol": (f"MLP only, on its labelled sample ({labelled['n_pos']} deposit cells and "

@@ -59,6 +59,21 @@ export function wofeFoldModel(cube: Cube, layerIds: string[], trainCells: number
   return { patterns: fit.map((b) => b.pattern), weights: fit.map((b) => b.weights), trainCube };
 }
 
+/** the out-of-fold logistic regression of the same fold: the binary patterns at the training folds' thresholds
+ * (wofeFoldModel), the ridge LR analyzeCube fits (ridge 1e-3) fitted on the training folds' cells only, every cell
+ * scored. Offline comparison only (science/real_wofe_oof.mjs): the App does not run it live. */
+export function lrFoldScoreFn(cube: Cube, layerIds: string[]): FoldScoreFn {
+  return (_trainDeposits: Set<number>, trainCells: number[]) => {
+    const m = wofeFoldModel(cube, layerIds, trainCells);
+    const dep = depositSet(m.trainCube);
+    const row = (i: number) => m.patterns.map((p) => (p.present[i] === 1 ? 1 : 0));
+    const fit = fitLR(trainCells.map(row), trainCells.map((i) => (dep.has(i) ? 1 : 0)), { ridge: 1e-3 });
+    const score = new Float64Array(cube.nx * cube.ny);
+    for (let i = 0; i < score.length; i++) score[i] = predictLR(fit.beta, row(i));
+    return score;
+  };
+}
+
 /** the CV scoring function of the fully out-of-fold WofE (wofeFoldModel per fold), scoring every cell. Exported so
  * the offline exports (science/real_wofe_oof.mjs, science/gen_train.mjs) run the SAME protocol as the bake's cv block. */
 export function wofeFoldScoreFn(cube: Cube, layerIds: string[]): FoldScoreFn {

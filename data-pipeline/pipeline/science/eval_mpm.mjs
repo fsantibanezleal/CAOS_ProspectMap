@@ -46,7 +46,7 @@ if (existsSync(modelPath)) {
 }
 
 const learned = {
-  schema: 'prospectmap.learned/v1',
+  schema: 'prospectmap.learned/v3', // v3: the descriptive `honesty` text became `scope`
   classifier: {
     spatial_cv: {
       mlp_roc_auc: clf.mlp_spatial_auc ?? 0,
@@ -60,9 +60,9 @@ const learned = {
     nEval: clf.nEval ?? 0,
   },
   ood: partial.ood ?? { auc: 0, nEval: 0, threshold: 0 },
-  honesty: partial.honesty ??
+  scope: partial.scope ??
     'Presence-only labels; sampled negatives. The white-box WofE posterior is the authority; the classifier is ' +
-    'compared on the SAME spatial holdout. No fabricated win.',
+    'compared with it on the same labelled rows under the same spatial-block folds.',
 };
 writeFileSync(resolve(DERIVED, 'pm-learned.json'), JSON.stringify(learned, null, 2));
 console.log(`eval_mpm: classifier ran in onnxruntime-web (${nRun} cells, p in [${pMin.toFixed(3)}, ${pMax.toFixed(3)}]) - `

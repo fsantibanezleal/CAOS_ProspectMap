@@ -32,10 +32,11 @@ rng = np.random.default_rng(0)
 
 
 def _auc(label: np.ndarray, score: np.ndarray) -> float:
-    """ROC AUC via the rank statistic (no sklearn). label 1 = positive."""
-    order = np.argsort(score)
-    ranks = np.empty_like(order, dtype=np.float64)
-    ranks[order] = np.arange(1, len(score) + 1)
+    """ROC AUC via the rank statistic (no sklearn), tied scores sharing their average rank, as the engine's rocAuc
+    does. The WofE posterior takes few distinct values, so ordinal ranks would let the row order break its ties.
+    label 1 = positive."""
+    _, inverse, counts = np.unique(score, return_inverse=True, return_counts=True)
+    ranks = ((np.cumsum(counts) - counts) + (counts + 1) / 2.0)[inverse.ravel()]
     n_pos = float((label > 0.5).sum())
     n_neg = float(len(label) - n_pos)
     if n_pos == 0 or n_neg == 0:
@@ -225,11 +226,11 @@ def main() -> None:
         },
         "ood": {"auc": ae["auc"], "nEval": ae["nEval"], "threshold": ae["threshold"]},
         "scaler": {"mu": mu.ravel().round(6).tolist(), "sd": sd.ravel().round(6).tolist()},
-        "honesty": ("Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), never observed. The "
-                    "classifier is validated by SPATIAL block cross-validation and benchmarked against the white-box "
-                    "WofE posterior on the SAME spatial holdout; random-CV is reported beside it to show the inflation "
-                    "gap. The geology autoencoder flags out-of-envelope cells. The white-box WofE is the interpretable "
-                    "authority. Reported whichever way the numbers land. No fabricated win."),
+        "scope": ("Deposit labels are presence-only; negatives are sampled (distance-buffered), not observed. The "
+                  "classifier and the white-box WofE posterior are compared on the same labelled rows of the five "
+                  "training cases under the engine's spatial-block folds, each model fitted on the training folds only; "
+                  "random-CV is reported beside it to show the inflation gap. The geology autoencoder flags "
+                  "out-of-envelope cells. The white-box WofE is the interpretable authority."),
     }
     (RAW / "learned-partial.json").write_text(json.dumps(partial, indent=2))
     print(f"mpm-classifier spatial-CV AUC {mlp_spatial:.3f} vs WofE {wofe_spatial:.3f} (winner {winner}) - "

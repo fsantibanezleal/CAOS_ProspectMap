@@ -29,12 +29,12 @@ export function headToHeadProtocol(lane: LearnedLane, learned: LearnedFile | nul
         : 'The metrics file does not declare its protocol, so its values are not compared.';
     }
     return es
-      ? `Ambos modelos con un único protocolo: las particiones del motor (bloques de ${p.block_cells}x${p.block_cells} celdas, ${p.k} folds), cada modelo reajustado solo con los folds de entrenamiento, cada una de las ${p.n_cells} celdas del mapa (${p.n_deposit_cells} con depósito) puntuada una vez mientras su fold está retenido, y los scores retenidos agrupados en un único ROC AUC.`
-      : `Both models under one protocol: the engine's folds (${p.block_cells}x${p.block_cells}-cell blocks, ${p.k} folds), each model refitted on the training folds only, each of the ${p.n_cells} map cells (${p.n_deposit_cells} deposit cells) scored once while its fold is held out, the held-out scores pooled into one ROC AUC.`;
+      ? `Ambos modelos con un único protocolo: las particiones del motor (bloques de ${p.block_cells}x${p.block_cells} celdas, ${p.k} folds), cada modelo ajustado solo con las celdas de los folds de entrenamiento (en WofE: umbrales, pesos y prior), cada una de las ${p.n_cells} celdas del mapa (${p.n_deposit_cells} con depósito) puntuada una vez mientras su fold está retenido, y los scores retenidos agrupados en un único ROC AUC.`
+      : `Both models under one protocol: the engine's folds (${p.block_cells}x${p.block_cells}-cell blocks, ${p.k} folds), each model fitted on the training folds' cells only (for WofE: thresholds, weights and prior), each of the ${p.n_cells} map cells (${p.n_deposit_cells} deposit cells) scored once while its fold is held out, the held-out scores pooled into one ROC AUC.`;
   }
   return es
-    ? 'Ambos modelos con un único protocolo: las filas etiquetadas (celdas con depósito y negativos muestreados lejos de los depósitos) de los cinco casos sintéticos de entrenamiento, las particiones espaciales del motor (bloques de 20x20 celdas, 5 folds), cada modelo reajustado con los folds de entrenamiento, y los scores retenidos agrupados en un único ROC AUC.'
-    : "Both models under one protocol: the labelled rows (deposit cells and negatives sampled away from the deposits) of the five synthetic training cases, the engine's spatial folds (20x20-cell blocks, 5 folds), each model refitted on the training folds, the held-out scores pooled into one ROC AUC.";
+    ? 'Ambos modelos con un único protocolo: las filas etiquetadas (celdas con depósito y negativos muestreados lejos de los depósitos) de los cinco casos sintéticos de entrenamiento, las particiones espaciales del motor (bloques de 20x20 celdas, 5 folds), cada modelo ajustado con los folds de entrenamiento, y los scores retenidos agrupados en un único ROC AUC.'
+    : "Both models under one protocol: the labelled rows (deposit cells and negatives sampled away from the deposits) of the five synthetic training cases, the engine's spatial folds (20x20-cell blocks, 5 folds), each model fitted on the training folds, the held-out scores pooled into one ROC AUC.";
 }
 
 /** Whether a lane's `spatial_cv` values form a like-for-like pair: the synthetic protocol is fixed by its pipeline; a

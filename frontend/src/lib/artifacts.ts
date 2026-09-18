@@ -62,7 +62,8 @@ export interface LearnedFile {
     nEval?: number;
   };
   ood: { auc: number | null; nEval: number; threshold: number };
-  honesty: string;
+  /** what the file's numbers cover and what they do not (v3; older files carried it as `honesty`) */
+  scope?: string;
 }
 
 export interface ConformalLevel {
@@ -75,7 +76,8 @@ export interface PuConformalFile {
   schema: string;
   case_id: string;
   features: string[];
-  protocol: { folds: number; block_cells: number; scheme: string; pi_default: number };
+  /** v2: `regions` + a `scheme` naming the k-means regions (v1 carried an unused block_cells and a wrong scheme) */
+  protocol: { folds: number; regions?: string; scheme: string; pi_default: number };
   benchmark: BenchmarkRow[];
   inflation: { pu_random_cv_auc: number; pu_spatial_cv_auc: number };
   conformal: { pi: number; nCalibPos: number; nTestPos: number; levels: ConformalLevel[] };
@@ -87,7 +89,8 @@ export interface PuConformalFile {
   };
   verdict: { ranking_win: boolean; coverage_within_tolerance: boolean; text: string };
   references: Record<string, string>;
-  honesty: string;
+  /** what the file's numbers cover (v2; v1 carried it as `honesty`) */
+  scope?: string;
 }
 
 export const loadCaseResults = () => getJSON<CaseResultsFile>('case-results.json');
