@@ -6,8 +6,9 @@ of the TS engine + torch training).
 ## The bake (Node + tsx, the same engine)
 
 `pipeline/science/bake_cases.mjs` imports the TS engine and runs `analyzeCase(spec, layerIds)` over each case ->
-`data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The cubes are synthetic and regenerated from
-each case's spec (committed in case-results), so the artifact stays compact - no raster blobs. Because the bake and the
+`data/derived/case-results.json` (schema `prospectmap.case-results/v1`). The synthetic cubes are regenerated from each
+case's spec (committed in case-results), so the artifact stays compact - no raster blobs; the one real cube is
+committed once (`data/derived/REAL-USMVT/cube.json`) and analyzed by `science/bake_real.mjs`. Because the bake and the
 browser run the identical engine, the live and offline numbers agree by construction.
 
 ## The light pipeline (numpy)
@@ -31,18 +32,24 @@ and the artifacts regenerate deterministically (byte-identical re-run).
 4. `science/eval_mpm.mjs` (onnxruntime-web in Node) runs the exported classifier in the engine's runtime + assembles
    `data/derived/pm-learned.json`.
 
-## The real-data learned lane (run by hand, two-language)
+## The real-data lane (part of `--retrain`, two-language)
 
-The real US-MVT cube has its own 6-feature models. After `pipeline/real_usmvt.py` (the cube) and
-`science/bake_real.mjs` (its WofE analysis in `case-results.json`):
+The real US-MVT cube has its own 6-feature models. `pipeline/real_usmvt.py` builds the cube, run by hand from the
+CMMI files listed in `data/derived/REAL-USMVT/provenance.json` and fetched into the git-ignored
+`data/raw/REAL-USMVT/`. ScienceBase answers scripted requests with a browser challenge, so the files are downloaded
+through a browser. With the versions pinned in `data-pipeline/requirements-precompute.txt` (rasterio 1.5.0, pyshp
+3.1.4, scipy 1.18.0, numpy 2.4.6) the build reproduces the committed `cube.json` byte for byte. After the cube,
+`--retrain` runs `science/bake_real.mjs` (its WofE analysis, merged into `case-results.json` after `bake_cases.mjs`
+rewrote it with the synthetic cases), then:
 
 1. `science/real_wofe_oof.mjs` (Node, from `frontend/`) runs the engine's cross-validation of the real case with the
-   bake's defaults (`spatialBlockFolds` with 20x20-cell blocks, `randomFolds` with seed 17, k = 5, the per-fold WofE
-   refit) and writes the held-out WofE posterior and the folds of every map cell to
-   `data/raw/REAL-USMVT-wofe-oof.json` (git-ignored, regenerable).
+   bake's defaults (`spatialBlockFolds` with 20x20-cell blocks, `randomFolds` with seed 17, k = 5, and per fold the
+   fully out-of-fold WofE fit of `wofeFoldScoreFn`) and writes the held-out WofE posterior and the folds of every map
+   cell to `data/raw/REAL-USMVT-wofe-oof.json` (git-ignored, regenerable). The same export carries the engine's
+   out-of-fold logistic regression (`lrFoldScoreFn`) and the distance-to-known-deposit baseline under the same folds.
 2. `pipeline/real_learned.py` (torch, `.venv-precompute`, run as `python -m pipeline.real_learned` from
    `data-pipeline/`) trains `mpm-classifier-real.onnx` + `geology-ood-real.onnx` and writes `pm-learned-real.json`.
-   It scores the MLP under exactly the protocol of that export: the same folds, each fold refitted on the training
+   It scores the MLP under exactly the protocol of that export: the same folds, each fold fitted on the training
    folds only, every map cell scored once while held out, the held-out scores pooled into one rank ROC AUC
    (`pipeline/model/head_to_head.py`). It re-derives the WofE AUCs from the export with the same estimator and stops
    unless they equal the bake, so `spatial_cv` and `random_cv` hold like-for-like pairs. The WofE AUC without

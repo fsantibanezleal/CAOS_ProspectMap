@@ -67,23 +67,30 @@ def _node(*args: str) -> None:
 
 
 def retrain(seed: int = 42) -> None:
-    """HEAVY lane (two-language): re-bake the WofE/CI/validation (the SAME TS engine) and train the learned models
-    (torch -> ONNX). The science is preserved verbatim in pipeline/science/."""
-    print("[retrain] bake case-results (TS WofE engine over the cases) ...", flush=True)
-    _node(str(SCIENCE / "bake_cases.mjs"))
+    """HEAVY lane (two-language): re-bake the WofE/CI/validation (the SAME TS engine) for the synthetic and the real
+    cases, and train the learned models of both lanes (torch -> ONNX). The science is preserved in pipeline/science/;
+    the PU-Conformal lane (pipeline/pu_conformal.py) runs separately."""
+    print("[retrain] bake case-results (TS WofE engine over the synthetic cases) ...", flush=True)
+    _node(str(SCIENCE / "bake_cases.mjs"))  # rewrites case-results.json with the synthetic cases only
+    print("[retrain] bake the real case(s) and merge them into case-results ...", flush=True)
+    _node(str(SCIENCE / "bake_real.mjs"))
+    vp = REPO_ROOT / ".venv-precompute" / "Scripts" / "python.exe"
+    py = str(vp) if vp.exists() else "python"
     train = SCIENCE / "train_mpm.py"
     if train.exists():
         print("[retrain] generate the learned-model training data (the SAME TS engine) ...", flush=True)
         _node(str(SCIENCE / "gen_train.mjs"))
         print("[retrain] torch train the learned models (mpm classifier + geology OOD-AE) -> ONNX ...", flush=True)
-        vp = REPO_ROOT / ".venv-precompute" / "Scripts" / "python.exe"
-        py = str(vp) if vp.exists() else "python"
         subprocess.run([py, str(train)], check=True, cwd=str(REPO_ROOT))
         print("[retrain] eval the classifier vs WofE on the SAME spatial holdout ...", flush=True)
         _node(str(SCIENCE / "eval_mpm.mjs"))  # assembles the final data/derived/pm-learned.json
     else:
         print("[retrain] (science/train_mpm.py absent - learned models pending; traces record learned=pending)",
               flush=True)
+    print("[retrain] real lane: export the engine's out-of-fold WofE, then train + score the real models ...",
+          flush=True)
+    _node(str(SCIENCE / "real_wofe_oof.mjs"))
+    subprocess.run([py, "-m", "pipeline.real_learned"], check=True, cwd=str(REPO_ROOT / "data-pipeline"))
     print(f"[retrain] artifacts -> {DERIVED}", flush=True)
 
 

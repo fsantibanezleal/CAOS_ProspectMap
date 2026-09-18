@@ -51,7 +51,7 @@ optimizer ascends it back toward zero instead of descending further. Implemented
   exceed WofE (0.732); PU corrects the label model, not the underlying regional signal. Its value is bias-corrected,
   calibrated uncertainty (see [06 - uncertainty and conformal](06_uncertainty-and-conformal.md)), not a higher AUC.
 - SCAR is likely violated by exploration bias, so `pi` is a swept sensitivity parameter and the map's dependence on it
-  is reported, not hidden.
+  is reported.
 
 ## Related PU refinements (cited, not implemented)
 

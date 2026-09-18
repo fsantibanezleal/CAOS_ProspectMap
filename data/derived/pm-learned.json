@@ -1,9 +1,9 @@
 {
-  "schema": "prospectmap.learned/v1",
+  "schema": "prospectmap.learned/v3",
   "classifier": {
     "spatial_cv": {
       "mlp_roc_auc": 0.9713,
-      "wofe_roc_auc": 0.9287,
+      "wofe_roc_auc": 0.8677,
       "winner": "mlp"
     },
     "random_cv": {
@@ -19,5 +19,5 @@
     "nEval": 4425,
     "threshold": 1.633494
   },
-  "honesty": "Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), never observed. The classifier is validated by SPATIAL block cross-validation and benchmarked against the white-box WofE posterior on the SAME spatial holdout; random-CV is reported beside it to show the inflation gap. The geology autoencoder flags out-of-envelope cells. The white-box WofE is the interpretable authority. Reported whichever way the numbers land. No fabricated win."
+  "scope": "Deposit labels are presence-only; negatives are sampled (distance-buffered), not observed. The classifier and the white-box WofE posterior are compared on the same labelled rows of the five training cases under the engine's spatial-block folds, each model fitted on the training folds only; random-CV is reported beside it to show the inflation gap. The geology autoencoder flags out-of-envelope cells. The white-box WofE is the interpretable authority."
 }

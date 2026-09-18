@@ -54,7 +54,7 @@ export const CASES: MPMCase[] = [
     spec: { nx: NX, ny: NY, seed: 102, nDeposits: ND, gain: GAIN, layers: [L('mag', 0.0), L('rad', 0.4), L('geochem', 1.4), L('struct', 2.0)] },
     layerIds: ALL,
     expectedBand: 'structure (shear-zone proximity) dominates; geochem secondary; magnetics uninformative',
-    validationAnchor: 'struct contrast > geochem contrast; mag near zero; honest per-layer ranking',
+    validationAnchor: 'struct contrast > geochem contrast; mag near zero',
     realOrSynthetic: 'synthetic',
   },
   {
@@ -93,8 +93,8 @@ export const CASES: MPMCase[] = [
     category: CAT_DATA,
     spec: { nx: NX, ny: NY, seed: 202, nDeposits: ND, gain: GAIN, layers: [L('mag', 0.0), L('rad', 0.0), L('geochem', 0.7), L('struct', 0.0)] },
     layerIds: ALL,
-    expectedBand: 'only a weak geochem signal ⇒ little real skill (honest low AUC)',
-    validationAnchor: 'ROC AUC only modestly above 0.5; the product does not manufacture confidence',
+    expectedBand: 'only a weak geochem signal ⇒ little real skill (a low AUC is the expected result)',
+    validationAnchor: 'ROC AUC only modestly above 0.5, the expected result for a weak signal',
     realOrSynthetic: 'synthetic',
   },
   {

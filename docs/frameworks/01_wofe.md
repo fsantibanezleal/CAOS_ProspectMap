@@ -24,10 +24,15 @@ shrink rather than double-count (the theoretical fix), so logistic is the compar
 test fails. Note: the app's omnibus readout runs on the WofE posterior; an LR calibration readout (sum P_LR vs N(D))
 is not yet shown in-app.
 
-## Honest validation
+## Validation
 
 A model fitting its own training deposits is not evidence of predictive skill; only spatially held-out capture is. The
-prediction-rate capture curve (% deposits captured vs % area, ranked by prospectivity, under spatial block CV +
-buffered leave-one-deposit-out) is the headline; capture@10% under spatial CV is the reported number; ROC/AUC is
-secondary (presence-only). The mandatory demonstration: the same model collapses from random-CV to spatial-CV - the
-inflation gap.
+prediction-rate capture curve (% deposits captured vs % area, ranked by prospectivity) is built from held-out scores
+under 5-fold spatial-block cross-validation (20x20-cell blocks, fold = blockId % 5); capture@10% under spatial CV is
+the reported number; ROC/AUC is secondary (presence-only). The cross-validation is fully out of fold: for each fold,
+each layer's maximizing-contrast threshold, its W+ / W- and the prior are fitted on the training folds' cells and
+deposits only, and the held-out fold is only scored (none of its cells, deposit or not, enters the fit). Every map
+cell is scored once, and the held-out scores are pooled across folds. The same protocol under random folds gives the
+random-CV AUC; the gap between the two is the inflation from spatial autocorrelation. The engine's interleaved folds
+leave every held-out block next to training blocks; the PU-Conformal benchmark uses contiguous k-means regions, the
+stricter transfer test.

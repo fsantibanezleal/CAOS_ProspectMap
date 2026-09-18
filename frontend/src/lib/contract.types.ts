@@ -84,7 +84,7 @@ export interface SharedArtifacts {
 }
 
 export interface CaseManifest {
-  schema: string; // "prospectmap.manifest/v2"
+  schema: string; // "prospectmap.manifest/v3"
   case_id: string;
   name: string;
   category: string;
@@ -99,7 +99,8 @@ export interface CaseManifest {
   gate: GateVerdict;
   flags: Array<Record<string, unknown>>;
   metrics: Record<string, number>;
-  honesty: string;
+  /** what the case's data are and what the outputs are not (v3; v2 carried one global `honesty` text) */
+  scope: string;
 }
 
 export interface CaseIndexEntry {

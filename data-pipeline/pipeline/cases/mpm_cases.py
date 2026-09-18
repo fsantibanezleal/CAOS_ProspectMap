@@ -52,8 +52,8 @@ CASES: list[Case] = [
          "all four layers informative -> a high-skill posterior (watch the CI + spatial-CV)",
          "ROC AUC high; capture@10% large; stacking strong layers can violate CI (omnibus flags it)"),
     Case("D-SPARSE", "Evidence-poor area", CAT_DATA, 4,
-         "only a weak geochem signal -> little real skill (honest low AUC)",
-         "ROC AUC only modestly above 0.5; the product does not manufacture confidence"),
+         "only a weak geochem signal -> little real skill (a low AUC is the expected result)",
+         "ROC AUC only modestly above 0.5, the expected result for a weak signal"),
     Case("C-NEGATIVE", "Negative control - uninformative layers", CAT_CONTROL, 4,
          "no layer is associated with the (randomly-placed) deposits",
          "all contrasts ~ 0, |studentized-C| < 1.96, ROC AUC ~ 0.5 - no skill from noise",
@@ -73,8 +73,8 @@ CASES: list[Case] = [
     Case("REAL-USMVT", "US Midcontinent MVT Zn-Pb belt (Lawley 2022, CMMI)", CAT_REAL, 6,
          "real published data: 4 measured geophysics layers (mag, grav, LAB tomography, satellite gravity) + 2 derived "
          "proximity layers (fault, passive-margin), over the US Midcontinent MVT belt with 858 real Pb-Zn occurrence cells",
-         "our browser WofE recomputation (NOT the published H3 + gradient-boosting model); naive AUC is inflated by the "
-         "strong deposit clustering (Tri-State district), so the reported skill is the SPATIAL-CV AUC (near chance), an honest result",
+         "our browser WofE recomputation (not the published H3 + gradient-boosting model); the fitting AUC is inflated by "
+         "the strong deposit clustering (Tri-State district), so the skill reported is the spatial-CV AUC, well below it",
          real_or_synthetic="real (open dataset)",
          deposit_type="sediment-hosted Zn-Pb (MVT)",
          nx=144, ny=176, cell_km=5.364, n_deposits=858),

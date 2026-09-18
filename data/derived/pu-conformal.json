@@ -1,5 +1,5 @@
 {
- "schema": "prospectmap.puconformal/v1",
+ "schema": "prospectmap.puconformal/v2",
  "case_id": "REAL-USMVT",
  "features": [
   "mag",
@@ -11,8 +11,8 @@
  ],
  "protocol": {
   "folds": 5,
-  "block_cells": 20,
-  "scheme": "contiguous spatial blocks (blockId % k), identical to the live TS engine",
+  "regions": "k-means",
+  "scheme": "contiguous spatial regions: k-means (k = 5, random_state 17, n_init 10) on the cell (row, col) coordinates, the same folds for every model; stricter than the live engine's interleaved 20x20-cell blocks (fold = blockId % k)",
   "pi_default": 0.05
  },
  "benchmark": [
@@ -215,7 +215,7 @@
  "verdict": {
   "ranking_win": false,
   "coverage_within_tolerance": true,
-  "text": "Honest null on ranking: PU-Conformal (block-CV AUC 0.656, CI [0.6403, 0.6686]) does NOT beat classical WofE (0.732) in spatial-transfer ranking for this strongly clustered MVT belt, the expected outcome under strict contiguous spatial holdout. Notably the trivial distance-to-known-deposit null already reaches AUC 0.783, so most apparent skill is spatial proximity, not learned geology. PU-Conformal's genuine advance is elsewhere: the negative controls collapse as they must (label permutation to chance, no lift from a noise layer), and the conformal band delivers its coverage guarantee (empirical 0.98 >= nominal 0.90) but only by flagging 88% of the belt: an HONEST near-vacuous set that correctly reports regional geophysics cannot localize MVT under spatial transfer, rather than a false-confidence point map."
+  "text": "No ranking win: PU-Conformal (block-CV AUC 0.656, CI [0.6403, 0.6686]) does NOT beat classical WofE (0.732) in spatial-transfer ranking for this strongly clustered MVT belt, the expected outcome under strict contiguous spatial holdout. Notably the trivial distance-to-known-deposit null already reaches AUC 0.783, so most apparent skill is spatial proximity, not learned geology. PU-Conformal's advance is elsewhere: the negative controls collapse as they must (label permutation to chance, no lift from a noise layer), and the conformal band delivers its coverage guarantee (empirical 0.98 >= nominal 0.90) but only by flagging 88% of the belt: a near-vacuous set, which reports that regional geophysics does not localize MVT under spatial transfer rather than drawing a confident point map."
  },
  "references": {
   "nnpu": "Kiryo et al. 2017, NeurIPS, arXiv:1703.00593",
@@ -225,5 +225,5 @@
   "tabular_rung": "Rodriguez-Galiano et al. 2015, Ore Geol. Rev., doi:10.1016/j.oregeorev.2015.01.001",
   "pu_mpm": "Xiong & Zuo 2021, Comput. Geosci., doi:10.1016/j.cageo.2020.104667"
  },
- "honesty": "Trained OFFLINE on the real US Midcontinent MVT cube. PU treats deposit cells as positives and ALL other cells as UNLABELED (nnPU risk), fixing the false-negative bias of pseudo-negative training. Every model is scored on IDENTICAL spatial-block folds; the random-CV number is shown only to expose its inflation. Conformal coverage is a distribution-free split-conformal guarantee under spatial blocking (marginal over blocks). SCAR is assumed and likely violated by exploration bias, hence pi is swept, not fixed. No fabricated win: the ranking verdict is read directly off the bootstrap CIs and the negative controls."
+ "scope": "Trained offline on the real US Midcontinent MVT cube. PU treats deposit cells as positives and all other cells as unlabeled (nnPU risk), removing the false-negative bias of pseudo-negative training. Every model is scored on the same contiguous k-means regions; the random-CV number is shown only to expose its inflation. Conformal coverage is a distribution-free split-conformal guarantee under spatial blocking (marginal over blocks). SCAR is assumed and likely violated by exploration bias, hence pi is swept, not fixed. The ranking verdict is read directly off the bootstrap CIs and the negative controls."
 }

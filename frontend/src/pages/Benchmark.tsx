@@ -37,10 +37,10 @@ export default function Benchmark() {
         ? 'Comparaciones cruzadas que no dependen de un solo caso: WofE (caja blanca, la autoridad) vs regresión logística, y dónde la independencia condicional se rompe.'
         : 'Cross-case comparisons that do not depend on a single case: WofE (white-box, the authority) vs logistic regression, and where conditional independence breaks.'}</p>
 
-      <Callout variant="honest" title={es ? 'Sin victoria fabricada' : 'No fabricated win'}>
+      <Callout variant="honest" title={es ? 'Cómo se comparan los modelos aprendidos' : 'How the learned models are compared'}>
         {es
-          ? 'El posterior WofE de caja blanca es la autoridad interpretable. El clasificador aprendido (torch→ONNX, carril --retrain) se mide contra WofE en el mismo holdout espacial y gana su lugar sólo si lo supera capturando interacciones no lineales. Si empata o pierde, el benchmark lo dice, y ese es el resultado honesto.'
-          : 'The white-box WofE posterior is the interpretable authority. The learned classifier (torch→ONNX, the --retrain lane) is measured against WofE on the same spatial holdout and earns its place only if it beats it by capturing non-linear interactions. If it ties or loses, the benchmark says so, and that is the honest result.'}
+          ? 'El posterior WofE de caja blanca es la autoridad interpretable. Cada clasificador aprendido (entrenado con torch y exportado a ONNX, carril --retrain) se compara con WofE bajo un único protocolo de cross-validation compartido; en el belt real, junto a una línea base de distancia al depósito conocido. Un empate o una derrota se reporta tal como se mide.'
+          : 'The white-box WofE posterior is the interpretable authority. Each learned classifier (trained with torch and exported to ONNX, the --retrain lane) is compared with WofE under one shared cross-validation protocol; on the real belt, beside a distance-to-known-deposit baseline. A tie or a loss is reported as measured.'}
       </Callout>
 
       {rows == null ? <p className="pf-note">{es ? 'cargando…' : 'loading…'}</p> : (
@@ -129,7 +129,7 @@ export default function Benchmark() {
             </tbody>
           </table>
 
-          <Callout variant="honest" title={es ? 'El resultado honesto' : 'The honest result'}>
+          <Callout variant="honest" title={es ? 'Resultado' : 'Result'}>
             {pu.verdict.text}
           </Callout>
         </>

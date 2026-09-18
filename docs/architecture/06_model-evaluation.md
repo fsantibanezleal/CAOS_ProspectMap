@@ -27,25 +27,30 @@ Reported whichever way the numbers land.
 
 Cells: the labelled rows (deposit cells plus negatives sampled at least 6 cells from any deposit, 8 per deposit) of
 the five training cases (K-PORPHYRY, K-OROGENIC, K-VMS, K-IOCG, D-RICH). Folds: the engine's `spatialBlockFolds`
-(20x20-cell blocks, fold = blockId % 5). WofE: the engine's held-out posterior, weights refitted per fold; MLP: trained
-on the other folds' rows. One pooled held-out AUC over the rows. Measured: **MLP 0.971 vs WofE 0.929** (winner: the
-MLP), random-CV MLP 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set, uniform
-features pushed outside the training band, separable by construction; not a field-detection claim).
+(20x20-cell blocks, fold = blockId % 5). WofE: the engine's held-out posterior, each fold's thresholds, weights and
+prior fitted on the training folds' cells only; MLP: trained on the other folds' rows. One pooled held-out AUC over the
+rows, tied scores sharing their average rank. Measured: **MLP 0.971 vs WofE 0.868** (winner: the MLP; WofE was 0.929
+before release 0.11.000 made the cross-validation fully out of fold), random-CV MLP 0.979 (inflation +0.008),
+**geology-OOD AUC 1.0** (on a synthetic out-of-band eval set, uniform features pushed outside the training band,
+separable by construction; not a field-detection claim).
 
 ### Real lane (`pm-learned-real.json`, `science/real_wofe_oof.mjs` + `pipeline/real_learned.py`)
 
 Cells: all 25344 map cells of the US Midcontinent MVT cube (858 deposit cells). Folds: the engine's `spatialBlockFolds`
 (20x20-cell blocks, fold = blockId % 5) and `randomFolds` (seed 17), the folds behind the WofE cross-validation AUCs of
-`case-results.json`. WofE: weights refitted per fold on the training deposits; MLP: trained per fold on the
-training-fold deposits plus buffered negatives sampled from the training folds only. Every cell is scored once while
-held out, and the held-out scores are pooled into one rank (Mann-Whitney) AUC. The engine's distance-to-known-deposit
-score (`nearestDepositScore`, exp(-d/4) to the nearest training deposit) is scored under the same folds as a reference
-that learns no geology.
+`case-results.json`. WofE: each fold's thresholds, weights and prior fitted on the training folds' cells and deposits
+only; MLP: trained per fold on the training-fold deposits plus buffered negatives sampled from the training folds
+only. Every cell is scored once while held out, and the held-out scores are pooled into one rank (Mann-Whitney) AUC.
+The engine's distance-to-known-deposit score (`nearestDepositScore`, exp(-d/4) to the nearest training deposit) is
+scored under the same folds as a reference that learns no geology, and so is the engine's logistic regression
+(`lrFoldScoreFn`: ridge LR on the binary patterns at the training folds' thresholds), the CI-free comparison model.
+Neither takes part in the MLP-vs-WofE verdict.
 
-| protocol (all 25344 cells, pooled held-out AUC) | MLP | WofE | distance baseline |
-|---|---|---|---|
-| spatial-block CV | 0.908 | 0.637 | 0.899 |
-| random CV | 0.939 | 0.723 | 0.960 |
+| protocol (all 25344 cells, pooled held-out AUC) | MLP | WofE | logistic regression | distance baseline |
+|---|---|---|---|---|
+| spatial-block CV | 0.908 | 0.648 | 0.644 | 0.899 |
+| random CV | 0.939 | 0.739 | 0.744 | 0.960 |
+| no CV (fitted and scored on the same cells) | n/a | 0.732 | 0.732 | n/a |
 
 Under the engine's folds the MLP ranks held-out cells better than WofE, but the baseline reaches 0.899, within 0.010 of
 the MLP, so this protocol cannot show that the MLP learned more than proximity to known deposits. The engine's folds
@@ -66,7 +71,7 @@ the ranking verdict directly off bootstrap CIs.
 Folds are **contiguous** geographic regions (k-means on cell coordinates, k=5), deliberately stricter than the App's
 interleaved `blockId % k`: interleaving 20-cell blocks leaves every held-out block adjacent to training blocks, which
 lets a fine-grained learned model memorize the autocorrelated local feature signature and inflate the held-out AUC.
-Under contiguous holdout a held-out region is spatially separated from its training, so the transfer question is honest
+Under contiguous holdout a held-out region is spatially separated from its training, so the transfer question is strict
 (Roberts et al. 2017, [doi:10.1111/ecog.02881](https://doi.org/10.1111/ecog.02881)). AUC is reported with a 95% bootstrap CI.
 
 ### Negative controls (must pass, on the real cube)
@@ -79,9 +84,10 @@ Under contiguous holdout a held-out region is spatially separated from its train
   this trivial autocorrelation baseline to claim it learned geology. Measured: **0.783**, which beats WofE/RF/GBM/PU,
   so most apparent skill is spatial proximity, not geology.
 
-### The honest result
+### The result
 
 Under strict contiguous holdout PU-Conformal (block-CV AUC 0.656) does not beat classical WofE (0.732). PU corrects the
 label bias, not the regional signal; its advance is calibrated, bias-corrected, coverage-guaranteed uncertainty (see
 [frameworks/06 - uncertainty and conformal](../frameworks/06_uncertainty-and-conformal.md)) that passes the controls,
-not a higher AUC. Committed numbers: `data/derived/pu-conformal.json`. No fabricated win.
+not a higher AUC. Committed numbers: `data/derived/pu-conformal.json`. Its WofE row comes from the lane's own numpy
+port, which still picks each layer's threshold on all deposits before the folds (the engine's CV no longer does).

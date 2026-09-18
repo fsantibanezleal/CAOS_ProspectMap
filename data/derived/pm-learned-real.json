@@ -1,5 +1,5 @@
 {
- "schema": "prospectmap.learned/v2",
+ "schema": "prospectmap.learned/v3",
  "case_id": "REAL-USMVT",
  "classifier": {
   "protocol": {
@@ -10,25 +10,29 @@
    "block_cells": 20,
    "random_seed": 17,
    "folds": "the TS engine's folds: spatial = spatialBlockFolds (20x20-cell blocks, fold = blockId % 5); random = randomFolds (seed 17)",
-   "refit": "each model refitted on the training folds only: WofE weights on the training-fold deposits; the MLP on the training-fold deposits plus distance-buffered negatives sampled from the training folds",
+   "refit": "each model fitted on the training folds' cells only: WofE thresholds, weights and prior from the training folds' cells and deposits; the MLP on the training-fold deposits plus distance-buffered negatives sampled from the training folds; the held-out fold is only scored",
    "aggregation": "held-out scores pooled over the 5 folds into one rank (Mann-Whitney) ROC AUC over all 25344 map cells (858 deposit cells)",
+   "lr": "lr: the engine's logistic regression (ridge 1e-3) on the binary patterns at the training folds' thresholds, fitted on the training folds' cells only, scored under the same folds",
    "baseline": "distance_null: the engine's distance-to-known-deposit score exp(-d / 4), d the cell distance to the nearest training-fold deposit, scored under the same folds; it learns no geology, so its AUC is the ranking skill that proximity to known deposits alone reaches, and a model must beat it to claim it learned geology. The spatial folds interleave blocks, so every held-out block borders training blocks"
   },
   "spatial_cv": {
    "mlp_roc_auc": 0.908213,
-   "wofe_roc_auc": 0.636524,
+   "wofe_roc_auc": 0.64786,
    "winner": "mlp",
+   "lr_roc_auc": 0.643748,
    "distance_null_roc_auc": 0.898595
   },
   "random_cv": {
    "mlp_roc_auc": 0.939376,
-   "wofe_roc_auc": 0.723457,
+   "wofe_roc_auc": 0.738547,
+   "lr_roc_auc": 0.743786,
    "distance_null_roc_auc": 0.959549
   },
   "inflation_gap": 0.031163,
   "nocv": {
    "wofe_roc_auc": 0.732065,
-   "protocol": "WofE weights fitted on all 858 deposit cells and scored on the same 25344 cells, no hold-out: a fitting AUC, not comparable with the cross-validated values"
+   "lr_roc_auc": 0.732114,
+   "protocol": "WofE (and the logistic regression) fitted on all 858 deposit cells and scored on the same 25344 cells, no hold-out: fitting AUCs, not comparable with the cross-validated values"
   },
   "labelled_sample_cv": {
    "protocol": "MLP only, on its labelled sample (858 deposit cells and 2574 non-deposit cells sampled more than 2 cells from any deposit); spatial folds are 20x20-cell blocks assigned to 5 folds in shuffled order, random folds a uniform 5-way split; the AUC is the mean of the per-fold AUCs. No WofE value exists on this basis, so it is not a comparison with WofE",
@@ -47,5 +51,5 @@
   "nEval": 25025,
   "threshold": 0.2929
  },
- "honesty": "Trained on the REAL US Midcontinent MVT cube (6 real evidence features), NOT the synthetic 4-feature models. Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), never observed. The MLP and the white-box WofE are compared under ONE protocol: the engine's spatial-block folds, each model refitted on the training folds, every map cell scored once while held out, the held-out scores pooled into one ROC AUC; the engine's random folds give the random-CV values and the inflation gap. The WofE AUC without cross-validation is kept apart (nocv) and is never compared with a cross-validated value. The labelled-sample CV is an MLP-only measurement on a different cell set, with no WofE counterpart. MVT occurrences are strongly clustered and the engine's spatial folds interleave blocks, so every held-out block borders training blocks: the distance-to-known-deposit baseline scored under the same folds (distance_null_roc_auc) is the ranking skill proximity alone reaches, and a model must beat it to claim it learned geology. The contiguous-fold head-to-head in pu-conformal.json is the stricter transfer test. The random-CV values are inflated and shown only to expose that. The OOD AE flags cells outside the labelled geology envelope. Reported whichever way the numbers land."
+ "scope": "Trained on the real US Midcontinent MVT cube (6 real evidence features), not the synthetic 4-feature models. Deposit labels are presence-only; negatives are sampled (distance-buffered), not observed. The MLP and the white-box WofE are compared under one protocol: the engine's spatial-block folds, each model fitted on the training folds' cells only (for WofE: thresholds, weights and prior), every map cell scored once while held out, the held-out scores pooled into one ROC AUC; the engine's random folds give the random-CV values and the inflation gap. The WofE AUC without cross-validation (nocv) is a fitting number and is not compared with a cross-validated value. The labelled-sample CV is an MLP-only measurement on a different cell set, with no WofE counterpart. MVT occurrences are strongly clustered and the engine's spatial folds interleave blocks, so every held-out block borders training blocks: the distance-to-known-deposit baseline scored under the same folds (distance_null_roc_auc) is the ranking skill proximity alone reaches, and a model must beat it to claim it learned geology. The contiguous-fold head-to-head in pu-conformal.json is the stricter transfer test. The random-CV values are inflated by spatial autocorrelation. The OOD AE flags cells outside the labelled geology envelope."
 }

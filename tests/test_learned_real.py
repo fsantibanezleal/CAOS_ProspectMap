@@ -55,7 +55,9 @@ def test_head_to_head_is_one_protocol_over_every_map_cell(real, bake):
     for block in ("spatial_cv", "random_cv"):
         assert {"mlp_roc_auc", "wofe_roc_auc"} <= set(clf[block]), f"{block} must hold both models"
         assert 0.5 <= clf[block]["distance_null_roc_auc"] <= 1.0, f"{block} must carry the proximity baseline"
-    assert "distance_null" in p["baseline"]
+        assert 0.0 < clf[block]["lr_roc_auc"] < 1.0, f"{block} must carry the out-of-fold logistic regression"
+    assert "distance_null" in p["baseline"] and "lr" in p
+    assert clf["nocv"]["lr_roc_auc"] == round(bake["lr"]["rocAuc"], h2h.AUC_DIGITS)
     gap = clf["random_cv"]["mlp_roc_auc"] - clf["spatial_cv"]["mlp_roc_auc"]
     assert clf["inflation_gap"] == pytest.approx(gap, abs=1.5e-4)
     assert clf["mlp_roc_auc"] == clf["spatial_cv"]["mlp_roc_auc"]
@@ -123,17 +125,19 @@ def test_rank_auc_is_the_mann_whitney_statistic_with_tied_ranks():
         h2h.rank_auc([0.1, float("nan")], [0, 1])
 
 
-_BAKE = {"nCells": 100, "nDeposits": 10, "rocAuc": 0.7321,
+_BAKE = {"nCells": 100, "nDeposits": 10, "rocAuc": 0.7321, "lr": {"rocAuc": 0.7322},
          "cv": {"k": 5, "blockCells": 20, "spatialAuc": 0.6365, "randomAuc": 0.7235}}
 
 
-def _block(mlp_spatial: float, labelled_spatial: float, null_spatial: float | None = None) -> dict:
+def _block(mlp_spatial: float, labelled_spatial: float, null_spatial: float | None = None,
+           lr_spatial: float | None = None) -> dict:
     null_cv = None if null_spatial is None else {"spatial": null_spatial, "random": null_spatial + 0.05}
+    lr_cv = None if lr_spatial is None else {"spatial": lr_spatial, "random": lr_spatial + 0.05}
     return h2h.build_classifier_block(
         case_result=_BAKE, wofe_cv={"spatial": 0.6365, "random": 0.7235},
         mlp_cv={"spatial": mlp_spatial, "random": mlp_spatial + 0.05},
         labelled={"spatial": labelled_spatial, "random": 0.98, "n_pos": 10, "n_neg": 30},
-        k=5, block_cells=20, random_seed=17, null_cv=null_cv,
+        k=5, block_cells=20, random_seed=17, null_cv=null_cv, lr_cv=lr_cv,
     )
 
 
@@ -161,6 +165,10 @@ def test_distance_baseline_is_a_reference_not_a_contestant():
     assert "baseline" in blk["protocol"]
     plain = _block(0.62, 0.9456)
     assert "distance_null_roc_auc" not in plain["spatial_cv"] and "baseline" not in plain["protocol"]
+    with_lr = _block(0.62, 0.9456, lr_spatial=0.99)
+    assert with_lr["spatial_cv"]["lr_roc_auc"] == 0.99
+    assert with_lr["spatial_cv"]["winner"] == "wofe", "the logistic regression must never take part in the verdict"
+    assert with_lr["nocv"]["lr_roc_auc"] == 0.7322
 
 
 def _oof(wofe_spatial: np.ndarray, wofe_random: np.ndarray, deposits: np.ndarray, k: int = 5) -> dict:
@@ -170,8 +178,10 @@ def _oof(wofe_spatial: np.ndarray, wofe_random: np.ndarray, deposits: np.ndarray
 
     def scheme(folds: np.ndarray, wofe: np.ndarray) -> dict:
         null = wofe[::-1].copy()
+        lr = np.sqrt(wofe)
         return {"folds": folds, "wofe": wofe, "engine_auc": h2h.rank_auc(wofe, labels),
-                "distance_null": null, "distance_null_engine_auc": h2h.rank_auc(null, labels)}
+                "distance_null": null, "distance_null_engine_auc": h2h.rank_auc(null, labels),
+                "lr": lr, "lr_engine_auc": h2h.rank_auc(lr, labels)}
 
     return {
         "case_id": REAL, "nx": n, "ny": 1, "k": k, "block_cells": 20, "random_seed": 17, "layer_ids": [],
@@ -201,6 +211,9 @@ def test_check_oof_matches_bake_accepts_the_bake_and_rejects_anything_else():
     bad = {**oof, "spatial": {**oof["spatial"], "distance_null_engine_auc": 0.99}}
     with pytest.raises(ValueError):  # the baseline must be the engine's own
         h2h.distance_null_aucs(bad)
+    assert h2h.reference_aucs(oof, "lr")["random"] == oof["random"]["lr_engine_auc"]
+    with pytest.raises(ValueError):  # so must the logistic regression
+        h2h.reference_aucs({**oof, "random": {**oof["random"], "lr_engine_auc": 0.01}}, "lr")
 
 
 def test_negatives_come_from_the_training_pool_and_ignore_held_out_deposits():
