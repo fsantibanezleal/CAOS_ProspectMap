@@ -34,25 +34,33 @@ export function spatialBlockFolds(cube: Cube, k: number, blockCells: number): Fo
 }
 
 /**
- * A model-agnostic CV driver: for each fold f, fit a score from the training deposits (deposits not in fold f) via
- * scoreFn, then record the held-out cells' scores. Returns the held-out score array (assembled across folds) and its
- * ROC AUC vs the true deposit labels, the honest, leakage-controlled skill estimate.
+ * A fold's scoring function: given the training folds' deposits and the training folds' cells (the only cells the
+ * model may learn from), return a score for every cell. The held-out fold's cells are scored, never fitted on.
  */
-export function crossValScores(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): Float64Array {
+export type FoldScoreFn = (trainDeposits: Set<number>, trainCells: number[]) => Float64Array;
+
+/**
+ * A model-agnostic CV driver: for each fold f, fit a score on the training folds (their cells and their deposits) via
+ * scoreFn, then record the held-out cells' scores. Returns the held-out score array, assembled across folds; its ROC
+ * AUC against the true deposit labels is the leakage-controlled skill estimate.
+ */
+export function crossValScores(cube: Cube, folds: FoldId, k: number, scoreFn: FoldScoreFn): Float64Array {
   const n = cube.nx * cube.ny;
   const dep = depositSet(cube);
+  const cells = maskCells(cube);
   const heldOut = new Float64Array(n).fill(NaN);
   for (let f = 0; f < k; f++) {
     const trainDep = new Set<number>();
     for (const d of dep) if (folds[d] !== f) trainDep.add(d);
     if (trainDep.size === 0) continue;
-    const score = scoreFn(trainDep);
-    for (const i of maskCells(cube)) if (folds[i] === f) heldOut[i] = score[i];
+    const trainCells = cells.filter((i) => folds[i] >= 0 && folds[i] !== f);
+    const score = scoreFn(trainDep, trainCells);
+    for (const i of cells) if (folds[i] === f) heldOut[i] = score[i];
   }
   return heldOut;
 }
 
-export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trainDeposits: Set<number>) => Float64Array): number {
+export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: FoldScoreFn): number {
   const heldOut = crossValScores(cube, folds, k, scoreFn);
   // AUC over the cells that got a held-out score
   const evalCube: Cube = { ...cube, maskIdx: maskCells(cube).filter((i) => !Number.isNaN(heldOut[i])) };
@@ -65,7 +73,7 @@ export function crossValAuc(cube: Cube, folds: FoldId, k: number, scoreFn: (trai
  * have training neighbours → high score → inflated AUC); under spatial-block CV it collapses (held-out blocks have no
  * nearby training deposits). The same model, two schemes → the inflation gap. (O(cells·deposits); fine for the grid.)
  */
-export function nearestDepositScore(cube: Cube, scaleCells = 4): (trainDeposits: Set<number>) => Float64Array {
+export function nearestDepositScore(cube: Cube, scaleCells = 4): FoldScoreFn {
   const cells = maskCells(cube);
   return (trainDeposits: Set<number>) => {
     const n = cube.nx * cube.ny;

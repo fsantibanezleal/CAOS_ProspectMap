@@ -3,7 +3,7 @@
 // 1994 ch.9; Carranza 2009). The App always binarizes at t* (a live C(t) curve + threshold control is planned).
 
 import type { Binarized, Cube, Layer, WofEWeights } from './types.ts';
-import { getLayer, layerRange } from './grid.ts';
+import { depositIndicator, getLayer, layerRange, maskCells } from './grid.ts';
 import { contingency2x2, weightsFromCounts } from './wofe.ts';
 
 /** binarize a layer at threshold t. highIsFavourable ⇒ present = value ≥ t; else present = value ≤ t. NaN ⇒ missing(255). */
@@ -41,16 +41,38 @@ export interface SweepPoint {
   wMinus: number;
 }
 
-/** sweep the threshold over a continuous layer's value range, recomputing C(t) and studC(t) at each step. */
+/** sweep the threshold over a continuous layer's value range, recomputing C(t) and studC(t) at each step. The 2x2
+ * table of each step is counted in one pass over the cube's cells, with the same comparisons as binarize() and the
+ * same cells and deposits as contingency2x2(), so the sweep equals binarize + contingency2x2 at every step; it runs
+ * inside every cross-validation fold, so it avoids the per-step pattern and deposit-set allocations. */
 export function thresholdSweep(cube: Cube, layerId: string, steps = 40): SweepPoint[] {
   const layer = getLayer(cube, layerId);
   const { min, max } = layerRange(cube, layerId);
   const pts: SweepPoint[] = [];
   if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return pts;
+  const cells = maskCells(cube);
+  const isDep = depositIndicator(cube);
+  const high = layer.highIsFavourable !== false;
+  const values = layer.values;
   for (let s = 0; s < steps; s++) {
     // interior thresholds (avoid the degenerate all-in / all-out endpoints)
     const t = min + ((max - min) * (s + 0.5)) / steps;
-    const w = weightsFromCounts(layerId, t, contingency2x2(cube, binarize(layer, t)));
+    let nBD = 0;
+    let nBDbar = 0;
+    let nBbarD = 0;
+    let nBbarDbar = 0;
+    for (let r = 0; r < cells.length; r++) {
+      const i = cells[r];
+      const v = values[i];
+      if (Number.isNaN(v)) continue; // missing, contributes nothing (binarize marks it 255)
+      const present = high ? v >= t : v <= t;
+      if (isDep[i] === 1) {
+        if (present) nBD++;
+        else nBbarD++;
+      } else if (present) nBDbar++;
+      else nBbarDbar++;
+    }
+    const w = weightsFromCounts(layerId, t, { nBD, nBDbar, nBbarD, nBbarDbar });
     pts.push({ t, contrast: w.contrast, studC: w.studC, wPlus: w.wPlus, wMinus: w.wMinus });
   }
   return pts;

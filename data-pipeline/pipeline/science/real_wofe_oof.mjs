@@ -2,7 +2,8 @@
 // pipeline/real_learned.py can score the learned classifier under the SAME protocol as the WofE spatial- and
 // random-CV AUCs in case-results.json: identical folds, identical held-out cells, identical pooled aggregation.
 // Everything here is the TypeScript engine the browser runs and the bake uses: the folds (spatialBlockFolds,
-// randomFolds), the per-fold WofE refit (wofeScoreFn) and the pooled AUC (crossValScores + crossValAuc), with the
+// randomFolds), the fully out-of-fold WofE fit of each fold (wofeFoldScoreFn: thresholds, weights and prior fitted on
+// the training folds' cells only) and the pooled AUC (crossValScores + crossValAuc), with the
 // defaults analyzeCube applies to the committed bake (k = 5, 20x20-cell blocks, random-fold seed 17). Nothing is
 // re-implemented in Python; real_learned.py re-derives the two pooled AUCs from these arrays and refuses to run if
 // they differ from the committed bake.
@@ -17,8 +18,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  bestWeights, crossValAuc, crossValScores, cubeFromFile, depositSet, maskCells, nearestDepositScore, randomFolds,
-  spatialBlockFolds, wofeScoreFn, REAL_CASES,
+  crossValAuc, crossValScores, cubeFromFile, depositSet, maskCells, nearestDepositScore, randomFolds,
+  spatialBlockFolds, wofeFoldScoreFn, REAL_CASES,
 } from '../../../frontend/src/mpm/index.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -40,9 +41,8 @@ for (const rc of REAL_CASES) {
     continue;
   }
   const cube = cubeFromFile(JSON.parse(readFileSync(cubePath, 'utf-8')));
-  // the same per-layer patterns analyzeCube binarizes (maximizing-contrast threshold over the case's layers)
-  const pats = rc.layerIds.map((id) => bestWeights(cube, id).pattern);
-  const scoreFn = wofeScoreFn(cube, pats);
+  // the same fold model analyzeCube cross-validates (each fold: thresholds, weights and prior from the training folds)
+  const scoreFn = wofeFoldScoreFn(cube, rc.layerIds);
   const nullFn = nearestDepositScore(cube, NULL_SCALE_CELLS);
   const cells = maskCells(cube);
 

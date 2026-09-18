@@ -2,16 +2,17 @@
 // case (a synthetic study-area spec + the evidence layers to use), it regenerates the cube deterministically and runs
 // the whole WofE pipeline: per-layer weights at the maximizing-contrast threshold, the combined posterior, the CI
 // diagnostics, the success (fitting) + prediction (spatial-holdout) capture curves + ROC, the random-vs-spatial-CV
-// inflation gap, and the logistic-regression comparison. Everything is deterministic given the spec's seed.
+// inflation gap, and the logistic-regression comparison. The cross-validation is fully out of fold (wofeFoldModel).
+// Everything is deterministic given the spec's seed.
 
-import type { Binarized, CaptureCurve, CICheck, Cube } from './types.ts';
+import type { Binarized, CaptureCurve, CICheck, Cube, WofEWeights } from './types.ts';
 import { makeSyntheticArea, type SynthSpec } from './synth.ts';
 import { bestWeights } from './binarize.ts';
 import { maskCells, nCells, nDeposits, depositSet } from './grid.ts';
-import { posterior, weights } from './wofe.ts';
+import { posterior } from './wofe.ts';
 import { ciCheck } from './ci.ts';
 import { captureCurve, rocAuc } from './validate.ts';
-import { crossValAuc, crossValScores, randomFolds, spatialBlockFolds } from './cv.ts';
+import { crossValAuc, crossValScores, randomFolds, spatialBlockFolds, type FoldScoreFn } from './cv.ts';
 import { fitLR, predictLR } from './logreg.ts';
 
 export interface LayerResult {
@@ -45,12 +46,25 @@ export interface CaseAnalysis {
   lr: { rocAuc: number; betas: { id: string; beta: number }[] };
 }
 
-/** a WofE-posterior scoring function refit on a training deposit subset (for spatial-holdout CV). Exported so the
- * offline real-lane export (science/real_wofe_oof.mjs) runs the SAME refit the bake's cv block uses. */
-export function wofeScoreFn(cube: Cube, pats: Binarized[]): (train: Set<number>) => Float64Array {
-  return (train: Set<number>) => {
-    const ws = pats.map((p) => weights(cube, p, train));
-    return posterior(cube, pats, ws, undefined, train).prob;
+/**
+ * The fully out-of-fold WofE model of one cross-validation fold: every quantity the model learns is fitted on the
+ * training folds' cells only, with the training folds' deposits. That covers each layer's maximizing-contrast
+ * threshold (the binarization), its W+ / W- and the prior logit. The held-out fold contributes nothing to the fit,
+ * none of its cells with or without a deposit, so a held-out deposit is never counted as a non-deposit and its label
+ * cannot move the threshold that scores it.
+ */
+export function wofeFoldModel(cube: Cube, layerIds: string[], trainCells: number[]): { patterns: Binarized[]; weights: WofEWeights[]; trainCube: Cube } {
+  const trainCube: Cube = { ...cube, maskIdx: trainCells };
+  const fit = layerIds.map((id) => bestWeights(trainCube, id));
+  return { patterns: fit.map((b) => b.pattern), weights: fit.map((b) => b.weights), trainCube };
+}
+
+/** the CV scoring function of the fully out-of-fold WofE (wofeFoldModel per fold), scoring every cell. Exported so
+ * the offline exports (science/real_wofe_oof.mjs, science/gen_train.mjs) run the SAME protocol as the bake's cv block. */
+export function wofeFoldScoreFn(cube: Cube, layerIds: string[]): FoldScoreFn {
+  return (_trainDeposits: Set<number>, trainCells: number[]) => {
+    const m = wofeFoldModel(cube, layerIds, trainCells);
+    return posterior(m.trainCube, m.patterns, m.weights).prob;
   };
 }
 
@@ -83,17 +97,18 @@ export function analyzeCube(cube: Cube, layerIds: string[], k = 5, blockCells = 
   const auc = rocAuc(cube, post.prob);
   const success = captureCurve(cube, post.prob);
 
-  // prediction (spatial holdout): WofE refit per spatial block, predict held-out cells
-  const scoreFn = wofeScoreFn(cube, pats);
+  // prediction (spatial holdout): the fully out-of-fold WofE fitted per spatial block, scoring the held-out cells
+  const scoreFn = wofeFoldScoreFn(cube, layerIds);
   const spatialFolds = spatialBlockFolds(cube, k, blockCells);
   const heldOut = crossValScores(cube, spatialFolds, k, scoreFn);
   const predMask = cells.filter((i) => !Number.isNaN(heldOut[i]));
   const predCube: Cube = { ...cube, maskIdx: predMask };
   const prediction = captureCurve(predCube, heldOut, depositSet(predCube));
 
-  // the inflation gap: the same WofE model under random vs spatial-block CV
+  // the inflation gap: the same WofE protocol under random vs spatial-block CV. The spatial AUC reuses the held-out
+  // scores above: it is exactly crossValAuc(cube, spatialFolds, k, scoreFn) without fitting the folds a second time.
   const randomAuc = crossValAuc(cube, randomFolds(cube, k, 17), k, scoreFn);
-  const spatialAuc = crossValAuc(cube, spatialFolds, k, scoreFn);
+  const spatialAuc = rocAuc(predCube, heldOut, depositSet(cube));
 
   // logistic-regression comparison on the binary patterns
   const dep = depositSet(cube);
