@@ -4,7 +4,7 @@ under data/derived/:
 
   case-results.json     the TypeScript engine's bake: per case, the Weights-of-Evidence fit without cross-validation
                         and the random / spatial-block cross-validation; for REAL-USMVT, the per-layer weights and
-                        their 2x2 counts;
+                        their 2x2 counts, and the conditional-independence tests of the full-data fit;
   pm-learned-real.json  the real-lane head-to-head: the learned MLP and WofE under one cross-validation protocol, the
                         out-of-fold logistic regression and the distance-to-known-deposit baseline under the same
                         folds, and the MLP-only labelled-sample CV.
@@ -64,6 +64,14 @@ PROTOCOLS = {
         "fisher_exact_p_one_sided is the one-sided Fisher exact p-value that deposits are over-represented in the "
         "pattern, and contrast_C_exact_95_interval the exact conditional (Cornfield) 95% interval for C = ln(odds "
         "ratio), its upper bound null (+infinity) when no deposit lies outside the pattern."
+    ),
+    "conditional_independence_fit_no_cv": (
+        "Computed on the full-data fit (every deposit cell, no CV), so the cross-validation protocol does not affect "
+        "it. Omnibus test (Agterberg and Cheng 2002): T is the sum of the posterior over the map cells, which equals "
+        "N(D) under conditional independence; s(T) = sqrt(sum P(1 - P)); z = (T - N(D)) / s(T); the CI ratio is "
+        "N(D) / T, which the tool reads as a violation below 0.85. Pairwise: for each layer pair, the Yates-corrected "
+        "2x2 chi-square of the two binary patterns within the deposit cells plus the same within the non-deposit "
+        "cells (df = 2), and Cramer's V = sqrt(chi2 / n)."
     ),
 }
 
@@ -234,6 +242,12 @@ def build() -> dict:
                 "gap_random_minus_spatial": ls["inflation_gap"],
             },
             "woe_layers": layers,
+            "conditional_independence_fit_no_cv": {
+                "omnibus": {"T_sum_of_posterior": real["ci"]["T"], "N_D": real["ci"]["nD"], "s_T": real["ci"]["sT"],
+                            "z": real["ci"]["z"], "ci_ratio_N_D_over_T": real["ci"]["ciRatio"]},
+                "pairwise": [{"layers": [p["a"], p["b"]], "chi2_stratified_yates_df2": p["chi2"],
+                              "cramers_v": p["cramersV"]} for p in real["ci"]["pairwise"]],
+            },
         },
     }
 

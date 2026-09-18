@@ -12,7 +12,8 @@
   "logistic_regression": "The engine's logistic regression (IRLS, ridge 1e-3 on the slopes) on the layers' binary patterns. Without CV: fitted on every cell at the full-data thresholds (the betas are those slopes). Under CV: per fold, the patterns at the training folds' thresholds and the fit on the training folds' cells only; same folds, cells and aggregation as cv_all_cells_pooled.",
   "distance_baseline": "The engine's distance-to-known-deposit score exp(-d / 4), d the cell distance to the nearest training-fold deposit, under the same folds and aggregation; it learns no geology.",
   "mlp_labelled_sample_cv": "The learned MLP only, on its labelled sample (the deposit cells and non-deposit cells sampled more than 2 cells from any deposit); 20x20-cell blocks assigned to 5 folds in shuffled order (spatial) or a uniform 5-way split (random); the AUC is the mean of the 5 per-fold AUCs. No WofE value exists on this basis.",
-  "woe_layers": "Per real evidence layer, fitted on every deposit cell: the maximizing-contrast threshold tStar, W+ and W-, the contrast C = W+ - W-, its standard error s(C) = sqrt(1/n_B_D + 1/n_B_notD + 1/n_notB_D + 1/n_notB_notD) (Haldane 0.5 added to every count of a table with a zero count), and the studentized contrast C / s(C); one-sided significance at 5% is C / s(C) > 1.645, two-sided at 5% is > 1.96. pattern_area_fraction is the share of counted map cells inside the pattern; deposit_fraction_in_pattern the share of deposit cells inside it. When no deposit lies outside the pattern, W-, C and s(C) rest on the 0.5 correction, and C/s(C) depends on it (studentized_C_if_correction_0_1 repeats it with 0.1). Exact inference needs no correction: fisher_exact_p_one_sided is the one-sided Fisher exact p-value that deposits are over-represented in the pattern, and contrast_C_exact_95_interval the exact conditional (Cornfield) 95% interval for C = ln(odds ratio), its upper bound null (+infinity) when no deposit lies outside the pattern."
+  "woe_layers": "Per real evidence layer, fitted on every deposit cell: the maximizing-contrast threshold tStar, W+ and W-, the contrast C = W+ - W-, its standard error s(C) = sqrt(1/n_B_D + 1/n_B_notD + 1/n_notB_D + 1/n_notB_notD) (Haldane 0.5 added to every count of a table with a zero count), and the studentized contrast C / s(C); one-sided significance at 5% is C / s(C) > 1.645, two-sided at 5% is > 1.96. pattern_area_fraction is the share of counted map cells inside the pattern; deposit_fraction_in_pattern the share of deposit cells inside it. When no deposit lies outside the pattern, W-, C and s(C) rest on the 0.5 correction, and C/s(C) depends on it (studentized_C_if_correction_0_1 repeats it with 0.1). Exact inference needs no correction: fisher_exact_p_one_sided is the one-sided Fisher exact p-value that deposits are over-represented in the pattern, and contrast_C_exact_95_interval the exact conditional (Cornfield) 95% interval for C = ln(odds ratio), its upper bound null (+infinity) when no deposit lies outside the pattern.",
+  "conditional_independence_fit_no_cv": "Computed on the full-data fit (every deposit cell, no CV), so the cross-validation protocol does not affect it. Omnibus test (Agterberg and Cheng 2002): T is the sum of the posterior over the map cells, which equals N(D) under conditional independence; s(T) = sqrt(sum P(1 - P)); z = (T - N(D)) / s(T); the CI ratio is N(D) / T, which the tool reads as a violation below 0.85. Pairwise: for each layer pair, the Yates-corrected 2x2 chi-square of the two binary patterns within the deposit cells plus the same within the non-deposit cells (df = 2), and Cramer's V = sqrt(chi2 / n)."
  },
  "cases": [
   {
@@ -324,6 +325,137 @@
      "n_notB_notD": 6837
     }
    }
-  ]
+  ],
+  "conditional_independence_fit_no_cv": {
+   "omnibus": {
+    "T_sum_of_posterior": 1124.2141439079317,
+    "N_D": 858,
+    "s_T": 32.17091077819169,
+    "z": 8.274995561779225,
+    "ci_ratio_N_D_over_T": 0.7631997912937364
+   },
+   "pairwise": [
+    {
+     "layers": [
+      "mag",
+      "grav"
+     ],
+     "chi2_stratified_yates_df2": 40.84224924733005,
+     "cramers_v": 0.04014368588442904
+    },
+    {
+     "layers": [
+      "mag",
+      "lab"
+     ],
+     "chi2_stratified_yates_df2": 297.15432692901874,
+     "cramers_v": 0.1089692561155777
+    },
+    {
+     "layers": [
+      "mag",
+      "satgrav"
+     ],
+     "chi2_stratified_yates_df2": 0.23073853538099384,
+     "cramers_v": 0.003017327742452551
+    },
+    {
+     "layers": [
+      "mag",
+      "faultprox"
+     ],
+     "chi2_stratified_yates_df2": 439.4307985986763,
+     "cramers_v": 0.1316763156044872
+    },
+    {
+     "layers": [
+      "mag",
+      "marginprox"
+     ],
+     "chi2_stratified_yates_df2": 32.70333512359002,
+     "cramers_v": 0.03592182910610929
+    },
+    {
+     "layers": [
+      "grav",
+      "lab"
+     ],
+     "chi2_stratified_yates_df2": 1948.5293354164694,
+     "cramers_v": 0.2790399794053752
+    },
+    {
+     "layers": [
+      "grav",
+      "satgrav"
+     ],
+     "chi2_stratified_yates_df2": 31.80421965578724,
+     "cramers_v": 0.0354245867123613
+    },
+    {
+     "layers": [
+      "grav",
+      "faultprox"
+     ],
+     "chi2_stratified_yates_df2": 2390.0156609527157,
+     "cramers_v": 0.30708796284650697
+    },
+    {
+     "layers": [
+      "grav",
+      "marginprox"
+     ],
+     "chi2_stratified_yates_df2": 0.823167769283567,
+     "cramers_v": 0.005699104217015458
+    },
+    {
+     "layers": [
+      "lab",
+      "satgrav"
+     ],
+     "chi2_stratified_yates_df2": 1177.5363409101046,
+     "cramers_v": 0.21692026008920196
+    },
+    {
+     "layers": [
+      "lab",
+      "faultprox"
+     ],
+     "chi2_stratified_yates_df2": 15544.430934557104,
+     "cramers_v": 0.7881345578649519
+    },
+    {
+     "layers": [
+      "lab",
+      "marginprox"
+     ],
+     "chi2_stratified_yates_df2": 504.87626685992234,
+     "cramers_v": 0.1420382899031043
+    },
+    {
+     "layers": [
+      "satgrav",
+      "faultprox"
+     ],
+     "chi2_stratified_yates_df2": 1470.5785889630565,
+     "cramers_v": 0.24088321519985487
+    },
+    {
+     "layers": [
+      "satgrav",
+      "marginprox"
+     ],
+     "chi2_stratified_yates_df2": 534.7324405600889,
+     "cramers_v": 0.1452548646914929
+    },
+    {
+     "layers": [
+      "faultprox",
+      "marginprox"
+     ],
+     "chi2_stratified_yates_df2": 36.67639218349084,
+     "cramers_v": 0.03804133277981009
+    }
+   ]
+  }
  }
 }

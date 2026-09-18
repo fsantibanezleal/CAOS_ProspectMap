@@ -49,7 +49,8 @@ All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachan
 - `manuscripts/prospectivity/data/build_pm.py` builds `pm.json` from the artifacts, with a key per protocol: per
   layer the studentized contrast with its 2x2 counts, s(C), a second small-count correction and exact statistics
   (Fisher's exact test and the exact interval for C, which need no correction); the like-for-like pairs, the
-  logistic regression and the distance baseline. A test keeps `pm.json` equal to a fresh build.
+  logistic regression and the distance baseline; the omnibus and pairwise conditional-independence tests of the
+  full-data fit. A test keeps `pm.json` equal to a fresh build.
 - `figures/make_figs.py` labels every AUC with its protocol and plots the studentized contrast with the 1.645 and 1.96
   levels. Version 1.1 of the report plotted the binarization threshold tStar under that label.
 
