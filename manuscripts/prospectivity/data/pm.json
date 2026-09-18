@@ -1,117 +1,329 @@
 {
+ "schema": "prospectmap.manuscript-data/v2",
+ "source": {
+  "version": "0.10.001",
+  "case_results": "data/derived/case-results.json",
+  "learned_real": "data/derived/pm-learned-real.json",
+  "builder": "manuscripts/prospectivity/data/build_pm.py"
+ },
+ "protocols": {
+  "wofe_fit_no_cv": "Weights of Evidence fitted on every deposit cell (each layer's maximizing-contrast threshold, its weights and the prior) and scored on the same map cells; nothing is held out, so it is a fitting AUC.",
+  "cv_all_cells_pooled": "5-fold cross-validation over every map cell with the engine's folds: spatial-block (20x20-cell blocks, fold = blockId % 5, so every held-out block borders training blocks) or random (seed 17). Each fold's model is fitted on the training folds' cells only (for WofE: thresholds, weights and prior); every cell is scored once while its fold is held out; the held-out scores are pooled into one Mann-Whitney ROC AUC.",
+  "logistic_regression": "The engine's logistic regression (IRLS, ridge 1e-3 on the slopes) on the layers' binary patterns. Without CV: fitted on every cell at the full-data thresholds (the betas are those slopes). Under CV: per fold, the patterns at the training folds' thresholds and the fit on the training folds' cells only; same folds, cells and aggregation as cv_all_cells_pooled.",
+  "distance_baseline": "The engine's distance-to-known-deposit score exp(-d / 4), d the cell distance to the nearest training-fold deposit, under the same folds and aggregation; it learns no geology.",
+  "mlp_labelled_sample_cv": "The learned MLP only, on its labelled sample (the deposit cells and non-deposit cells sampled more than 2 cells from any deposit); 20x20-cell blocks assigned to 5 folds in shuffled order (spatial) or a uniform 5-way split (random); the AUC is the mean of the 5 per-fold AUCs. No WofE value exists on this basis.",
+  "woe_layers": "Per real evidence layer, fitted on every deposit cell: the maximizing-contrast threshold tStar, W+ and W-, the contrast C = W+ - W-, its standard error s(C) = sqrt(1/n_B_D + 1/n_B_notD + 1/n_notB_D + 1/n_notB_notD) (Haldane 0.5 added to every count of a table with a zero count), and the studentized contrast C / s(C); one-sided significance at 5% is C / s(C) > 1.645, two-sided at 5% is > 1.96. pattern_area_fraction is the share of counted map cells inside the pattern; deposit_fraction_in_pattern the share of deposit cells inside it. When no deposit lies outside the pattern, W-, C and s(C) rest on the 0.5 correction, and C/s(C) depends on it (studentized_C_if_correction_0_1 repeats it with 0.1). Exact inference needs no correction: fisher_exact_p_one_sided is the one-sided Fisher exact p-value that deposits are over-represented in the pattern, and contrast_C_exact_95_interval the exact conditional (Cornfield) 95% interval for C = ln(odds ratio), its upper bound null (+infinity) when no deposit lies outside the pattern."
+ },
  "cases": [
   {
    "id": "K-PORPHYRY",
-   "randomAuc": 0.9068090534246982,
-   "spatialAuc": 0.8765732253567085,
-   "gap": 0.030235828067989745
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.9097481534217318,
+   "wofe_random_cv_auc": 0.917569932662929,
+   "wofe_spatial_cv_auc": 0.8589700691169054,
+   "wofe_cv_gap_random_minus_spatial": 0.058599863546023534,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.5058823529411764
   },
   {
    "id": "K-OROGENIC",
-   "randomAuc": 0.6625949986651242,
-   "spatialAuc": 0.610372875322595,
-   "gap": 0.05222212334252918
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.7099575806116698,
+   "wofe_random_cv_auc": 0.6994037554507431,
+   "wofe_spatial_cv_auc": 0.700233751594435,
+   "wofe_cv_gap_random_minus_spatial": -0.0008299961436919467,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.1411764705882353
   },
   {
    "id": "K-VMS",
-   "randomAuc": 0.8452048292842099,
-   "spatialAuc": 0.8449740440805672,
-   "gap": 0.00023078520364272492
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.8700121622022485,
+   "wofe_random_cv_auc": 0.8836433211711311,
+   "wofe_spatial_cv_auc": 0.8329720269348284,
+   "wofe_cv_gap_random_minus_spatial": 0.05067129423630268,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.4
   },
   {
    "id": "K-IOCG",
-   "randomAuc": 0.8153208151641897,
-   "spatialAuc": 0.7755005784462045,
-   "gap": 0.03982023671798529
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.8405398831242028,
+   "wofe_random_cv_auc": 0.8137088784076414,
+   "wofe_spatial_cv_auc": 0.7042271068790602,
+   "wofe_cv_gap_random_minus_spatial": 0.10948177152858118,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.2235294117647059
   },
   {
    "id": "D-RICH",
-   "randomAuc": 0.9827617098276527,
-   "spatialAuc": 0.9838497819702767,
-   "gap": -0.0010880721426240747
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.9855062145887099,
+   "wofe_random_cv_auc": 0.9803791047432588,
+   "wofe_spatial_cv_auc": 0.9759164664352882,
+   "wofe_cv_gap_random_minus_spatial": 0.004462638307970668,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.9411764705882353
   },
   {
    "id": "D-SPARSE",
-   "randomAuc": 0.6709175046720655,
-   "spatialAuc": 0.6676105722167839,
-   "gap": 0.003306932455281575
+   "real_or_synthetic": "synthetic",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.7047456319895583,
+   "wofe_random_cv_auc": 0.5746676159117202,
+   "wofe_spatial_cv_auc": 0.627624810892587,
+   "wofe_cv_gap_random_minus_spatial": -0.05295719498086682,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.23529411764705882
   },
   {
    "id": "C-NEGATIVE",
-   "randomAuc": 0.46064370680193406,
-   "spatialAuc": 0.3929577882590252,
-   "gap": 0.06768591854290884
+   "real_or_synthetic": "analytic control",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.4994452849218356,
+   "wofe_random_cv_auc": 0.45937112515202755,
+   "wofe_spatial_cv_auc": 0.39291091928450655,
+   "wofe_cv_gap_random_minus_spatial": 0.066460205867521,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.058823529411764705
   },
   {
    "id": "C-CIVIOLATE",
-   "randomAuc": 0.8162682803832577,
-   "spatialAuc": 0.8141200201714573,
-   "gap": 0.002148260211800368
+   "real_or_synthetic": "analytic control",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.8449556524576548,
+   "wofe_random_cv_auc": 0.8361798819376465,
+   "wofe_spatial_cv_auc": 0.8283189463379905,
+   "wofe_cv_gap_random_minus_spatial": 0.00786093559965595,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.3058823529411765
   },
   {
    "id": "C-RECOVER",
-   "randomAuc": 0.8493595562279375,
-   "spatialAuc": 0.8289816380409956,
-   "gap": 0.0203779181869419
+   "real_or_synthetic": "analytic control",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.8596636112841506,
+   "wofe_random_cv_auc": 0.8712645723947673,
+   "wofe_spatial_cv_auc": 0.8578885230340245,
+   "wofe_cv_gap_random_minus_spatial": 0.01337604936074277,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.2823529411764706
   },
   {
    "id": "C-SATURATE",
-   "randomAuc": 0.9676176915546855,
-   "spatialAuc": 0.9590080389190472,
-   "gap": 0.008609652635638287
+   "real_or_synthetic": "analytic control",
+   "n_cells": 10000,
+   "n_deposit_cells": 85,
+   "wofe_fit_no_cv_auc": 0.9708522440746344,
+   "wofe_random_cv_auc": 0.9614606508261399,
+   "wofe_spatial_cv_auc": 0.9112521135534395,
+   "wofe_cv_gap_random_minus_spatial": 0.05020853727270036,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.7764705882352941
   },
   {
    "id": "REAL-USMVT",
-   "randomAuc": 0.7234565272729938,
-   "spatialAuc": 0.6365237583076349,
-   "gap": 0.08693276896535895
+   "real_or_synthetic": "real (open dataset)",
+   "n_cells": 25344,
+   "n_deposit_cells": 858,
+   "wofe_fit_no_cv_auc": 0.7320650809072764,
+   "wofe_random_cv_auc": 0.7385474017120672,
+   "wofe_spatial_cv_auc": 0.647860192028288,
+   "wofe_cv_gap_random_minus_spatial": 0.09068720968377919,
+   "wofe_capture_at_10pct_area_spatial_cv": 0.05944055944055944
   }
  ],
- "real_woe": [
-  {
-   "id": "mag",
-   "contrast": 1.4247434422332017,
-   "tStar": 0.3875
-  },
-  {
-   "id": "grav",
-   "contrast": 4.100214234508297,
-   "tStar": 0.2125
-  },
-  {
-   "id": "lab",
-   "contrast": 6.233154886103878,
-   "tStar": 0.8875
-  },
-  {
-   "id": "satgrav",
-   "contrast": 4.72347691025131,
-   "tStar": 0.8125
-  },
-  {
-   "id": "faultprox",
-   "contrast": 6.012581788968887,
-   "tStar": 0.4125
-  },
-  {
-   "id": "marginprox",
-   "contrast": 5.805107832979008,
-   "tStar": 0.7625
-  }
- ],
- "real_name": "US Midcontinent MVT Zn-Pb belt (Lawley 2022, CMMI)",
  "real": {
-  "spatial_cv": {
-   "mlp_roc_auc": 0.9456,
-   "wofe_roc_auc": 0.7321,
-   "winner": "mlp"
+  "id": "REAL-USMVT",
+  "name": "US Midcontinent MVT Zn-Pb belt (Lawley 2022, CMMI)",
+  "n_cells": 25344,
+  "n_deposit_cells": 858,
+  "wofe_fit_no_cv_auc": 0.7320650809072764,
+  "logistic_regression_fit_no_cv": {
+   "auc": 0.7321141551415994,
+   "betas": {
+    "mag": 0.9946661549575192,
+    "grav": 5.915002930670784,
+    "lab": 2.72948042410875,
+    "satgrav": 8.406556730281002,
+    "faultprox": 8.102000444244734,
+    "marginprox": 5.673824450413263
+   }
   },
-  "random_cv": {
-   "mlp_roc_auc": 0.9817
+  "cv_all_cells_pooled": {
+   "spatial": {
+    "wofe_auc": 0.647860192028288,
+    "mlp_auc": 0.908213,
+    "logistic_regression_auc": 0.643748,
+    "distance_baseline_auc": 0.898595,
+    "verdict_mlp_vs_wofe": "mlp"
+   },
+   "random": {
+    "wofe_auc": 0.7385474017120672,
+    "mlp_auc": 0.939376,
+    "logistic_regression_auc": 0.743786,
+    "distance_baseline_auc": 0.959549
+   },
+   "wofe_gap_random_minus_spatial": 0.09068720968377919,
+   "mlp_gap_random_minus_spatial": 0.031163,
+   "verdict_rule": "mlp or wofe when one AUC exceeds the other by more than 0.005, else tie"
   },
-  "mlp_roc_auc": 0.9456,
-  "inflation_gap": 0.0361,
-  "nFolds": 5,
-  "nEval": 3432
+  "mlp_labelled_sample_cv": {
+   "n_deposit_cells": 858,
+   "n_sampled_non_deposit_cells": 2574,
+   "spatial_auc_mean_of_folds": 0.945565,
+   "random_auc_mean_of_folds": 0.981669,
+   "gap_random_minus_spatial": 0.036104
+  },
+  "woe_layers": [
+   {
+    "id": "mag",
+    "tStar_threshold": 0.3875,
+    "W_plus": 0.010977260449112427,
+    "W_minus": -1.4137661817840892,
+    "contrast_C": 1.4247434422332017,
+    "s_C": 0.580848748287352,
+    "studentized_C": 2.4528647886977386,
+    "haldane_correction": false,
+    "studentized_C_if_correction_0_1": 2.452864788697738,
+    "fisher_exact_p_one_sided": 0.001903220376490151,
+    "contrast_C_exact_95_interval": [
+     0.3406674202576493,
+     3.0103281712175125
+    ],
+    "pattern_area_fraction": 0.98599273989899,
+    "deposit_fraction_in_pattern": 0.9965034965034965,
+    "counts": {
+     "n_B_D": 855,
+     "n_B_notD": 24134,
+     "n_notB_D": 3,
+     "n_notB_notD": 352
+    }
+   },
+   {
+    "id": "grav",
+    "tStar_threshold": 0.2125,
+    "W_plus": 0.033964476794538845,
+    "W_minus": -4.0662497577137575,
+    "contrast_C": 4.100214234508297,
+    "s_C": 1.4150652782301083,
+    "studentized_C": 2.8975442317662092,
+    "haldane_correction": true,
+    "studentized_C_if_correction_0_1": 1.8050387837624697,
+    "fisher_exact_p_one_sided": 2.283889600726312e-13,
+    "contrast_C_exact_95_interval": [
+     2.096098157227848,
+     null
+    ],
+    "pattern_area_fraction": 0.9672111742424242,
+    "deposit_fraction_in_pattern": 1.0,
+    "counts": {
+     "n_B_D": 858,
+     "n_B_notD": 23655,
+     "n_notB_D": 0,
+     "n_notB_notD": 831
+    }
+   },
+   {
+    "id": "lab",
+    "tStar_threshold": 0.8875,
+    "W_plus": 0.2594731984682681,
+    "W_minus": -5.97368168763561,
+    "contrast_C": 6.233154886103878,
+    "s_C": 1.4147086376552478,
+    "studentized_C": 4.40596368764297,
+    "haldane_correction": true,
+    "studentized_C_if_correction_0_1": 2.479708278404504,
+    "fisher_exact_p_one_sided": 1.334703206135776e-95,
+    "contrast_C_exact_95_interval": [
+     4.231400759895742,
+     null
+    ],
+    "pattern_area_fraction": 0.7788611388611388,
+    "deposit_fraction_in_pattern": 1.0,
+    "counts": {
+     "n_B_D": 857,
+     "n_B_notD": 18634,
+     "n_notB_D": 0,
+     "n_notB_notD": 5534
+    }
+   },
+   {
+    "id": "satgrav",
+    "tStar_threshold": 0.8125,
+    "W_plus": 0.062914092600178,
+    "W_minus": -4.660562817651131,
+    "contrast_C": 4.72347691025131,
+    "s_C": 1.4148753046685865,
+    "studentized_C": 3.338440422746451,
+    "haldane_correction": true,
+    "studentized_C_if_correction_0_1": 2.002230177524136,
+    "fisher_exact_p_one_sided": 5.822182571169161e-24,
+    "contrast_C_exact_95_interval": [
+     2.720619472342139,
+     null
+    ],
+    "pattern_area_fraction": 0.9405776515151515,
+    "deposit_fraction_in_pattern": 1.0,
+    "counts": {
+     "n_B_D": 858,
+     "n_B_notD": 22980,
+     "n_notB_D": 0,
+     "n_notB_notD": 1506
+    }
+   },
+   {
+    "id": "faultprox",
+    "tStar_threshold": 0.4125,
+    "W_plus": 0.2128635189008369,
+    "W_minus": -5.79971827006805,
+    "contrast_C": 6.012581788968887,
+    "s_C": 1.4147182932714861,
+    "studentized_C": 4.25002052886798,
+    "haldane_correction": true,
+    "studentized_C_if_correction_0_1": 2.409954292372857,
+    "fisher_exact_p_one_sided": 9.6867936609803e-79,
+    "contrast_C_exact_95_interval": [
+     4.010763774455301,
+     null
+    ],
+    "pattern_area_fraction": 0.8143150252525253,
+    "deposit_fraction_in_pattern": 1.0,
+    "counts": {
+     "n_B_D": 858,
+     "n_B_notD": 19780,
+     "n_notB_D": 0,
+     "n_notB_notD": 4706
+    }
+   },
+   {
+    "id": "marginprox",
+    "tStar_threshold": 0.7625,
+    "W_plus": 0.32625622021111256,
+    "W_minus": -5.478851612767896,
+    "contrast_C": 5.805107832979008,
+    "s_C": 1.0006846579009705,
+    "studentized_C": 5.801136039355059,
+    "haldane_correction": false,
+    "studentized_C_if_correction_0_1": 5.801136039355059,
+    "fisher_exact_p_one_sided": 9.124984294012557e-118,
+    "contrast_C_exact_95_interval": [
+     4.084231780335076,
+     9.482650204777212
+    ],
+    "pattern_area_fraction": 0.7301925505050505,
+    "deposit_fraction_in_pattern": 0.9988344988344988,
+    "counts": {
+     "n_B_D": 857,
+     "n_B_notD": 17649,
+     "n_notB_D": 1,
+     "n_notB_notD": 6837
+    }
+   }
+  ]
  }
 }
