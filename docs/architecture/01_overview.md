@@ -15,9 +15,11 @@ The per-product surface is the **science engine** (Weights of Evidence), the vis
 
 ## The flow
 
-1. The cases are synthetic study-area specs (`frontend/src/mpm/cases.ts`). The Node bake (`science/bake_cases.mjs`)
+1. The synthetic cases are study-area specs (`frontend/src/mpm/cases.ts`). The Node bake (`science/bake_cases.mjs`)
    regenerates each cube deterministically and runs `analyze.ts` (the whole WofE pipeline + the CI diagnostics + the
    capture curves + the random-vs-spatial-CV inflation gap + the logistic comparison) -> `data/derived/case-results.json`.
+   The real case (`REAL-USMVT`) is a committed cube (`data/derived/REAL-USMVT/cube.json`) that `science/bake_real.mjs`
+   analyzes with the same engine and merges into `case-results.json`.
 2. The light pipeline (`pipeline.pipeline all`) applies Contract 1 to the case descriptors, reshapes `case-results.json`
    into per-case `trace.json` + `manifests/*.json` (Contract 2), and runs the lane gate.
 3. The SPA reads the manifests/traces + the shared artifacts (each lane's 2 ONNX + its learned metrics:

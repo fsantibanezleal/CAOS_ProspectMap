@@ -18,7 +18,7 @@ export const architecture: ArchitectureConfig = {
         'recomputes the posterior live in the browser when an evidence layer is toggled or the method is switched ' +
         '(binarization is automatic at the maximizing-contrast threshold t*); the ' +
         'per-layer weights table, the capture / ROC curves and the conditional-independence test update with it. It ' +
-        'exposes WofE’s failure modes honestly: conditional-independence violation inflating ' +
+        'exposes WofE’s failure modes: conditional-independence violation inflating ' +
         'the posterior, and random-CV vs spatial-CV inflating the AUC. The synthetic controls (C-NEGATIVE, C-CIVIOLATE, ' +
         'C-RECOVER, C-SATURATE) have known ground truth, so the method is verifiable; the white-box WofE is the authority.',
       body_es:
@@ -30,7 +30,7 @@ export const architecture: ArchitectureConfig = {
         'el posterior en vivo en el navegador al activar o desactivar una capa de evidencia o cambiar el método (la ' +
         'binarización es automática en el umbral de contraste máximo t*); la tabla de ' +
         'pesos por capa, las curvas de captura / ROC y el test de independencia condicional se actualizan con él. ' +
-        'Expone honestamente las fallas de WofE: la violación de independencia condicional que infla el ' +
+        'Expone las fallas de WofE: la violación de independencia condicional que infla el ' +
         'posterior, y el CV aleatorio vs el CV espacial que infla el AUC. Los controles sintéticos (C-NEGATIVE, ' +
         'C-CIVIOLATE, C-RECOVER, C-SATURATE) tienen ground-truth conocido, así el método es verificable; el WofE ' +
         'de caja blanca es la autoridad.',
@@ -92,10 +92,10 @@ export const architecture: ArchitectureConfig = {
         'logit + Σ of the present/absent weights, under conditional independence; ④ the Agterberg-Cheng omnibus ' +
         'test (Σ posterior ≈ N(D) under CI) + the CI ratio surface when correlated layers double-count and ' +
         'inflate the posterior, then logistic regression (which fits the layers jointly, no CI needed) is the fix.\n\n' +
-        'Honest validation is the spine: the prediction-rate capture curve (% deposits captured vs % area, under ' +
+        'Validation is the spine: the prediction-rate capture curve (% deposits captured vs % area, under ' +
         'spatial cross-validation) and capture@10% are the headline; random-CV is shown beside spatial-CV to expose ' +
         'the inflation. The white-box WofE is always on and transparent, the authority the learned classifier is ' +
-        'measured against on the same spatial holdout, never a fabricated win.',
+        'measured against under the same cross-validation folds.',
       body_es:
         'Weights of Evidence, paso a paso: ① se binariza cada capa de evidencia en un umbral (la elección data-driven es ' +
         'el umbral de contraste máximo t* = argmax C(t)); ② por patrón se calcula W⁺ / W⁻, el contraste ' +
@@ -104,10 +104,10 @@ export const architecture: ArchitectureConfig = {
         'Agterberg-Cheng (Σ posterior ≈ N(D) bajo CI) + el CI ratio afloran cuando capas correlacionadas ' +
         'doble-cuentan e inflan el posterior, entonces la regresión logística (que ajusta las capas en conjunto, sin ' +
         'CI) es el arreglo.\n\n' +
-        'La validación honesta es la columna: la curva de captura prediction-rate (% depósitos capturados vs % área, ' +
+        'La validación es la columna: la curva de captura prediction-rate (% depósitos capturados vs % área, ' +
         'bajo cross-validation espacial) y capture@10% son lo central; el CV aleatorio se muestra junto al espacial ' +
         'para exponer la inflación. El WofE de caja blanca está siempre activo y es transparente, la autoridad contra ' +
-        'la que se mide el clasificador aprendido en el mismo holdout espacial, nunca una victoria fabricada.',
+        'la que se mide el clasificador aprendido con las mismas particiones de cross-validation.',
     },
     {
       id: 'design',
@@ -117,7 +117,7 @@ export const architecture: ArchitectureConfig = {
       body_en:
         'Two validated data contracts bracket the pipeline. Contract 1 (ingestion) defines a valid case bundle, a ' +
         'co-registered evidence cube (grid + layers) + a presence-only deposit point pattern + a study-area mask, with ' +
-        'guards (grid/cell positive, ≥ 1 deposit) and honesty flags (presence-only-tiny < 10 deposits ⇒ a black ' +
+        'guards (grid/cell positive, ≥ 1 deposit) and caution flags (presence-only-tiny < 10 deposits ⇒ a black ' +
         'box overfits; single-layer; synthetic). Contract 2 (artifact) defines the output the web reads (the per-layer ' +
         'weights, the posterior summary, the CI diagnostics, the capture / ROC curves, the random-vs-spatial-CV gap, ' +
         'the model index), mirrored exactly by contract.types.ts. Between them the staged deterministic pipeline runs ' +
@@ -126,7 +126,7 @@ export const architecture: ArchitectureConfig = {
       body_es:
         'Dos contratos de datos validados encierran el pipeline. El Contrato 1 (ingesta) define un bundle de caso ' +
         'válido, un cubo de evidencia co-registrado (grilla + capas) + un patrón de puntos de depósitos presence-only ' +
-        '+ una máscara del área, con guardas (grilla/celda positivas, ≥ 1 depósito) y flags de honestidad ' +
+        '+ una máscara del área, con guardas (grilla/celda positivas, ≥ 1 depósito) y flags de advertencia ' +
         '(presence-only-tiny < 10 depósitos ⇒ una caja negra sobreajusta; capa única; sintético). El Contrato 2 ' +
         '(artefacto) define la salida que lee la web (los pesos por capa, el resumen del posterior, los diagnósticos de ' +
         'CI, las curvas de captura / ROC, el gap CV aleatorio-vs-espacial, el índice de modelos), espejado exactamente ' +

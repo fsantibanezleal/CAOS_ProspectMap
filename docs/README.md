@@ -7,7 +7,7 @@ inflation) made first-class. Instantiated on the CAOS product-repo archetype (AD
 
 - **[Architecture](architecture.md)** - the archetype, the lanes, the gate, the two data contracts, determinism, deploy.
 - **[Frameworks](frameworks.md)** - the WofE/CI/logistic method, the viz stack, the learned models (torch -> ONNX).
-- **[Cases](cases.md)** - the 10 cases by category + their validation anchors.
+- **[Cases](cases.md)** - the 11 cases by category (10 synthetic + REAL-USMVT) + their validation anchors.
 - **[Guides](guides.md)** - run the precompute/retrain lane, bring your own evidence stack.
 
 ## One-paragraph orientation
@@ -15,7 +15,7 @@ inflation) made first-class. Instantiated on the CAOS product-repo archetype (AD
 The engine is the **TypeScript code** in [`frontend/src/mpm/`](../frontend/src/mpm/): Weights of Evidence (per-layer
 W+/W-/contrast/studentized-C at the maximizing-contrast threshold, the posterior log-odds under conditional
 independence), the conditional-independence machinery (pairwise chi-square + the Agterberg-Cheng omnibus + the CI
-ratio), logistic regression (the CI-free generalization), and honest validation (success/prediction-rate capture
+ratio), logistic regression (the CI-free generalization), and validation (success/prediction-rate capture
 curves under spatial cross-validation). It runs *live in the browser* (the App recomputes the posterior raster on every
 layer toggle or method switch) **and** in the offline Node bake (no Python re-port). The Python package
 [`pipeline`](../data-pipeline/pipeline/) is the two data contracts + the staged pipeline + the lane gate; its default lane is

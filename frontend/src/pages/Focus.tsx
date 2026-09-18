@@ -4,7 +4,7 @@
 // at the SAME area through the SAME live WofE recomputation. It renders OUTSIDE <AppShell> on purpose: the
 // shell header and footer are exactly the chrome a focus view exists to escape.
 //
-// THE HONEST NEGATIVE IS THE HEADLINE HERE, NOT A FOOTNOTE. This product's finding is that regional
+// THE NEGATIVE RESULT IS THE HEADLINE HERE, NOT A FOOTNOTE. This product's finding is that regional
 // geophysics alone has little spatial-transfer skill on a clustered MVT belt: the spatially-blocked CV AUC
 // sits near chance while the random-CV AUC looks good. A focus view that showed a confident-looking
 // posterior map without that number beside it would be the single most misleading screen in the line, so
@@ -34,16 +34,20 @@ function skillState(spatialAuc: number, gap: number, es: boolean): { label: stri
     return {
       label: es ? 'Sin habilidad de transferencia' : 'No transfer skill',
       text: es
-        ? `Con validacion cruzada por bloques espaciales el AUC es ${spatialAuc.toFixed(2)}, practicamente azar. El mapa describe donde estan las ocurrencias conocidas, pero no predice bloques no vistos: la brecha de ${gap.toFixed(2)} frente a la CV aleatoria es autocorrelacion espacial, no habilidad.`
-        : `Under spatially-blocked cross-validation the AUC is ${spatialAuc.toFixed(2)}, essentially chance. The map describes where the known occurrences are, but it does not predict unseen blocks: the ${gap.toFixed(2)} gap against random CV is spatial autocorrelation, not skill.`,
+        ? `Con validacion cruzada por bloques espaciales el AUC es ${spatialAuc.toFixed(2)}, practicamente azar. El mapa describe donde estan las ocurrencias conocidas, pero no predice bloques no vistos${gap > 0 ? `: la brecha de ${gap.toFixed(2)} frente a la CV aleatoria es autocorrelacion espacial, no habilidad.` : `, y la CV aleatoria tampoco lo puntua mejor (brecha ${gap.toFixed(2)}).`}`
+        : `Under spatially-blocked cross-validation the AUC is ${spatialAuc.toFixed(2)}, essentially chance. The map describes where the known occurrences are, but it does not predict unseen blocks${gap > 0 ? `: the ${gap.toFixed(2)} gap against random CV is spatial autocorrelation, not skill.` : `, and random CV does not score it higher either (gap ${gap.toFixed(2)}).`}`,
     };
   }
   if (spatialAuc < 0.7) {
     return {
       label: es ? 'Habilidad marginal' : 'Marginal skill',
       text: es
-        ? `AUC espacial ${spatialAuc.toFixed(2)}: algo por encima del azar, pero la brecha de ${gap.toFixed(2)} contra la CV aleatoria muestra cuanto del desempeno aparente proviene de ocurrencias vecinas.`
-        : `Spatial AUC ${spatialAuc.toFixed(2)}: above chance, but the ${gap.toFixed(2)} gap against random CV shows how much of the apparent performance comes from neighbouring occurrences.`,
+        ? (gap > 0
+          ? `AUC espacial ${spatialAuc.toFixed(2)}: algo por encima del azar, pero la brecha de ${gap.toFixed(2)} contra la CV aleatoria muestra cuanto del desempeno aparente proviene de ocurrencias vecinas.`
+          : `AUC espacial ${spatialAuc.toFixed(2)}: algo por encima del azar. La CV aleatoria no lo puntua mejor (brecha ${gap.toFixed(2)}), asi que aqui no se mide inflacion.`)
+        : (gap > 0
+          ? `Spatial AUC ${spatialAuc.toFixed(2)}: above chance, but the ${gap.toFixed(2)} gap against random CV shows how much of the apparent performance comes from neighbouring occurrences.`
+          : `Spatial AUC ${spatialAuc.toFixed(2)}: above chance. Random CV does not score it higher (gap ${gap.toFixed(2)}), so no inflation is measured here.`),
     };
   }
   return {

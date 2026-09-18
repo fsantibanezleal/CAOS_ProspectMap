@@ -60,7 +60,7 @@
   <rect class="bx" x="20" y="312" width="404" height="128" rx="10"/>
   <text class="it" x="36" y="336" style="font-weight:700">Classical baseline</text>
   <text class="mu" x="36" y="358">a transparent, deterministic method , </text>
-  <text class="mu" x="36" y="378">the honest reference every result is</text>
+  <text class="mu" x="36" y="378">the reference every result is</text>
   <text class="mu" x="36" y="398">measured against.</text>
   <text class="cd mono" x="36" y="424">src/&lt;domain&gt;/*.ts (runs live)</text>
 

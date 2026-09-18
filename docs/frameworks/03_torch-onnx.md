@@ -18,13 +18,14 @@ A small undercomplete autoencoder (4 -> 8 -> 2 -> 8 -> 4) over the standardized 
 separates in-envelope geology from out-of-envelope ("the classifier is extrapolating under cover; do not trust the
 score here"). The 95th-percentile in-envelope MSE is the committed threshold.
 
-## The honest numbers
+## The numbers
 
-Measured (not fabricated): mpm-classifier **spatial-CV AUC 0.971 vs WofE 0.929** (winner: the MLP, on the multi-layer
-interactions WofE's CI form omits) - random-CV 0.979 (inflation +0.008) - geology-OOD AUC 1.0 (on a synthetic
+Measured on the synthetic lane's labelled rows under one spatial-block CV protocol: mpm-classifier **spatial-CV AUC
+0.971 vs WofE 0.868** (winner: the MLP; WofE was 0.929 before release 0.11.000 made the cross-validation fully out of
+fold) - random-CV 0.979 (inflation +0.008) - geology-OOD AUC 1.0 (on a synthetic
 out-of-band eval set, separable by construction - not a field-detection claim). `train_mpm.py` exports
 the 2 ONNX + `learned-partial.json`; `eval_mpm.mjs` runs the exported classifier in onnxruntime-web (the engine's own
-runtime, the honest end-to-end check) and assembles `pm-learned.json` (schema `prospectmap.learned/v1`).
+runtime, the end-to-end check) and assembles `pm-learned.json` (schema `prospectmap.learned/v3`).
 
 The real US-MVT lane has its own 6-feature models (`mpm-classifier-real.onnx`, `geology-ood-real.onnx`), trained by
 `pipeline/real_learned.py` and scored against WofE on all map cells under the engine's own folds, beside a

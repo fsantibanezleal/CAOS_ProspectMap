@@ -9,7 +9,7 @@ the PU-Conformal lane must be judged against, not just WofE and logistic regress
 In the canonical head-to-head for mineral prospectivity mapping (epithermal Au, Rodalquilar), random forest beat
 artificial neural networks, regression trees and support vector machines on success rate and ROC, and was the most
 stable to training-parameter choices (Rodriguez-Galiano, Sanchez-Castillo, Chica-Olmo & Chica-Rivas 2015, Ore Geology
-Reviews 71, 804-818, [doi:10.1016/j.oregeorev.2015.01.001](https://doi.org/10.1016/j.oregeorev.2015.01.001)). So RF/GBM is the honest "which ML model for MPM" reference.
+Reviews 71, 804-818, [doi:10.1016/j.oregeorev.2015.01.001](https://doi.org/10.1016/j.oregeorev.2015.01.001)). So RF/GBM is the standard "which ML model for MPM" reference.
 
 ## Gradient boosting
 
@@ -39,7 +39,7 @@ observed absences). Every model in the benchmark is scored on the same contiguou
 
 ## What this rung is and is not
 
-- It **is** the non-linear tabular frontier that exposes interactions WofE's additive form omits, and the honest
+- It **is** the non-linear tabular frontier that exposes interactions WofE's additive form omits, and the
   yardstick for any proposed method.
 - It is **not** a licence to ignore leakage: without strict spatial control these fine-grained models overfit
   autocorrelation and report inflated held-out AUC (the exact failure the App warns about). Under the strict
@@ -51,4 +51,4 @@ observed absences). Every model in the benchmark is scored on the same contiguou
 Beyond tabular ML the field uses deep autoencoders (Xiong, Zuo & Carranza 2018, [doi:10.1016/j.oregeorev.2018.10.006](https://doi.org/10.1016/j.oregeorev.2018.10.006)),
 CNN/GeoCNN with augmentation for tiny positive sets (Li, Zuo, Zhao & Zhao 2022, [doi:10.1016/j.oregeorev.2022.104693](https://doi.org/10.1016/j.oregeorev.2022.104693)),
 and self-supervised geospatial foundation models (GFM4MPM, [arXiv:2406.12756](https://arxiv.org/abs/2406.12756)). Our grid is small, so a CNN is optional;
-these are cited as the honest ceiling this build does not train.
+these are cited as the ceiling this build does not train.
