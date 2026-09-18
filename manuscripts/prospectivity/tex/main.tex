@@ -39,9 +39,9 @@
 % Page-1 header block (conventions/manuscript-header-standard.md). The four document
 % macros are set by the publishing tool when the version DOI is reserved.
 \newcommand{\doctype}{Technical report}
-\newcommand{\docversion}{v1.1}
+\newcommand{\docversion}{v1.2}
 \newcommand{\docdate}{18 September 2026}
-\newcommand{\versiondoi}{10.5281/zenodo.22823062}
+\newcommand{\versiondoi}{10.5281/zenodo.22837929}
 \newcommand{\conceptdoi}{10.5281/zenodo.21519007}
 \newcommand{\docrepo}{github.com/fsantibanezleal/CAOS\_ProspectMap}
 \newcommand{\headerblock}{%
@@ -59,8 +59,8 @@ Not peer reviewed. Source code, data and computational records: \href{https://\d
 
 \title{ProspectMap: The Two Ways a Mineral\\ Prospectivity Map Lies, Quantified on the\\ Real US Mississippi-Valley-Type Belt}
 
-\author{Felipe~Santiba\~nez-Leal~\orcidlink{0000-0002-0150-3246}%
-\thanks{F. Santiba\~nez-Leal is with the CAOS open-research programme, Santiago, Chile
+\author{Felipe~Santib\'a\~nez-Leal~\orcidlink{0000-0002-0150-3246}%
+\thanks{F. Santib\'a\~nez-Leal is with the CAOS open-research programme, Santiago, Chile
 (e-mail: fsantibanez@gmail.com; ORCID 0000-0002-0150-3246).}%
 \thanks{Interactive tool and reproducible pipeline (MIT) at
 \url{https://github.com/fsantibanezleal/CAOS_ProspectMap}; the tool is available at
@@ -68,7 +68,7 @@ Not peer reviewed. Source code, data and computational records: \href{https://\d
 
 % The leading {} lets IEEEtran's \MakeUppercase reach \doctype, so the whole head is set in capitals.
 \markboth{{}\doctype\ \docversion, 2026}%
-{Santiba\~nez-Leal: The two ways a mineral prospectivity map lies}
+{Santib\'a\~nez-Leal: The two ways a mineral prospectivity map lies}
 
 \IEEEaftertitletext{\vspace{-0.6\baselineskip}\headerblock\vspace{0.2\baselineskip}}
 
@@ -81,19 +81,21 @@ per cell, the probability that a deposit is there. Such maps are typically prese
 ProspectMap is an interactive tool that computes such a map by Weights of Evidence, a Bayesian log-odds update,
 and makes those two inflations \emph{first-class}, measuring them rather than hiding them. This report quantifies
 both on the real US Midcontinent Mississippi-Valley-type zinc-lead belt (the open Critical Minerals Mapping
-Initiative dataset of Lawley \emph{et al.}, 2022) and on ten synthetic terranes. The first inflation is
+Initiative dataset of Lawley \emph{et al.}, 2022) and on ten synthetic cases. The first inflation is
 \emph{evaluation}: reporting AUC under random cross-validation, which lets spatially adjacent cells leak between
-train and test, overstates prospective skill; on the real belt the Weights-of-Evidence AUC, scored over all map
-cells, falls from $0.72$ under random cross-validation to $0.64$ under spatial block cross-validation (an
-inflation of $0.09$, the largest of any case), and a learned classifier, scored on a labelled sample of deposit
-cells and distance-buffered non-deposit cells, drops from $0.98$ to $0.95$. The spatial estimate is the one to
-report; the two models' spatial-CV AUCs come from different cell sets and are not a like-for-like comparison. The
-second inflation is \emph{modelling}: Weights of Evidence assumes the evidence layers are conditionally independent given
-a deposit, and it reports large contrasts that look decisive, but on the real belt those contrasts are
-statistically \emph{insignificant}, every layer's studentized contrast is below the $95\%$ threshold, so the
-confident-looking weights do not survive their own error bars. The tool displays both corrected diagnostics, the
-spatial-CV AUC and the studentized significance, beside the inflated values; every number and figure can be
-regenerated from the released artifacts.
+train and test, overstates prospective skill. On the real belt, with thresholds, weights and prior fitted on the
+training folds only and every map cell scored, the Weights-of-Evidence AUC falls from $0.74$ under random
+cross-validation to $0.65$ under spatial block cross-validation, an inflation of $0.09$, the second largest of the
+eleven cases. Under the same spatial folds a learned classifier reaches $0.91$, but a baseline that ranks cells by
+their distance to the nearest training deposit reaches $0.90$, so this protocol does not show that the classifier
+learned more than proximity to known deposits. The second inflation is \emph{modelling}: Weights of Evidence
+assumes the evidence layers are conditionally independent given a deposit, and on the real belt they are not. The
+posterior probabilities sum to $1124$ against $858$ deposit cells (omnibus $z = 8.3$), so the posterior is
+overconfident. The six layers' contrasts are individually significant (studentized contrasts $2.45$ to $5.80$;
+exact one-sided $p \le 1.9\times10^{-3}$), but four of them come from thresholds that leave no deposit outside the
+pattern, where the weight outside the pattern is set by a zero-count correction. The tool displays the spatial-CV
+AUC, the conditional-independence test and the per-layer significance beside the inflated values; every number
+and figure can be regenerated from the released artifacts.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -119,11 +121,11 @@ posterior live, and it makes first-class the two ways the numbers lie. The first
 random split leaves near-neighbour cells in both train and test, so the model is partly tested on what it has
 seen; \emph{spatial} cross-validation, holding out contiguous blocks, gives a realistic estimate~\cite{roberts}. The
 second is that Weights of Evidence assumes the evidence layers are conditionally independent given a deposit, and
-when they are not the posterior is overconfident~\cite{agterberg}; and even when the contrasts look large, they
-may not be statistically significant. This report quantifies both, on the real US Mississippi-Valley-type
+when they are not the posterior is overconfident~\cite{agterberg}; and a contrast can look large because of
+how its binarization threshold was chosen. This report quantifies both, on the real US Mississippi-Valley-type
 zinc-lead belt from the open Critical Minerals Mapping Initiative dataset~\cite{lawley} and on ten synthetic
-terranes, and reports a modern learned classifier~\cite{rodriguez} under the same random-versus-spatial
-contrast. The contribution is the measurement and the display of the two
+cases (four terranes, two data regimes and four controls), and reports a learned classifier~\cite{rodriguez} and
+a distance-to-deposit baseline under the same folds. The contribution is the measurement and the display of the two
 inflations, not a new prospectivity algorithm.
 
 % Defined before Section II so that the full-width float lands at the top of the next page.
@@ -131,15 +133,16 @@ inflations, not a new prospectivity algorithm.
 \centering
 \includegraphics[width=0.84\textwidth]{fig-inflation.pdf}
 \caption{The evaluation inflation. \textbf{(a)} Weights-of-Evidence AUC under random versus spatial
-cross-validation, per case (five folds; spatial folds are $20\times20$-cell blocks; every map cell scored): random
-cross-validation (red) is at least as high as spatial (blue) in every case except D-RICH, where spatial exceeds
-random by $0.001$, because adjacent cells leak; the gap is largest on the real US-MVT belt (marked $*$), where the
-AUC falls from $0.72$ to $0.64$. Spatial cross-validation gives the realistic estimate. \textbf{(b)} The real belt,
-AUC by protocol: Weights of Evidence scored over all map cells without cross-validation ($0.732$, weights fitted
-on all deposits), under random ($0.723$) and under spatial ($0.637$) cross-validation; the learned classifier
-scored on its labelled sample (the 858 deposit cells and 2574 sampled non-deposit cells more than two cells from
-any deposit) under random ($0.982$) and spatial ($0.946$) cross-validation. The two models are scored on
-different cell sets, so their AUCs are not directly comparable.}
+cross-validation, per case (five folds; spatial folds are $20\times20$-cell blocks; thresholds, weights and prior
+fitted on the training folds' cells; every map cell scored once, pooled): random cross-validation (red) is at
+least as high as spatial (blue) in every case except K-OROGENIC and D-SPARSE, where spatial exceeds random by
+$0.001$ and $0.053$; the gap is largest for the synthetic K-IOCG terrane ($0.110$) and second largest on the real
+US-MVT belt (marked $*$), where the AUC falls from $0.739$ to $0.648$. \textbf{(b)} The real belt, AUC by
+protocol: Weights of Evidence without cross-validation ($0.732$, fitted on all deposits); over all map cells with
+the same folds, random and spatial cross-validation of Weights of Evidence ($0.739$, $0.648$), the learned
+classifier ($0.939$, $0.908$) and a baseline that ranks cells by their distance to the nearest training deposit
+($0.960$, $0.899$); set apart, the classifier on its labelled sample (858 deposit cells and 2574 non-deposit cells
+more than two cells from any deposit; mean of per-fold AUCs; $0.982$, $0.946$).}
 \label{fig:inflation}
 \end{figure*}
 
@@ -148,62 +151,80 @@ different cell sets, so their AUCs are not directly comparable.}
 The first inflation is a matter of how the map is scored, and it is quantified in Fig.~\ref{fig:inflation}a. For
 every case, the Weights-of-Evidence posterior is evaluated two ways: random five-fold cross-validation, which
 splits the grid cells at random, and spatial five-fold cross-validation, which holds out contiguous
-$20\times20$-cell blocks so that the test set is geographically separate from the training set; in both, the
-weights are refitted on the training folds' deposits and every map cell receives a held-out score. Random
-cross-validation is at least as optimistic in every case but D-RICH, where the spatial AUC is higher by $0.001$,
-because a prospectivity grid is strongly spatially autocorrelated and a random split leaves a test
-cell's near neighbours in the training set, so the model is scored partly on cells like ones it has seen. The gap
-is real and, on the \emph{real} US Mississippi-Valley-type belt, it is the largest of any case: the
-Weights-of-Evidence AUC falls from $0.723$ under random cross-validation to $0.637$ under spatial, an inflation of
-$0.087$. A learned classifier, a small multilayer perceptron on the six continuous evidence layers (Weights of
-Evidence uses their binarized patterns), cross-validated with the same block size and fold count but scored on a
-labelled sample of the 858 deposit cells and 2574 sampled non-deposit cells more than two cells from any deposit,
-falls from $0.982$ to $0.946$. The spatial estimate is the relevant one; the random one overstates how well the
-map would find a deposit in unseen ground. Fig.~\ref{fig:inflation}b
-sets these values beside the Weights-of-Evidence AUC without cross-validation ($0.732$, weights fitted and scored
-on the whole map). The spatial-CV AUCs of the learned classifier ($0.946$) and of Weights of Evidence ($0.637$)
-are computed on different cell sets and averaged differently (the mean of per-fold AUCs for the classifier,
-pooled held-out scores for Weights of Evidence), so their difference is not a like-for-like comparison of the two
-methods.
+$20\times20$-cell blocks so that the test set is geographically separate from the training set. In both, each
+layer's binarization threshold, its weights and the prior are fitted on the training folds' cells only, the
+held-out fold is only scored, and every map cell receives one held-out score. Random cross-validation is at least
+as optimistic in every case except K-OROGENIC and D-SPARSE, where the spatial AUC is higher by $0.001$ and
+$0.053$, because a prospectivity grid is strongly spatially autocorrelated and a random split leaves a test
+cell's near neighbours in the training set, so the model is scored partly on cells like ones it has seen. On the
+\emph{real} US Mississippi-Valley-type belt the gap is the second largest of the eleven cases, after the
+synthetic K-IOCG terrane ($0.110$): the Weights-of-Evidence AUC falls from $0.739$ under random cross-validation
+to $0.648$ under spatial, an inflation of $0.091$. The spatial estimate is the relevant one; the random one
+overstates how well the map would find a deposit in unseen ground.
 
-\section{The Second Lie: Overconfident Weights}\label{sec:woe}
+Fig.~\ref{fig:inflation}b sets these values beside the Weights-of-Evidence AUC without cross-validation ($0.732$,
+weights fitted and scored on the whole map) and beside two other models scored on every map cell with the same
+folds. A learned classifier, a small multilayer perceptron on the six continuous evidence layers (Weights of
+Evidence uses their binarized patterns), reaches $0.939$ under random and $0.908$ under spatial
+cross-validation. A baseline that learns no geology and ranks each cell by its distance to the nearest training
+deposit reaches $0.960$ and $0.899$: the classifier exceeds it by $0.010$ under spatial folds and falls below it
+under random ones. Spatial blocks of $20\times20$ cells still leave each held-out block beside training blocks,
+so this protocol cannot separate what the classifier learned from the evidence layers from proximity to known
+deposits. A logistic regression on the same binary patterns, also fitted out of fold, tracks Weights of Evidence
+($0.744$ random, $0.644$ spatial). On its own labelled sample, the 858 deposit cells and 2574 sampled non-deposit
+cells more than two cells from any deposit, scored as the mean of per-fold AUCs, the classifier gives $0.982$ and
+$0.946$; those values come from a different cell set and are not comparable with the all-cells ones.
+
+\section{The Second Lie: An Overconfident Posterior}\label{sec:woe}
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.66\textwidth]{fig-woe.pdf}
-\caption{The modelling inflation. Weights-of-Evidence contrasts $C=W^+-W^-$ (bars) and their studentized
-significance $C/s(C)$ (line) for the six evidence layers of the real US-MVT belt. The raw contrasts are large
-(up to $6$), which looks decisive, but every layer's studentized contrast is below the $95\%$ significance
-threshold of $1.645$: on real, sparse deposit data the weights carry large standard errors and are not
-statistically significant, so the confident-looking map rests on evidence that does not survive its own error
-bars.}
+\caption{The weights of the real US-MVT belt. Weights-of-Evidence contrasts $C=W^+-W^-$ (bars) and studentized
+contrasts $C/s(C)$ (line) of the six evidence layers at the thresholds chosen on all deposits, with the one-sided
+($1.645$) and two-sided ($1.96$) $5\%$ levels. Every layer exceeds both. The four starred layers have no deposit
+cell outside their pattern, so their $W^-$, $C$ and $s(C)$ rest on the $0.5$ zero-count correction.}
 \label{fig:woe}
 \end{figure*}
 
-The second inflation is in the weights themselves (Fig.~\ref{fig:woe}). Weights of Evidence assumes the evidence
-layers are conditionally independent given a deposit; when correlated layers are stacked, their weights
-double-count the same signal and the posterior becomes overconfident, which is why a conditional-independence
-test~\cite{agterberg} belongs in any Weights-of-Evidence workflow, and ProspectMap runs one. But there is a
-simpler and equally important check that is often skipped: whether a contrast is statistically significant at all. On the real US-MVT
-belt the six evidence layers have large raw contrasts, up to about $6$, which a practitioner reading only the
-contrast would take as strong evidence. Their studentized contrasts $C/s(C)$, however, are all between $0.2$ and
-$0.9$, well below the $1.645$ threshold for $95\%$ significance: with sparse deposits and noisy layers the
-standard error of each weight is large, and none of the contrasts clears its own error bar. The map
-built from them may still be useful for ranking, but presenting its weights as decisive evidence is the second
-way the map lies, and showing the studentized contrast beside the raw one is the correction.
+The second inflation is in the model. Weights of Evidence assumes the evidence layers are conditionally
+independent given a deposit; when correlated layers are stacked, their weights double-count the same signal and
+the posterior becomes overconfident, which is why a conditional-independence test~\cite{agterberg} belongs in any
+Weights-of-Evidence workflow. On the real belt the assumption fails. Under conditional independence the posterior
+probabilities summed over the map equal, in expectation, the number of deposit cells; here they sum to
+$T = 1124$ against $N(D) = 858$, with $s(T) = 32$, so the omnibus test gives $z = 8.3$~\cite{agterberg} and the
+conditional-independence ratio $N(D)/T$ is $0.76$. The posterior probabilities therefore overstate the number of
+deposits by $31\%$. The pairwise tests, stratified by deposit presence, locate the dependence: the \texttt{lab}
+and \texttt{faultprox} patterns are the most dependent pair (Cram\'er's $V = 0.79$), followed by \texttt{grav}
+with \texttt{faultprox} ($0.31$) and \texttt{grav} with \texttt{lab} ($0.28$).
+
+The individual weights are a separate question (Fig.~\ref{fig:woe}). All six contrasts are statistically
+significant: their studentized contrasts $C/s(C)$ range from $2.45$ (\texttt{mag}) to $5.80$
+(\texttt{marginprox}), and exact one-sided Fisher tests on the six $2\times2$ tables give $p \le 1.9\times10^{-3}$
+for every layer. Their sizes, however, reflect how the thresholds were chosen. Each layer is binarized at the
+threshold that maximizes $C$ among $40$ candidates with $C/s(C) \ge 1.5$, and for \texttt{grav}, \texttt{lab},
+\texttt{satgrav} and
+\texttt{faultprox} that threshold puts every deposit cell inside the pattern. $W^-$ then rests on a zero count and
+on the correction of $0.5$ that replaces it; with a correction of $0.1$ the same four layers give $C/s(C)$ between
+$1.81$ and $2.48$. The exact tests do not depend on the correction, but the magnitudes of $C$, up to $6.2$, do, and
+they are maxima over $40$ thresholds on the same data, with $s(C)$ computed as if the $25{,}344$ cells were
+independent, although the layers and the deposits are spatially autocorrelated. The weights are significant, but
+not as decisive as their raw contrasts suggest.
 
 \section{Discussion and Scope}\label{sec:discuss}
 
-The two inflations are independent and both matter. A map can have significant weights and still report an
-inflated AUC because it was scored with random cross-validation; or it can have a spatially cross-validated AUC
-and still oversell weights that are not significant. ProspectMap's contribution is to compute the
-Weights-of-Evidence map and then put the deflating diagnostics next to it, the spatial-CV AUC beside the random
-one, the studentized contrast beside the raw one, and a conditional-independence test, so a user sees the
-corrected diagnostics beside the inflated ones, and a learned classifier is reported under the same
-random-versus-spatial contrast ($0.982$ against $0.946$ on its labelled sample). The ten terrane cases are synthetic,
-used to exercise the diagnostics under known ground truth; the one real case is the open Critical Minerals
-Mapping Initiative US-MVT dataset~\cite{lawley}, a real belt, on which spatial cross-validation
-removes the largest AUC inflation of any case and no evidence layer's contrast is significant. The tool is a
+The two inflations are independent and both matter. A map can pass the conditional-independence test and still
+report an inflated AUC because it was scored with random cross-validation; or it can report a spatially
+cross-validated AUC and still carry an overconfident posterior. ProspectMap's contribution is to compute the
+Weights-of-Evidence map and then put the deflating diagnostics next to it: the spatial-CV AUC beside the random
+one, the conditional-independence test beside the posterior, and the studentized contrast, flagged when it rests
+on a zero-count correction, beside the raw one. A learned classifier and a distance-to-deposit baseline are
+reported under the same folds; on the real belt the classifier's spatial-CV AUC ($0.908$) is far above that of
+Weights of Evidence ($0.648$), but the distance baseline reaches $0.899$, so the comparison ranks proximity to
+known deposits as much as geology. The ten synthetic cases, four terranes, two data regimes and four controls,
+exercise the diagnostics under known ground truth; the one real case is the open Critical Minerals Mapping
+Initiative US-MVT dataset~\cite{lawley}, on which spatial cross-validation removes the second-largest AUC
+inflation of the eleven cases and the conditional-independence test fails with $z = 8.3$. The tool is a
 decision-support and teaching instrument, not an exploration recommendation for any specific ground; it says where
 the evidence points and, more importantly, how much to trust it. The interface shows the same diagnostics on
 every map.
@@ -211,26 +232,30 @@ every map.
 \section{Conclusion}
 
 A mineral prospectivity map lies in two well-understood ways: it reports an AUC inflated by random
-cross-validation, and it presents Weights-of-Evidence contrasts that look decisive but may violate conditional
-independence or fail their own significance test. ProspectMap measures both. On the real US Mississippi-Valley-type
-belt the Weights-of-Evidence AUC falls from $0.72$ to $0.64$ when scored by spatial cross-validation (the largest
-inflation of any case), a learned classifier scored on a labelled sample falls from $0.98$ to $0.95$ under the
-same switch from random to spatial cross-validation, and every evidence layer's contrast is statistically
-insignificant despite looking large. The contribution
-is a reproducible tool that displays the corrected diagnostics, spatial-CV AUC and studentized significance, next
-to the inflated ones.
+cross-validation, and its Weights-of-Evidence posterior is overconfident when the evidence layers are not
+conditionally independent given a deposit. ProspectMap measures both. On the real US Mississippi-Valley-type belt
+the Weights-of-Evidence AUC falls from $0.74$ to $0.65$ when scored by spatial instead of random
+cross-validation, with thresholds, weights and prior fitted on the training folds only; a learned classifier
+reaches $0.91$ under the same spatial folds, where a baseline that ranks cells by their distance to the nearest
+training deposit reaches $0.90$; and the posterior probabilities sum to $1.31$ times the number of deposit cells
+(conditional-independence $z = 8.3$). The six layers' contrasts are individually significant, although four rest
+on thresholds that leave no deposit outside the pattern. The contribution is a reproducible tool that displays
+these diagnostics next to the inflated values.
 
 \appendices
 \section{Reproduction}\label{app:repro}
 
 {\raggedright\setlength{\parindent}{1em}
-The repository artifacts under \path{data/derived/} carry each case's Weights-of-Evidence layers (contrasts and
-studentized contrasts), posterior summary, pairwise conditional-independence tests, and both random- and
-spatial-cross-validation AUC (\path{case-results.json}), together with the learned classifier's random- and
-spatial-CV AUCs on the real belt (\path{pm-learned-real.json}, whose field \path{spatial_cv.wofe_roc_auc} holds the
-Weights-of-Evidence AUC without cross-validation) and the real US-MVT trace (\texttt{REAL-USMVT}, with the Lawley
-\emph{et al.} provenance). The figure scripts under \path{manuscripts/prospectivity/figures/} read those
-artifacts; the pipeline is seeded, so re-running reproduces Fig.~\ref{fig:inflation} and Fig.~\ref{fig:woe}.\par}
+The repository artifacts under \path{data/derived/} carry each case's Weights-of-Evidence layers (counts,
+contrasts and studentized contrasts), posterior summary, pairwise and omnibus conditional-independence tests, and
+both random- and spatial-cross-validation AUC (\path{case-results.json}). \path{pm-learned-real.json} carries the
+real belt's comparison under the same folds (\path{spatial_cv} and \path{random_cv}: Weights of Evidence, the
+learned classifier, the logistic regression and the distance baseline), the Weights-of-Evidence AUC without
+cross-validation (\path{nocv}) and the classifier's labelled-sample values (\path{labelled_sample_cv}); the real
+US-MVT trace (\texttt{REAL-USMVT}) carries the Lawley \emph{et al.} provenance.
+\path{manuscripts/prospectivity/data/build_pm.py} rebuilds the manuscript data (\path{data/pm.json}) from those
+artifacts, including the exact Fisher tests, and \path{figures/make_figs.py} draws Fig.~\ref{fig:inflation} and
+Fig.~\ref{fig:woe} from it; the pipeline is seeded.\par}
 
 \balance
 
