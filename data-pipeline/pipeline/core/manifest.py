@@ -30,19 +30,29 @@ HONESTY = ("The study areas are SYNTHETIC (geostatistically-grounded, clearly la
            "win.")
 
 
-def shared_artifacts() -> dict:
+# the learned models + metrics file of each lane: the synthetic cases share the 4-feature models; a real case has its
+# own 6-feature models (pipeline/real_learned.py). A manifest points at the files that actually describe its case.
+LEARNED_METRICS_FILE = {"synthetic": "pm-learned.json", "real": "pm-learned-real.json"}
+_MODEL_FILES = {
+    "synthetic": ("mpm-classifier.onnx", "geology-ood.onnx"),
+    "real": ("mpm-classifier-real.onnx", "geology-ood-real.onnx"),
+}
+
+
+def shared_artifacts(source: str = "synthetic") -> dict:
+    clf_file, ood_file = _MODEL_FILES[source]
     return {
         "models": [
-            {"id": "mpm-classifier", "file": "mpm-classifier.onnx", "opset": 17, "kind": "presence-only prospectivity MLP"},
-            {"id": "geology-ood", "file": "geology-ood.onnx", "opset": 17, "kind": "geology novelty autoencoder"},
+            {"id": "mpm-classifier", "file": clf_file, "opset": 17, "kind": "presence-only prospectivity MLP"},
+            {"id": "geology-ood", "file": ood_file, "opset": 17, "kind": "geology novelty autoencoder"},
         ],
-        "learned_metrics": "pm-learned.json",
+        "learned_metrics": LEARNED_METRICS_FILE[source],
         "case_results": "case-results.json",
     }
 
 
 def build_case_manifest(*, case: Any, seed: int, artifact_rel: str, trace_bytes: int,
-                        gate: dict, flags: list[dict], metrics: dict) -> dict:
+                        gate: dict, flags: list[dict], metrics: dict, source: str = "synthetic") -> dict:
     return {
         "schema": MANIFEST_SCHEMA,
         "case_id": case.id,
@@ -53,7 +63,7 @@ def build_case_manifest(*, case: Any, seed: int, artifact_rel: str, trace_bytes:
         "validation_anchor": case.validation_anchor,
         "engine": {"package": "pipeline", "version": __version__, "model": ENGINE_NOTE},
         "seed": seed,
-        "shared": shared_artifacts(),
+        "shared": shared_artifacts(source),
         "artifact": {"path": artifact_rel, "format": "json", "trace_schema": TRACE_SCHEMA, "bytes": trace_bytes},
         "lane": gate["lane"],
         "gate": gate,

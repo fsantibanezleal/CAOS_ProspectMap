@@ -11,9 +11,11 @@ the bake runs the SAME TS engine via tsx (no Python re-port). Its own venv: **`.
 - `pipeline/io/`, `contract.py` (**CONTRACT 1**) · `formats.py` (standard readers/writers) · `schema.py` (types)
 - `pipeline/core/`, `rng.py` (seeded determinism) · `trace.py` · `manifest.py` (**CONTRACT 2**) · `gate.py`
 - `pipeline/model/`, `learned.py`: the feature contracts for the two learned models (shared by the offline
-  trainer and the in-browser inference)
+  trainer and the in-browser inference) · `head_to_head.py`: the protocol of the real lane's learned-vs-WofE
+  comparison (one set of folds, cells and aggregation for both models; torch-free, tested in CI)
 - `pipeline/science/`, the two-language bake + learned lane (`bake_cases.mjs`, `gen_train.mjs`, `train_mpm.py`,
-  `eval_mpm.mjs`)
+  `eval_mpm.mjs`; for the real cube `bake_real.mjs` and `real_wofe_oof.mjs`, the engine's held-out WofE posterior
+  that `pipeline/real_learned.py` scores the MLP against)
 - `pipeline/stages/`, `preprocess → feature_extraction → train → infer → evaluate → export`
 - `pipeline/cases/`, documented cases
 

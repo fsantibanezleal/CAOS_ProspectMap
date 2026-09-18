@@ -13,7 +13,9 @@ browser run the identical engine, the live and offline numbers agree by construc
 ## The light pipeline (numpy)
 
 `python data-pipeline/run.py all` (default lane): applies Contract 1 to the case descriptors, reads `case-results.json` +
-`pm-learned.json` (when present), builds the per-case `trace.json` + `manifests/*.json` (Contract 2) via
+the learned metrics of each case's own lane (`pm-learned.json` for the synthetic cases, `pm-learned-real.json` for the
+real case, when present; a real case never carries the synthetic models' numbers), builds the per-case `trace.json` +
+`manifests/*.json` (Contract 2) via
 `stages/export.build_replay`, runs the lane gate, and writes the flat `index.json`. No torch / no Node, so CI is fast
 and the artifacts regenerate deterministically (byte-identical re-run).
 
@@ -28,3 +30,21 @@ and the artifacts regenerate deterministically (byte-identical re-run).
    `geology-ood.onnx` + `learned-partial.json`.
 4. `science/eval_mpm.mjs` (onnxruntime-web in Node) runs the exported classifier in the engine's runtime + assembles
    `data/derived/pm-learned.json`.
+
+## The real-data learned lane (run by hand, two-language)
+
+The real US-MVT cube has its own 6-feature models. After `pipeline/real_usmvt.py` (the cube) and
+`science/bake_real.mjs` (its WofE analysis in `case-results.json`):
+
+1. `science/real_wofe_oof.mjs` (Node, from `frontend/`) runs the engine's cross-validation of the real case with the
+   bake's defaults (`spatialBlockFolds` with 20x20-cell blocks, `randomFolds` with seed 17, k = 5, the per-fold WofE
+   refit) and writes the held-out WofE posterior and the folds of every map cell to
+   `data/raw/REAL-USMVT-wofe-oof.json` (git-ignored, regenerable).
+2. `pipeline/real_learned.py` (torch, `.venv-precompute`, run as `python -m pipeline.real_learned` from
+   `data-pipeline/`) trains `mpm-classifier-real.onnx` + `geology-ood-real.onnx` and writes `pm-learned-real.json`.
+   It scores the MLP under exactly the protocol of that export: the same folds, each fold refitted on the training
+   folds only, every map cell scored once while held out, the held-out scores pooled into one rank ROC AUC
+   (`pipeline/model/head_to_head.py`). It re-derives the WofE AUCs from the export with the same estimator and stops
+   unless they equal the bake, so `spatial_cv` and `random_cv` hold like-for-like pairs. The WofE AUC without
+   cross-validation is written under `nocv`, never under a cross-validation key.
+3. `python data-pipeline/run.py all` rebuilds the replay traces + manifests, so the real case carries these metrics.

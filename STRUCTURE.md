@@ -15,10 +15,10 @@ CAOS_ProspectMap/
 |     +- __init__.py (version) . pipeline.py (orchestrator+CLI, numpy-light + --retrain) . registry.py
 |     +- io/     contract.py (CONTRACT 1: a case bundle) . schema.py . formats.py
 |     +- core/   gate.py (live/precompute gate) . trace.py + manifest.py (CONTRACT 2) . rng.py
-|     +- model/  learned.py (MPM_FEATURES - the SOURCE OF TRUTH the SPA reproduces)
+|     +- model/  learned.py (MPM_FEATURES - the SOURCE OF TRUTH the SPA reproduces) . head_to_head.py (the real lane's learned-vs-WofE protocol)
 |     +- cases/  mpm_cases.py (the 10 K-/D-/C- cases, mirroring frontend/src/mpm/cases.ts)
 |     +- stages/ preprocess . feature_extraction . train . infer . evaluate . export (thin over the science)
-|     +- science/  bake_cases.mjs . gen_train.mjs . eval_mpm.mjs (Node+tsx, the SAME TS engine) . train_mpm.py (torch -> ONNX)
+|     +- science/  bake_cases.mjs . gen_train.mjs . eval_mpm.mjs . bake_real.mjs . real_wofe_oof.mjs (Node+tsx, the SAME TS engine) . train_mpm.py (torch -> ONNX)
 |     +- live.py  (dormant - the live lane is TypeScript, not Pyodide)
 +- data/
 |  +- examples/  cases.csv (a tiny committed CONTRACT-1 sample)

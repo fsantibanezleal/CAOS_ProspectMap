@@ -4,16 +4,31 @@ What-if (MLP) and Anomaly (AE) tabs are honest learned tools on real data, not t
 
   1. mpm-classifier-real : a small MLP over the 6 real evidence features -> P(deposit). Presence-only
      labels (positives = real Pb-Zn deposit cells; negatives are SAMPLED, distance-buffered from the
-     positives, never observed). Validated by SPATIAL block cross-validation and reported beside the
-     random-CV AUC (the inflation gap) and the white-box WofE AUC on the same data.
+     positives, never observed).
   2. geology-ood-real : an undercomplete autoencoder over the standardized 6-feature stack; the ONNX
      returns the per-cell reconstruction MSE (out 'xr' [N,1]) = the "outside the trained envelope"
      anomaly score. Feature standardization is baked into the graph so the browser feeds raw cube
      values (the SAME [0,1] arrays it renders).
 
+Evaluation, recorded in data/derived/pm-learned-real.json (schema prospectmap.learned/v2):
+
+  - classifier.spatial_cv / random_cv: the MLP and the white-box WofE under ONE protocol, the one behind the WofE
+    cross-validation AUCs of the committed bake (case-results.json): the engine's folds, each model refitted on the
+    training folds only, every map cell scored once while held out, the held-out scores pooled into one rank ROC AUC
+    (pipeline/model/head_to_head.py). The engine's held-out WofE posterior and folds come from
+    science/real_wofe_oof.mjs; the run stops if the AUCs re-derived from that export differ from the bake. `winner`
+    compares only these two like-for-like values. Beside them, `distance_null_roc_auc` is the engine's
+    distance-to-known-deposit baseline under the same folds: the ranking skill proximity alone reaches (the spatial
+    folds interleave blocks), a reference and never a contestant.
+  - classifier.nocv: the WofE AUC without cross-validation (weights fitted on every deposit, scored on the same
+    cells). A fitting AUC, kept apart from every cross-validated value (GitHub issue #41).
+  - classifier.labelled_sample_cv: the MLP-only CV on its labelled sample (mean of per-fold AUCs, shuffled blocks);
+    a different cell set with no WofE counterpart, kept for continuity with the published technical report.
+
 I/O mirrors the synthetic models exactly so ort.ts can load either: classifier in 'x'[N,6] out 'p'[N,1];
-OOD in 'x'[N,6] out 'xr'[N,1]. Run (isolated venv):
-    .venv-precompute/Scripts/python.exe -m pipeline.real_learned
+OOD in 'x'[N,6] out 'xr'[N,1]. Run (isolated venv), after the engine export:
+    (frontend/)      node --import tsx ../data-pipeline/pipeline/science/real_wofe_oof.mjs
+    (data-pipeline/) ../.venv-precompute/Scripts/python.exe -m pipeline.real_learned
 """
 from __future__ import annotations
 
@@ -24,10 +39,23 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from .model.head_to_head import (
+    LEARNED_REAL_SCHEMA,
+    build_classifier_block,
+    check_oof_matches_bake,
+    distance_null_aucs,
+    load_wofe_oof,
+    rank_auc,
+    sample_negatives_in_pool,
+)
+
 ROOT = Path(__file__).resolve().parents[2]
 DERIVED = ROOT / "data" / "derived"
-CUBE = DERIVED / "REAL-USMVT" / "cube.json"
-TRACE = DERIVED / "REAL-USMVT" / "trace.json"
+RAW = ROOT / "data" / "raw"
+CASE_ID = "REAL-USMVT"
+CUBE = DERIVED / CASE_ID / "cube.json"
+CASE_RESULTS = DERIVED / "case-results.json"
+WOFE_OOF = RAW / f"{CASE_ID}-wofe-oof.json"
 FEATURES = ["mag", "grav", "lab", "satgrav", "faultprox", "marginprox"]
 SEED = 17
 BLOCK = 20  # spatial block side in cells (mirrors the engine's spatialBlockFolds default)
@@ -78,6 +106,7 @@ def sample_negatives(y, rows, cols, ratio=3, buffer_cells=2):
 
 
 def spatial_folds(rows, cols, block=BLOCK, k=K):
+    """Shuffled block folds for the labelled-sample CV only (NOT the engine's blockId % k)."""
     br = rows // block
     bc = cols // block
     block_id = br * (cols.max() // block + 2) + bc
@@ -115,6 +144,8 @@ class AE(nn.Module):
 
 
 def roc_auc(scores, labels):
+    """Trapezoidal ROC AUC without tie averaging: the estimator of the labelled-sample CV only. The head-to-head uses
+    head_to_head.rank_auc, the engine's estimator."""
     order = np.argsort(-scores)
     lab = labels[order]
     P = lab.sum()
@@ -148,6 +179,7 @@ def train_mlp(Xtr, ytr):
 
 
 def cv_auc(X, y, folds):
+    """Labelled-sample CV: the mean of the per-fold AUCs over the labelled rows of each held-out fold."""
     aucs = []
     for f in range(K):
         tr = folds != f
@@ -159,6 +191,25 @@ def cv_auc(X, y, folds):
             s = m(torch.tensor(X[te], dtype=torch.float32)).numpy().ravel()
         aucs.append(roc_auc(s, y[te]))
     return float(np.nanmean(aucs)) if aucs else float("nan")
+
+
+def heldout_mlp_scores(X, y, rows, cols, nx, ny, cells, folds, k):
+    """The MLP under the head-to-head protocol: for each fold f, train on the training folds' deposits plus
+    distance-buffered negatives sampled from the training folds only, then score every map cell of fold f (missing
+    values fed as 0, as the browser does). Returns one held-out score per entry of `cells`."""
+    neg_rng = np.random.default_rng(SEED)  # independent of the module rng, so this block never shifts the others
+    scores = np.full(len(cells), np.nan)
+    for f in range(k):
+        held = folds == f
+        train_pool = cells[~held]
+        neg = sample_negatives_in_pool(y, rows, cols, train_pool, neg_rng, nx=nx, ny=ny)
+        pos = train_pool[y[train_pool] > 0.5]
+        idx = np.concatenate([pos, neg])
+        torch.manual_seed(SEED)  # the same initialisation for every fold, whatever ran before
+        model = train_mlp(X[idx], y[idx])
+        with torch.no_grad():
+            scores[held] = model(torch.tensor(X[cells[held]], dtype=torch.float32)).numpy().ravel()
+    return scores
 
 
 def export_onnx(model, path, out_name):
@@ -180,11 +231,11 @@ def main():
     Xtr, ytr = X[idx], y[idx]
     tr_rows, tr_cols = rows[idx], cols[idx]
 
-    # spatial-block vs random CV on the labelled set (the inflation gap)
+    # MLP-only CV on its labelled sample: spatial (shuffled blocks) vs random folds, mean of per-fold AUCs
     sfolds = spatial_folds(tr_rows, tr_cols)
     rfolds = rng.integers(0, K, size=len(idx))
-    mlp_spatial = cv_auc(Xtr, ytr, sfolds)
-    mlp_random = cv_auc(Xtr, ytr, rfolds)
+    ls_spatial = cv_auc(Xtr, ytr, sfolds)
+    ls_random = cv_auc(Xtr, ytr, rfolds)
 
     # final classifier on all labelled data -> ONNX
     clf = train_mlp(Xtr, ytr)
@@ -207,36 +258,63 @@ def main():
         in_mse = ae(torch.tensor(X[finite], dtype=torch.float32)).numpy().ravel()
     threshold = float(np.percentile(in_mse, 95))
 
-    # WofE AUCs (from the trace) for the head-to-head comparison shown in the App
-    tr = json.loads(TRACE.read_text(encoding="utf-8"))
-    wofe_auc = round(float(tr["roc_auc"]), 4)
-    wofe_spatial = round(float(tr["cv"]["spatialAuc"]), 4)
+    # the head-to-head: the MLP under exactly the protocol of the bake's WofE cross-validation AUCs
+    if not WOFE_OOF.exists():
+        raise SystemExit(f"missing {WOFE_OOF}: run science/real_wofe_oof.mjs first (from frontend/: "
+                         "node --import tsx ../data-pipeline/pipeline/science/real_wofe_oof.mjs)")
+    case_result = json.loads(CASE_RESULTS.read_text(encoding="utf-8"))["cases"][CASE_ID]
+    oof = load_wofe_oof(WOFE_OOF)
+    if oof["case_id"] != CASE_ID or (oof["nx"], oof["ny"]) != (nx, ny) or list(oof["layer_ids"]) != FEATURES:
+        raise SystemExit(f"{WOFE_OOF} does not describe this cube ({CASE_ID}, {nx}x{ny}, {FEATURES})")
+    if not np.array_equal(np.flatnonzero(y > 0.5), oof["deposit_cells"]):
+        raise SystemExit("the engine export and cube.json disagree on the deposit cells")
+    wofe_cv = check_oof_matches_bake(oof, case_result)
+    null_cv = distance_null_aucs(oof)  # the proximity-only reference under the same folds
+    cells = oof["cells"]
+    labels = y[cells]
+    mlp_cv = {}
+    for scheme in ("spatial", "random"):
+        held = heldout_mlp_scores(X, y, rows, cols, nx, ny, cells, oof[scheme]["folds"], oof["k"])
+        mlp_cv[scheme] = rank_auc(held, labels)
 
+    classifier = build_classifier_block(
+        case_result=case_result, wofe_cv=wofe_cv, mlp_cv=mlp_cv,
+        labelled={"spatial": ls_spatial, "random": ls_random, "n_pos": len(pos), "n_neg": len(neg)},
+        k=oof["k"], block_cells=oof["block_cells"], random_seed=oof["random_seed"],
+        null_cv=null_cv, null_scale_cells=oof["null_scale_cells"],
+    )
     out = {
-        "schema": "prospectmap.learned/v1",
-        "case_id": "REAL-USMVT",
-        "classifier": {
-            "spatial_cv": {"mlp_roc_auc": round(mlp_spatial, 4), "wofe_roc_auc": wofe_auc,
-                           "winner": "mlp" if mlp_spatial > wofe_spatial else "wofe"},
-            "random_cv": {"mlp_roc_auc": round(mlp_random, 4)},
-            "mlp_roc_auc": round(mlp_spatial, 4),
-            "inflation_gap": round(mlp_random - mlp_spatial, 4),
-            "nFolds": K,
-            "nEval": int(len(idx)),
-        },
+        "schema": LEARNED_REAL_SCHEMA,
+        "case_id": CASE_ID,
+        "classifier": classifier,
         "ood": {"auc": None, "nEval": int(finite.sum()), "threshold": round(threshold, 4)},
         "honesty": (
             "Trained on the REAL US Midcontinent MVT cube (6 real evidence features), NOT the synthetic "
             "4-feature models. Deposit labels are presence-only; negatives are SAMPLED (distance-buffered), "
-            "never observed. Validated by SPATIAL block cross-validation and reported beside random-CV (the "
-            "inflation gap) and the white-box WofE AUC. MVT occurrences are strongly clustered, so the honest "
-            "spatial-CV skill is modest; the random-CV number is inflated and shown only to expose that. The "
-            "OOD AE flags cells outside the labelled geology envelope. No fabricated win."
+            "never observed. The MLP and the white-box WofE are compared under ONE protocol: the engine's "
+            "spatial-block folds, each model refitted on the training folds, every map cell scored once while "
+            "held out, the held-out scores pooled into one ROC AUC; the engine's random folds give the random-CV "
+            "values and the inflation gap. The WofE AUC without cross-validation is kept apart (nocv) and is never "
+            "compared with a cross-validated value. The labelled-sample CV is an MLP-only measurement on a "
+            "different cell set, with no WofE counterpart. MVT occurrences are strongly clustered and the engine's "
+            "spatial folds interleave blocks, so every held-out block borders training blocks: the distance-to-"
+            "known-deposit baseline scored under the same folds (distance_null_roc_auc) is the ranking skill "
+            "proximity alone reaches, and a model must beat it to claim it learned geology. The "
+            "contiguous-fold head-to-head in pu-conformal.json is the stricter transfer test. The random-CV values "
+            "are inflated and shown only to expose that. The OOD AE flags cells outside the labelled geology "
+            "envelope. Reported whichever way the numbers land."
         ),
     }
-    (DERIVED / "pm-learned-real.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
-    print(f"classifier: spatial-CV AUC={mlp_spatial:.3f} random-CV AUC={mlp_random:.3f} "
-          f"(WofE spatial {wofe_spatial:.3f}); OOD p95 threshold={threshold:.3f}")
+    # LF on every platform, so a re-run is byte-identical on Windows and Linux
+    (DERIVED / "pm-learned-real.json").write_text(json.dumps(out, indent=1), encoding="utf-8", newline="\n")
+    s = classifier["spatial_cv"]
+    r = classifier["random_cv"]
+    print(f"head-to-head (all {classifier['nEval']} map cells, engine folds, pooled): spatial-CV AUC "
+          f"MLP {s['mlp_roc_auc']:.4f} vs WofE {s['wofe_roc_auc']:.4f} ({s['winner']}), distance null "
+          f"{s['distance_null_roc_auc']:.4f}; random-CV MLP {r['mlp_roc_auc']:.4f} vs WofE {r['wofe_roc_auc']:.4f}, "
+          f"distance null {r['distance_null_roc_auc']:.4f}; WofE without CV {classifier['nocv']['wofe_roc_auc']:.4f}")
+    print(f"labelled-sample CV (MLP only): spatial {ls_spatial:.4f} random {ls_random:.4f}; "
+          f"OOD p95 threshold={threshold:.4f}")
     print("wrote mpm-classifier-real.onnx, geology-ood-real.onnx, pm-learned-real.json")
 
 

@@ -2,6 +2,43 @@
 
 All notable changes to ProspectMap. Format: [Keep a Changelog](https://keepachangelog.com); versions are X.XX.XXX.
 
+## [0.10.001] · 2026-09-18
+
+### Fixed - the real lane set a cross-validated MLP AUC against a WofE AUC fitted without cross-validation (#41)
+
+`pm-learned-real.json` stored the Weights-of-Evidence AUC fitted on all deposits and scored on the same cells (0.732,
+no cross-validation) as `classifier.spatial_cv.wofe_roc_auc`, and set `winner: "mlp"` by comparing the MLP's
+labelled-sample CV (0.946: 858 deposit plus 2574 buffered cells, shuffled blocks, mean of per-fold AUCs) with the WofE
+spatial-CV AUC pooled over all 25344 map cells (0.637). Different cell sets and aggregations: the flag compared
+nothing.
+
+- The MLP is now scored under exactly the protocol of the WofE cross-validation AUCs in `case-results.json`: the
+  engine's folds (exported through the TS engine itself by the new `science/real_wofe_oof.mjs`), each model refitted
+  on the training folds only, every map cell scored once while held out, one pooled rank AUC. `real_learned.py` stops
+  unless the WofE AUCs it re-derives from the export equal the bake. Spatial CV: MLP 0.908, WofE 0.637. Random CV:
+  MLP 0.939, WofE 0.723.
+- The engine's distance-to-known-deposit baseline is scored under the same folds and reported beside the pair: 0.899
+  spatial, 0.960 random. It learns no geology and comes within 0.010 of the MLP, so this protocol cannot show that the
+  MLP learned more than proximity to known deposits. The engine's folds interleave blocks; the contiguous-fold
+  benchmark (`pu-conformal.json`) stays the stricter transfer test.
+- Schema `prospectmap.learned/v2`: a machine-readable `protocol`; `winner` from the like-for-like spatial pair only;
+  `nocv.wofe_roc_auc` (0.732) for the fitting AUC; the old labelled-sample values under `labelled_sample_cv` with their
+  protocol and no WofE counterpart; AUCs written at 6 decimals so the App's 3-decimal display matches the live engine.
+  Both real ONNX models are byte-identical (the original computations keep their RNG order).
+- The replay pipeline (`run.py all`, run on every deploy) wrote the synthetic lane's `pm-learned.json` (0.971 vs
+  0.929, winner "mlp") into the REAL-USMVT trace and manifest. Each case now carries its own lane's learned metrics and
+  ONNX pointers.
+
+### Changed - every AUC in the App states its protocol
+
+- What-if (MLP): the MLP and WofE values under the one shared protocol, stated in EN/ES, with the like-for-like
+  verdict, the distance baseline and the interleaved-folds caveat. A real-lane metrics file that does not declare its
+  protocol shows no pairing and no verdict.
+- Method compare gains a protocol column; the cross-validated MLP value no longer sits in the ranking column of the
+  fitting AUCs. The Map, ROC, CV, overlay, PU-Conformal, Benchmark and Experiments labels name their protocol (fit and
+  no CV, spatial CV, random CV, contiguous folds). Benchmark shows each lane's like-for-like pair with its protocol.
+- The pipeline's version constant follows `VERSION` again (it had stayed at 0.08.000).
+
 ## [0.10.000] · 2026-08-01
 
 ### Fixed - up to 54% of the map was deleted, and nothing could scroll to it

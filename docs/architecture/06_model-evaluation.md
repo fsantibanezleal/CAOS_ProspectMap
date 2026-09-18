@@ -17,14 +17,44 @@ The science is pinned against closed forms + WofE theory + the synthetic control
 
 ## The two learned models
 
-The **mpm-classifier** (a presence-only MLP) and the **geology-ood** (an autoencoder) are honest, value-adding ML
-measured against the white-box WofE posterior, not bolted-on. The WofE posterior is the interpretable authority. The
-classifier is validated by spatial block cross-validation and benchmarked head-to-head against WofE on the identical
-spatial holdout; the random-CV AUC is reported beside it to surface the inflation gap. Measured (not fabricated):
-**mpm-classifier spatial-CV AUC 0.971 vs WofE 0.929** (winner: the MLP, on the multi-layer interactions WofE's CI form
-omits), random-CV 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set - uniform
-features pushed outside the training band, separable by construction; not a field-detection claim). Deposit labels are
-presence-only; negatives are sampled, never observed. Reported whichever way the numbers land. No fabricated win.
+The **mpm-classifier** (a presence-only MLP) and the **geology-ood** (an autoencoder) are measured against the
+white-box WofE posterior, the interpretable authority. Each lane compares the classifier with WofE under ONE protocol
+(the same folds, held-out cells, labels and aggregation) and states it beside every value; an AUC measured under
+another protocol is never set against it. Deposit labels are presence-only; negatives are sampled, never observed.
+Reported whichever way the numbers land.
+
+### Synthetic lane (`pm-learned.json`, `science/gen_train.mjs` + `science/train_mpm.py`)
+
+Cells: the labelled rows (deposit cells plus negatives sampled at least 6 cells from any deposit, 8 per deposit) of
+the five training cases (K-PORPHYRY, K-OROGENIC, K-VMS, K-IOCG, D-RICH). Folds: the engine's `spatialBlockFolds`
+(20x20-cell blocks, fold = blockId % 5). WofE: the engine's held-out posterior, weights refitted per fold; MLP: trained
+on the other folds' rows. One pooled held-out AUC over the rows. Measured: **MLP 0.971 vs WofE 0.929** (winner: the
+MLP), random-CV MLP 0.979 (inflation +0.008), **geology-OOD AUC 1.0** (on a synthetic out-of-band eval set, uniform
+features pushed outside the training band, separable by construction; not a field-detection claim).
+
+### Real lane (`pm-learned-real.json`, `science/real_wofe_oof.mjs` + `pipeline/real_learned.py`)
+
+Cells: all 25344 map cells of the US Midcontinent MVT cube (858 deposit cells). Folds: the engine's `spatialBlockFolds`
+(20x20-cell blocks, fold = blockId % 5) and `randomFolds` (seed 17), the folds behind the WofE cross-validation AUCs of
+`case-results.json`. WofE: weights refitted per fold on the training deposits; MLP: trained per fold on the
+training-fold deposits plus buffered negatives sampled from the training folds only. Every cell is scored once while
+held out, and the held-out scores are pooled into one rank (Mann-Whitney) AUC. The engine's distance-to-known-deposit
+score (`nearestDepositScore`, exp(-d/4) to the nearest training deposit) is scored under the same folds as a reference
+that learns no geology.
+
+| protocol (all 25344 cells, pooled held-out AUC) | MLP | WofE | distance baseline |
+|---|---|---|---|
+| spatial-block CV | 0.908 | 0.637 | 0.899 |
+| random CV | 0.939 | 0.723 | 0.960 |
+
+Under the engine's folds the MLP ranks held-out cells better than WofE, but the baseline reaches 0.899, within 0.010 of
+the MLP, so this protocol cannot show that the MLP learned more than proximity to known deposits. The engine's folds
+interleave blocks, so every held-out block borders training blocks; the contiguous-fold head-to-head below is the
+stricter transfer test. The WofE AUC without cross-validation (0.732, fitted and scored on the same cells) is a fitting
+number, stored apart under `nocv`. The MLP's CV on its labelled sample (858 deposit and 2574 buffered cells, shuffled
+blocks, mean of per-fold AUCs: 0.946 spatial, 0.982 random) is kept under `labelled_sample_cv`; it has no WofE
+counterpart and is not a comparison. Before version 0.10.001 the file stored the no-CV WofE value under
+`spatial_cv.wofe_roc_auc`, beside a winner flag that compared values from different cell sets (GitHub issue #41).
 
 ## The PU-Conformal head-to-head + negative controls (`data-pipeline/pipeline/pu_conformal.py`)
 

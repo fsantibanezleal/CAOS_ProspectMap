@@ -25,3 +25,8 @@ interactions WofE's CI form omits) - random-CV 0.979 (inflation +0.008) - geolog
 out-of-band eval set, separable by construction - not a field-detection claim). `train_mpm.py` exports
 the 2 ONNX + `learned-partial.json`; `eval_mpm.mjs` runs the exported classifier in onnxruntime-web (the engine's own
 runtime, the honest end-to-end check) and assembles `pm-learned.json` (schema `prospectmap.learned/v1`).
+
+The real US-MVT lane has its own 6-feature models (`mpm-classifier-real.onnx`, `geology-ood-real.onnx`), trained by
+`pipeline/real_learned.py` and scored against WofE on all map cells under the engine's own folds, beside a
+distance-to-known-deposit baseline (`pm-learned-real.json`, schema `prospectmap.learned/v2`); the protocol and the
+numbers are in [06 - model evaluation](../architecture/06_model-evaluation.md).
